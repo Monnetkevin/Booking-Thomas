@@ -12,7 +12,8 @@ const apartment: Apartment = {
   postal_code: '72000',
   city: 'Le Mans',
   latitude: 48.0061,
-  longitude: null,
+  longitude: 0.1996,
+  geocoding: 'found',
   capacity: 4,
   bedrooms: 1,
   beds: 2,
@@ -39,11 +40,8 @@ describe('formulaire de logement', () => {
 
     expect(result.errors).toBeUndefined()
     expect(result.input).toMatchObject({
-      slug: 'le-cocon',
       name: { fr: 'Le Cocon', en: 'The Cocoon' },
       description: { fr: 'Bohème', en: '' },
-      latitude: 48.0061,
-      longitude: null,
       capacity: 4,
       surface_m2: 60,
       cleaning_fee: 4550,
@@ -61,8 +59,11 @@ describe('formulaire de logement', () => {
     })
   })
 
-  it('laisse le slug vide pour que l’API le génère', () => {
-    expect(apartmentInputFromForm({ ...emptyApartmentForm, nameFr: 'Nid doux' }).input?.slug).toBeNull()
+  it('n’envoie ni adresse de page ni coordonnées : l’API les calcule', () => {
+    const { input } = apartmentInputFromForm({ ...emptyApartmentForm, nameFr: 'Nid doux' })
+    expect(input).not.toHaveProperty('slug')
+    expect(input).not.toHaveProperty('latitude')
+    expect(input).not.toHaveProperty('longitude')
   })
 
   it('rattache les erreurs de l’API aux champs', () => {

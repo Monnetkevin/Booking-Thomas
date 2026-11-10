@@ -118,8 +118,6 @@
         "descriptionEn": "Description (anglais)",
         "descriptionHint": "Ambiance, points forts, ce qui rend le logement unique.",
         "translationHint": "Laissé vide, le texte français est affiché.",
-        "slug": "Adresse de la page",
-        "slugHint": "/logements/{{slug}} — laissée vide, elle est tirée du nom.",
         "surface": "Surface",
         "capacity": "Voyageurs",
         "bedrooms": "Chambres",
@@ -133,9 +131,6 @@
         "addressHint": "Seule la rue approximative est affichée avant la réservation.",
         "postalCode": "Code postal",
         "city": "Ville",
-        "latitude": "Latitude",
-        "longitude": "Longitude",
-        "coordinatesHint": "Pour la carte, par ex. 48.0061 et 0.1996. Facultatif.",
         "minStay": "Séjour minimum",
         "minStayHint": "Par défaut ; une période tarifaire peut en fixer un autre.",
         "maxStay": "Séjour maximum",
@@ -202,6 +197,14 @@
         "delete": "Supprimer ce logement",
         "confirmTitle": "Supprimer « {{name}} » ?",
         "confirm": "Le logement disparaît du site et du back-office."
+      },
+      "computed": {
+        "pageUrl": "Adresse de la page",
+        "pageUrlHint": "Tirée du nom français ; elle change si le nom change.",
+        "map": "Position sur la carte",
+        "pending": "Calcul en cours d'après l'adresse…",
+        "found": "Trouvée d'après l'adresse.",
+        "not_found": "Adresse introuvable : vérifiez le numéro, la rue et le code postal."
       }
     },
     "rates": {

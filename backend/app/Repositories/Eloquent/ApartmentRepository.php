@@ -76,6 +76,11 @@ class ApartmentRepository implements ApartmentRepositoryInterface
         return $apartment->ratePeriods()->where('ends_on', '>=', $today->toDateString())->exists();
     }
 
+    public function awaitingGeocoding(): Collection
+    {
+        return Apartment::query()->whereNull('geocoded_at')->get();
+    }
+
     public function photoCount(Apartment $apartment): int
     {
         return $apartment->media()->where('collection_name', Apartment::PHOTOS)->count();

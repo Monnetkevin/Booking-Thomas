@@ -15,8 +15,11 @@ export function useApartment(id: number, service: ApartmentService = apartmentSe
   return useQuery({
     queryKey: apartmentKeys.detail(id),
     queryFn: () => service.get(id),
-    // Tant qu'une photo est en préparation (conversion en tâche de fond), on revérifie.
-    refetchInterval: (query) => (query.state.data?.photos.some((photo) => !photo.ready) ? 3000 : false),
+    // Tant qu'une photo ou la position sur la carte est calculée en tâche de fond, on revérifie.
+    refetchInterval: (query) => {
+      const data = query.state.data
+      return data && (data.geocoding === 'pending' || data.photos.some((photo) => !photo.ready)) ? 3000 : false
+    },
   })
 }
 

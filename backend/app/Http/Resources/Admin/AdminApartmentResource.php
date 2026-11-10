@@ -30,6 +30,12 @@ class AdminApartmentResource extends JsonResource
             'city' => $this->city,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
+            // pending : calcul en cours ; found : placé sur la carte ; not_found : adresse introuvable
+            'geocoding' => match (true) {
+                $this->geocoded_at === null => 'pending',
+                $this->latitude !== null => 'found',
+                default => 'not_found',
+            },
             'capacity' => $this->capacity,
             'bedrooms' => $this->bedrooms,
             'beds' => $this->beds,

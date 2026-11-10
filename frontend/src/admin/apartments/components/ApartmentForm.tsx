@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { SelectField, TextArea, TextField } from '@/components/ui/Field'
@@ -16,6 +16,8 @@ interface ApartmentFormProps {
   pending: boolean
   /** Erreurs renvoyées par l'API, déjà rattachées aux champs. */
   serverErrors?: ApartmentFormErrors
+  /** Informations calculées affichées sous l'adresse (adresse de la page, position). */
+  addressInfo?: ReactNode
   onSubmit: (input: ApartmentInput) => void
 }
 
@@ -25,7 +27,7 @@ const policies: CancellationPolicy[] = ['flexible', 'moderate', 'strict']
  * Informations, adresse et règles du séjour d'un logement. Ne fait que saisir et
  * convertir ; l'enregistrement est confié au parent.
  */
-export function ApartmentForm({ initialValues, submitLabel, pending, serverErrors = {}, onSubmit }: ApartmentFormProps) {
+export function ApartmentForm({ initialValues, submitLabel, pending, serverErrors = {}, addressInfo, onSubmit }: ApartmentFormProps) {
   const { t } = useTranslation()
   const [values, setValues] = useState(initialValues)
   const [localErrors, setLocalErrors] = useState<ApartmentFormErrors>({})
@@ -85,13 +87,6 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
             {...bind('cleaningFee')}
           />
         </div>
-        <TextField
-          className="mt-4"
-          label={f('slug')}
-          hint={t('admin.apartments.fields.slugHint', { slug: values.slug || '…' })}
-          maxLength={80}
-          {...bind('slug')}
-        />
       </Section>
 
       <Section title={t('admin.apartments.sections.location')}>
@@ -100,10 +95,7 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
           <TextField label={f('postalCode')} required inputMode="numeric" maxLength={5} autoComplete="postal-code" {...bind('postalCode')} />
           <TextField label={f('city')} required autoComplete="address-level2" {...bind('city')} />
         </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <TextField label={f('latitude')} hint={f('coordinatesHint')} inputMode="decimal" {...bind('latitude')} />
-          <TextField label={f('longitude')} inputMode="decimal" {...bind('longitude')} />
-        </div>
+        {addressInfo && <div className="mt-4">{addressInfo}</div>}
       </Section>
 
       <Section title={t('admin.apartments.sections.rules')}>

@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api'
 import { formErrorsFromApi, formFromApartment } from '../apartmentForm'
 import { AmenityPicker } from '../components/AmenityPicker'
+import { ComputedAddressInfo } from '../components/ComputedAddressInfo'
 import { ApartmentForm } from '../components/ApartmentForm'
 import { DangerZone } from '../components/DangerZone'
 import { PhotoManager } from '../components/PhotoManager'
@@ -52,6 +53,7 @@ export function ApartmentEditPage() {
             submitLabel={t('admin.common.save')}
             pending={update.isPending}
             serverErrors={apiError ? formErrorsFromApi(apiError.fieldErrors) : undefined}
+            addressInfo={<ComputedAddressInfo apartment={data} />}
             onSubmit={(input) => update.mutate(input)}
           />
           <PhotoManager apartmentId={data.id} photos={data.photos} />

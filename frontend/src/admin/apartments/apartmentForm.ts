@@ -3,7 +3,6 @@ import type { Apartment, ApartmentInput, CancellationPolicy } from './types'
 
 /** Valeurs du formulaire, telles que saisies (chaînes), avant conversion pour l'API. */
 export interface ApartmentFormValues {
-  slug: string
   nameFr: string
   nameEn: string
   descriptionFr: string
@@ -11,8 +10,6 @@ export interface ApartmentFormValues {
   address: string
   postalCode: string
   city: string
-  latitude: string
-  longitude: string
   capacity: string
   bedrooms: string
   beds: string
@@ -29,7 +26,6 @@ export interface ApartmentFormValues {
 }
 
 export const emptyApartmentForm: ApartmentFormValues = {
-  slug: '',
   nameFr: '',
   nameEn: '',
   descriptionFr: '',
@@ -37,8 +33,6 @@ export const emptyApartmentForm: ApartmentFormValues = {
   address: '',
   postalCode: '72000',
   city: 'Le Mans',
-  latitude: '',
-  longitude: '',
   capacity: '2',
   bedrooms: '1',
   beds: '1',
@@ -58,7 +52,6 @@ export function formFromApartment(apartment: Apartment): ApartmentFormValues {
   const text = (value: number | null) => (value === null ? '' : String(value))
 
   return {
-    slug: apartment.slug,
     nameFr: apartment.name.fr ?? '',
     nameEn: apartment.name.en ?? '',
     descriptionFr: apartment.description.fr ?? '',
@@ -66,8 +59,6 @@ export function formFromApartment(apartment: Apartment): ApartmentFormValues {
     address: apartment.address,
     postalCode: apartment.postal_code,
     city: apartment.city,
-    latitude: text(apartment.latitude),
-    longitude: text(apartment.longitude),
     capacity: String(apartment.capacity),
     bedrooms: String(apartment.bedrooms),
     beds: String(apartment.beds),
@@ -98,19 +89,15 @@ export function apartmentInputFromForm(
 
   const integer = (value: string) => Number.parseInt(value, 10)
   const optionalInteger = (value: string) => (value.trim() === '' ? null : integer(value))
-  const optionalNumber = (value: string) => (value.trim() === '' ? null : Number(value.replace(',', '.')))
   const optionalText = (value: string) => (value.trim() === '' ? null : value.trim())
 
   return {
     input: {
-      slug: optionalText(values.slug),
       name: { fr: values.nameFr.trim(), en: values.nameEn.trim() },
       description: { fr: values.descriptionFr.trim(), en: values.descriptionEn.trim() },
       address: values.address.trim(),
       postal_code: values.postalCode.trim(),
       city: values.city.trim(),
-      latitude: optionalNumber(values.latitude),
-      longitude: optionalNumber(values.longitude),
       capacity: integer(values.capacity),
       bedrooms: integer(values.bedrooms),
       beds: integer(values.beds),
@@ -130,7 +117,6 @@ export function apartmentInputFromForm(
 
 /** Clé d'erreur de l'API (« name.fr », « cleaning_fee ») → champ du formulaire. */
 const apiFieldMap: Record<string, keyof ApartmentFormValues> = {
-  slug: 'slug',
   'name.fr': 'nameFr',
   'name.en': 'nameEn',
   'description.fr': 'descriptionFr',
@@ -138,8 +124,6 @@ const apiFieldMap: Record<string, keyof ApartmentFormValues> = {
   address: 'address',
   postal_code: 'postalCode',
   city: 'city',
-  latitude: 'latitude',
-  longitude: 'longitude',
   capacity: 'capacity',
   bedrooms: 'bedrooms',
   beds: 'beds',

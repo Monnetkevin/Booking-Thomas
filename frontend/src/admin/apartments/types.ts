@@ -1,5 +1,6 @@
 export type ApartmentStatus = 'draft' | 'published'
 export type CancellationPolicy = 'flexible' | 'moderate' | 'strict'
+export type GeocodingStatus = 'pending' | 'found' | 'not_found'
 
 /** Texte traduit : le français est obligatoire, l'anglais retombe dessus s'il est vide. */
 export interface Translated {
@@ -47,6 +48,8 @@ export interface Apartment {
   city: string
   latitude: number | null
   longitude: number | null
+  /** Position sur la carte calculée depuis l'adresse. */
+  geocoding: GeocodingStatus
   capacity: number
   bedrooms: number
   beds: number
@@ -67,16 +70,16 @@ export interface Apartment {
   updated_at: string | null
 }
 
-/** Corps envoyé à POST/PUT /admin/apartments (montants en centimes). */
+/**
+ * Corps envoyé à POST/PUT /admin/apartments (montants en centimes). L'adresse de la page
+ * est tirée du nom et les coordonnées de l'adresse : l'API les calcule.
+ */
 export interface ApartmentInput {
-  slug?: string | null
   name: Translated
   description: Translated
   address: string
   postal_code: string
   city: string
-  latitude: number | null
-  longitude: number | null
   capacity: number
   bedrooms: number
   beds: number

@@ -43,6 +43,13 @@ interface ApartmentRepositoryInterface
     public function photoCount(Apartment $apartment): int;
 
     /**
+     * Logements dont la position n'a jamais été calculée.
+     *
+     * @return Collection<int, Apartment>
+     */
+    public function awaitingGeocoding(): Collection;
+
+    /**
      * @param  list<int>  $orderedIds
      */
     public function reorder(array $orderedIds): void;

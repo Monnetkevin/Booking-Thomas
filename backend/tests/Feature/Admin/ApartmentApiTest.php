@@ -18,29 +18,6 @@ beforeEach(function () {
     $this->actingAs(User::factory()->create());
 });
 
-function apartmentPayload(array $overrides = []): array
-{
-    return array_replace_recursive([
-        'name' => ['fr' => 'Le Cocon', 'en' => 'The Cocoon'],
-        'description' => ['fr' => 'Bohème, rotin et lumière.', 'en' => ''],
-        'address' => '12 rue de la Paix',
-        'postal_code' => '72000',
-        'city' => 'Le Mans',
-        'capacity' => 4,
-        'bedrooms' => 1,
-        'beds' => 2,
-        'bathrooms' => 1,
-        'surface_m2' => 60,
-        'check_in_time' => '16:00',
-        'check_out_time' => '10:00',
-        'min_stay' => 2,
-        'max_stay' => 28,
-        'turnover_days' => 0,
-        'cleaning_fee' => 4500,
-        'cancellation_policy' => 'moderate',
-    ], $overrides);
-}
-
 function addPhoto(Apartment $apartment): void
 {
     $apartment->addMedia(UploadedFile::fake()->image('salon.jpg', 1200, 800))
@@ -70,7 +47,7 @@ describe('création et modification', function () {
     it('rend le slug unique', function () {
         Apartment::factory()->create(['slug' => 'le-cocon']);
 
-        $this->postJson('/api/admin/apartments', apartmentPayload())->assertJsonPath('data.slug', 'le-cocon-2');
+        $this->postJson('/api/admin/apartments', apartmentPayload(['slug' => 'ignore']))->assertJsonPath('data.slug', 'le-cocon-2');
     });
 
     it('place un nouveau logement en fin de liste', function () {
@@ -92,18 +69,30 @@ describe('création et modification', function () {
             ->assertJsonValidationErrors(['name.fr' => 'Le champ nom (français) est obligatoire.']);
     });
 
-    it('modifie un logement sans toucher à son statut', function () {
-        $apartment = Apartment::factory()->create(['status' => ApartmentStatus::Published]);
+    it('modifie un logement sans toucher à son statut ni accepter de slug saisi', function () {
+        $apartment = Apartment::factory()->create(['status' => ApartmentStatus::Published, 'name' => ['fr' => 'Le Cocon'], 'slug' => 'le-cocon']);
 
         $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload([
-            'slug' => 'nouveau-nom',
+            'slug' => 'adresse-choisie',
             'capacity' => 6,
             'status' => 'draft',
         ]))
             ->assertOk()
-            ->assertJsonPath('data.slug', 'nouveau-nom')
+            ->assertJsonPath('data.slug', 'le-cocon')
             ->assertJsonPath('data.capacity', 6)
             ->assertJsonPath('data.status', 'published');
+    });
+
+    it('recalcule l’adresse de la page quand le nom français change', function () {
+        $apartment = Apartment::factory()->create(['name' => ['fr' => 'Le Cocon'], 'slug' => 'le-cocon']);
+        Apartment::factory()->create(['slug' => 'nid-doux']);
+
+        $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload(['name' => ['fr' => 'Nid doux', 'en' => 'Cosy nest']]))
+            ->assertJsonPath('data.slug', 'nid-doux-2');
+
+        // Seul le nom anglais change : l'adresse de la page reste la même.
+        $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload(['name' => ['fr' => 'Nid doux', 'en' => 'Sweet nest']]))
+            ->assertJsonPath('data.slug', 'nid-doux-2');
     });
 
     it('liste les logements dans l’ordre, filtrés par statut, avec le prix de la période en cours', function () {

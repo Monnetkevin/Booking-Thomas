@@ -8,7 +8,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * Champs d'une fiche logement, identiques à la création et à la modification (PUT complet).
- * Montants en centimes, heures au format HH:MM.
+ * Montants en centimes, heures au format HH:MM. L'adresse de la page (slug) est tirée du nom
+ * et les coordonnées de l'adresse postale : ni l'un ni les autres ne sont saisis.
  */
 abstract class ApartmentRequest extends FormRequest
 {
@@ -18,7 +19,6 @@ abstract class ApartmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['nullable', 'string', 'max:80', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
             'name' => ['required', 'array'],
             'name.fr' => ['required', 'string', 'max:120'],
             'name.en' => ['nullable', 'string', 'max:120'],
@@ -28,8 +28,6 @@ abstract class ApartmentRequest extends FormRequest
             'address' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'regex:/^\d{5}$/'],
             'city' => ['required', 'string', 'max:120'],
-            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'capacity' => ['required', 'integer', 'between:1,20'],
             'bedrooms' => ['required', 'integer', 'between:0,20'],
             'beds' => ['required', 'integer', 'between:1,30'],

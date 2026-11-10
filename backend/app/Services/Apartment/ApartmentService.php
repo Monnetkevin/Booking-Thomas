@@ -5,8 +5,10 @@ namespace App\Services\Apartment;
 use App\Enums\ApartmentStatus;
 use App\Exceptions\Apartment\ApartmentHasUpcomingStaysException;
 use App\Exceptions\Apartment\ApartmentNotPublishableException;
+use App\Jobs\GeocodeApartment;
 use App\Models\Apartment;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
+use App\Services\Geocoding\Geocoder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
@@ -16,7 +18,13 @@ use Illuminate\Support\Str;
  */
 class ApartmentService
 {
-    public function __construct(private readonly ApartmentRepositoryInterface $apartments) {}
+    /** Champs de l'adresse postale : en changer recalcule la position sur la carte. */
+    private const ADDRESS_FIELDS = ['address', 'postal_code', 'city'];
+
+    public function __construct(
+        private readonly ApartmentRepositoryInterface $apartments,
+        private readonly Geocoder $geocoder,
+    ) {}
 
     /**
      * @return Collection<int, Apartment>
@@ -41,7 +49,7 @@ class ApartmentService
         $amenityIds = $data['amenity_ids'] ?? null;
         unset($data['amenity_ids']);
 
-        $data['slug'] = $this->uniqueSlug($data['slug'] ?? $data['name']['fr']);
+        $data['slug'] = $this->uniqueSlug($data['name']['fr']);
         $data['status'] = ApartmentStatus::Draft;
         $data['position'] = $this->apartments->nextPosition();
 
@@ -50,6 +58,8 @@ class ApartmentService
         if (is_array($amenityIds)) {
             $this->apartments->syncAmenities($apartment, $amenityIds);
         }
+
+        GeocodeApartment::dispatch($apartment);
 
         return $this->details($apartment);
     }
@@ -60,10 +70,19 @@ class ApartmentService
     public function update(Apartment $apartment, array $data): Apartment
     {
         $amenityIds = $data['amenity_ids'] ?? null;
-        unset($data['amenity_ids'], $data['status'], $data['position']);
+        unset($data['amenity_ids'], $data['status'], $data['position'], $data['slug']);
 
-        if (array_key_exists('slug', $data)) {
-            $data['slug'] = $this->uniqueSlug($data['slug'] ?: $apartment->getTranslation('name', 'fr'), $apartment->id);
+        // L'adresse de la page suit toujours le nom français.
+        $newName = $data['name']['fr'] ?? null;
+        if (is_string($newName) && $newName !== $apartment->getTranslation('name', 'fr', false)) {
+            $data['slug'] = $this->uniqueSlug($newName, $apartment->id);
+        }
+
+        // Nouvelle adresse : l'ancienne position est effacée jusqu'au nouveau calcul.
+        $addressChanged = collect(self::ADDRESS_FIELDS)
+            ->contains(fn (string $field) => array_key_exists($field, $data) && $data[$field] !== $apartment->{$field});
+        if ($addressChanged) {
+            $data += ['latitude' => null, 'longitude' => null, 'geocoded_at' => null];
         }
 
         $this->apartments->update($apartment, $data);
@@ -72,7 +91,40 @@ class ApartmentService
             $this->apartments->syncAmenities($apartment, $amenityIds);
         }
 
+        if ($addressChanged) {
+            GeocodeApartment::dispatch($apartment);
+        }
+
         return $this->details($apartment);
+    }
+
+    /**
+     * Programme le calcul de position des logements qui n'en ont jamais eu.
+     *
+     * @return int nombre de logements concernés
+     */
+    public function geocodeMissing(): int
+    {
+        $apartments = $this->apartments->awaitingGeocoding();
+        $apartments->each(fn (Apartment $apartment) => GeocodeApartment::dispatch($apartment));
+
+        return $apartments->count();
+    }
+
+    /**
+     * Position sur la carte d'après l'adresse postale (appelé par la tâche GeocodeApartment).
+     * Une adresse introuvable laisse les coordonnées vides ; un service injoignable lève une
+     * exception pour que la tâche soit réessayée.
+     */
+    public function refreshCoordinates(Apartment $apartment): void
+    {
+        $coordinates = $this->geocoder->geocode($apartment->address, $apartment->postal_code, $apartment->city);
+
+        $this->apartments->update($apartment, [
+            'latitude' => $coordinates?->latitude,
+            'longitude' => $coordinates?->longitude,
+            'geocoded_at' => now(),
+        ]);
     }
 
     /**
