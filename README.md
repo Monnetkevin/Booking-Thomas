@@ -27,6 +27,7 @@ docker compose run --rm --no-deps app php artisan key:generate
 docker compose up -d
 docker compose exec app php artisan migrate --seed
 docker compose exec app php artisan storage:link   # photos publiques
+docker compose exec app php artisan db:seed --class=DemoSeeder   # facultatif : 5 logements de démonstration
 
 # 2. Front (sur la machine hôte)
 cd frontend
