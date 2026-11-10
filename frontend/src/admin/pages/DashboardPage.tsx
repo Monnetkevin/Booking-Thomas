@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useCurrentUser } from '@/admin/auth'
+import { useCurrentUser } from '@/admin/auth/useAuth'
 import { PageHeader } from '@/admin/components/PageHeader'
 
 export function DashboardPage() {

@@ -1,15 +1,24 @@
-import { useLayoutEffect, useState, type FormEvent } from 'react'
+import { useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useSearchParams } from 'react-router'
-import { safeAdminRedirect, useCurrentUser, useLogin } from '@/admin/auth'
+import { safeAdminRedirect } from '@/admin/auth/redirect'
+import { useCurrentUser, useLogin } from '@/admin/auth/useAuth'
+import { LoginForm } from '@/admin/components/LoginForm'
+import { FullPageSpinner } from '@/components/feedback/FullPageSpinner'
 import { Logo } from '@/components/Logo'
-import { Alert } from '@/components/ui/Alert'
-import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Checkbox, TextField } from '@/components/ui/Field'
-import { Spinner } from '@/components/ui/Spinner'
 import { applyLocale } from '@/i18n'
 import { ApiError } from '@/lib/api'
+
+/** Erreur à afficher sous le champ e-mail (identifiants refusés, blocage) ou en tête. */
+function loginErrors(error: unknown, fallback: string): { emailError?: string; generalError?: string } {
+  if (!error) return {}
+  if (error instanceof ApiError && (error.status === 422 || error.status === 429)) {
+    const emailError = error.fieldErrors.email?.[0]
+    if (emailError) return { emailError }
+  }
+  return { generalError: fallback }
+}
 
 export function LoginPage() {
   const { t } = useTranslation()
@@ -18,30 +27,11 @@ export function LoginPage() {
   const redirect = safeAdminRedirect(params.get('redirect'))
   const currentUser = useCurrentUser()
   const login = useLogin()
-  const [form, setForm] = useState({ email: '', password: '', remember: false })
 
   useLayoutEffect(() => applyLocale('fr'), [])
 
-  if (currentUser.isPending) {
-    return (
-      <div className="grid min-h-dvh place-items-center bg-sand text-muted">
-        <Spinner label={t('common.loading')} />
-      </div>
-    )
-  }
+  if (currentUser.isPending) return <FullPageSpinner />
   if (currentUser.data) return <Navigate to={redirect} replace />
-
-  const error = login.error
-  const emailError =
-    error instanceof ApiError && (error.status === 422 || error.status === 429)
-      ? error.fieldErrors.email?.[0]
-      : undefined
-  const genericError = error && !emailError ? t('common.error') : undefined
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    login.mutate(form, { onSuccess: () => navigate(redirect, { replace: true }) })
-  }
 
   return (
     <main className="grid min-h-dvh place-items-center bg-sand px-4 py-10">
@@ -50,38 +40,11 @@ export function LoginPage() {
         <Card>
           <h1 className="text-2xl font-semibold">{t('admin.login.title')}</h1>
           <p className="mt-1 mb-5 text-sm text-muted">{t('admin.login.intro')}</p>
-
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-            {genericError && <Alert tone="danger">{genericError}</Alert>}
-            <TextField
-              label={t('admin.login.email')}
-              type="email"
-              name="email"
-              autoComplete="username"
-              required
-              autoFocus
-              value={form.email}
-              error={emailError}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-            />
-            <TextField
-              label={t('admin.login.password')}
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              required
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-            />
-            <Checkbox
-              label={t('admin.login.remember')}
-              checked={form.remember}
-              onChange={(event) => setForm({ ...form, remember: event.target.checked })}
-            />
-            <Button type="submit" size="lg" loading={login.isPending}>
-              {login.isPending ? t('admin.login.submitting') : t('admin.login.submit')}
-            </Button>
-          </form>
+          <LoginForm
+            pending={login.isPending}
+            {...loginErrors(login.error, t('common.error'))}
+            onSubmit={(input) => login.mutate(input, { onSuccess: () => navigate(redirect, { replace: true }) })}
+          />
         </Card>
       </div>
     </main>

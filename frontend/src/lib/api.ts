@@ -2,6 +2,7 @@
  * Client HTTP de l'API Laravel. Les appels passent par le même domaine que la SPA
  * (/api), avec le cookie de session Sanctum et le jeton CSRF XSRF-TOKEN.
  */
+import type { HttpMethod, HttpRequestOptions } from './http'
 
 export class ApiError extends Error {
   readonly status: number
@@ -20,14 +21,6 @@ export class ApiError extends Error {
   }
 }
 
-type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-
-interface RequestOptions {
-  method?: Method
-  body?: unknown
-  signal?: AbortSignal
-}
-
 function readCookie(name: string): string | null {
   const match = document.cookie.split('; ').find((row) => row.startsWith(`${name}=`))
   return match ? decodeURIComponent(match.slice(name.length + 1)) : null
@@ -39,7 +32,7 @@ export async function ensureCsrfCookie(): Promise<void> {
   await fetch('/sanctum/csrf-cookie', { credentials: 'include' })
 }
 
-function send(path: string, method: Method, options: RequestOptions): Promise<Response> {
+function send(path: string, method: HttpMethod, options: HttpRequestOptions): Promise<Response> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -58,7 +51,7 @@ function send(path: string, method: Method, options: RequestOptions): Promise<Re
   })
 }
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+export async function api<T>(path: string, options: HttpRequestOptions = {}): Promise<T> {
   const method = options.method ?? 'GET'
   if (method !== 'GET') await ensureCsrfCookie()
 

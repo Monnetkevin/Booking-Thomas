@@ -1,29 +1,25 @@
 import { useLayoutEffect, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, ScrollRestoration } from 'react-router'
-import { HomeIcon } from '@/components/icons'
+import type { AdminNavItem } from '@/admin/navigation'
 import { Logo } from '@/components/Logo'
 import { applyLocale } from '@/i18n'
 import { cn } from '@/lib/cn'
 
-interface NavItem {
-  to: string
-  label: string
-  icon: ReactNode
-  end?: boolean
+interface AdminLayoutProps {
+  navigation: AdminNavItem[]
+  footer?: ReactNode
 }
 
 /**
- * Coque du back-office : barre latérale sombre sur ordinateur, barre du haut défilante sur
- * téléphone. Les modules s'ajoutent à la navigation au fil des jalons.
+ * Mise en page du back-office : barre latérale sombre sur ordinateur, barre du haut
+ * défilante sur téléphone. Ne connaît ni la session ni les droits : elle affiche ce qu'on lui donne.
  */
-export function AdminLayout({ footer }: { footer?: ReactNode }) {
+export function AdminLayout({ navigation, footer }: AdminLayoutProps) {
   const { t } = useTranslation()
 
   // Le back-office n'existe qu'en français.
   useLayoutEffect(() => applyLocale('fr'), [])
-
-  const items: NavItem[] = [{ to: '/admin', label: t('admin.nav.dashboard'), icon: <HomeIcon />, end: true }]
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -41,11 +37,11 @@ export function AdminLayout({ footer }: { footer?: ReactNode }) {
         </div>
         <nav aria-label={t('admin.nav.label')} className="px-3 pb-3 lg:flex-1">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col">
-            {items.map((item) => (
+            {navigation.map((item) => (
               <li key={item.to}>
                 <NavLink to={item.to} end={item.end} className={linkClass}>
                   {item.icon}
-                  {item.label}
+                  {t(item.labelKey)}
                 </NavLink>
               </li>
             ))}
