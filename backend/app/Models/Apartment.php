@@ -11,10 +11,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
 
+/**
+ * @property ApartmentStatus $status
+ * @property CancellationPolicy $cancellation_policy
+ */
 #[Fillable([
     'slug', 'name', 'description', 'address', 'postal_code', 'city', 'latitude', 'longitude',
     'capacity', 'bedrooms', 'beds', 'bathrooms', 'surface_m2', 'check_in_time', 'check_out_time',
@@ -24,7 +29,10 @@ use Spatie\Translatable\HasTranslations;
 class Apartment extends Model implements HasMedia
 {
     /** @use HasFactory<ApartmentFactory> */
-    use HasFactory, HasTranslations, InteractsWithMedia;
+    use HasFactory, HasTranslations, InteractsWithMedia, SoftDeletes;
+
+    /** Collection Medialibrary des photos ; la première est la couverture. */
+    public const PHOTOS = 'photos';
 
     /** @var list<string> */
     public array $translatable = ['name', 'description'];
