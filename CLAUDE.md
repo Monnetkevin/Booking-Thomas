@@ -7,4 +7,4 @@
 - PHP tourne uniquement dans Docker : `docker compose exec app php artisan test`, `vendor/bin/pint`, `vendor/bin/phpstan`.
 - Front : `cd frontend && npm run lint && npm run typecheck && npm test && npm run build`.
 - Montants en centimes, dates de séjour `[arrivée, départ[`, prix calculés uniquement côté serveur.
-- Livraison : une branche par jalon, un commit par issue (`Closes #n`), une pull request ; CI verte avant fusion.
+- Livraison : une branche `jalon-N/<nom>` par jalon, un commit par issue (`Closes #n`), une pull request vers `develop` ; puis `develop` → `staging` (recette) → `main` (production). CI verte avant toute fusion.

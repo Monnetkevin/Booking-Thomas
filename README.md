@@ -58,5 +58,11 @@ npm run lint && npm run typecheck && npm test && npm run build
 
 ## Façon de travailler
 
-- `main` est protégée : tout passe par une pull request dont la CI est verte.
-- Une branche par jalon ou par issue, commits qui référencent l'issue (`Closes #12`).
+| Branche | Rôle | Alimentée par |
+|---|---|---|
+| `jalon-N/<nom>` | Travail d'un jalon, un commit par issue (`Closes #12`) | — |
+| `develop` | Intégration, branche par défaut | PR depuis les branches de jalon |
+| `staging` | Recette avec le client (environnement de test, clés Stripe de test) — créée au moment de la recette | PR depuis `develop` |
+| `main` | Production | PR depuis `staging` (ou `develop` avant la recette) |
+
+`develop`, `staging` et `main` sont protégées : pull request obligatoire et CI verte.
