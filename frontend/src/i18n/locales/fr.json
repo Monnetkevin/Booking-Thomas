@@ -42,7 +42,9 @@
     "title": "Administration",
     "nav": {
       "label": "Navigation admin",
-      "dashboard": "Tableau de bord"
+      "dashboard": "Tableau de bord",
+      "apartments": "Appartements",
+      "rates": "Tarifs"
     },
     "login": {
       "title": "Connexion",
@@ -59,6 +61,203 @@
       "title": "Tableau de bord",
       "welcome": "Bonjour {{name}}, le back-office se construit jalon après jalon."
     },
-    "forbidden": "Votre compte n'a pas accès à cette page."
+    "forbidden": "Votre compte n'a pas accès à cette page.",
+    "common": {
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Modifications enregistrées.",
+      "cancel": "Annuler",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "none": "—"
+    },
+    "apartments": {
+      "title": "Appartements",
+      "count_one": "{{count}} logement",
+      "count_other": "{{count}} logements",
+      "add": "Ajouter un appartement",
+      "empty": "Aucun logement pour le moment. Commencez par en ajouter un.",
+      "emptyFiltered": "Aucun logement dans ce filtre.",
+      "filters": {
+        "label": "Filtrer par statut",
+        "all": "Tous",
+        "published": "Publiés",
+        "draft": "Brouillons"
+      },
+      "columns": {
+        "apartment": "Appartement",
+        "status": "Statut",
+        "capacity": "Capacité",
+        "basePrice": "Prix actuel",
+        "actions": "Actions"
+      },
+      "status": {
+        "published": "Publié",
+        "draft": "Brouillon"
+      },
+      "guests_one": "{{count}} voyageur",
+      "guests_other": "{{count}} voyageurs",
+      "perNight": "{{price}} / nuit",
+      "noRate": "Pas de tarif",
+      "editLabel": "Modifier {{name}}",
+      "newTitle": "Nouvel appartement",
+      "newSubtitle": "Le logement est créé en brouillon ; vous ajouterez ensuite ses photos et ses tarifs.",
+      "create": "Créer le logement",
+      "editSubtitle": "Modification du logement",
+      "backToList": "Retour aux appartements",
+      "notFound": "Ce logement n'existe pas ou a été supprimé.",
+      "sections": {
+        "info": "Informations",
+        "location": "Adresse",
+        "rules": "Règles du séjour"
+      },
+      "fields": {
+        "nameFr": "Nom (français)",
+        "nameEn": "Nom (anglais)",
+        "descriptionFr": "Description (français)",
+        "descriptionEn": "Description (anglais)",
+        "descriptionHint": "Ambiance, points forts, ce qui rend le logement unique.",
+        "translationHint": "Laissé vide, le texte français est affiché.",
+        "slug": "Adresse de la page",
+        "slugHint": "/logements/{{slug}} — laissée vide, elle est tirée du nom.",
+        "surface": "Surface",
+        "capacity": "Voyageurs",
+        "bedrooms": "Chambres",
+        "beds": "Lits",
+        "bathrooms": "Salles de bain",
+        "checkIn": "Arrivée à partir de",
+        "checkOut": "Départ avant",
+        "cleaningFee": "Frais de ménage",
+        "cleaningFeeHint": "Forfait par séjour.",
+        "address": "Adresse",
+        "addressHint": "Seule la rue approximative est affichée avant la réservation.",
+        "postalCode": "Code postal",
+        "city": "Ville",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "coordinatesHint": "Pour la carte, par ex. 48.0061 et 0.1996. Facultatif.",
+        "minStay": "Séjour minimum",
+        "minStayHint": "Par défaut ; une période tarifaire peut en fixer un autre.",
+        "maxStay": "Séjour maximum",
+        "turnover": "Battement entre séjours",
+        "turnoverHint": "Nuits bloquées après chaque départ.",
+        "policy": "Politique d'annulation",
+        "registration": "Numéro d'enregistrement",
+        "registrationHint": "Affiché sur la fiche si la commune l'exige."
+      },
+      "units": {
+        "nights": "nuits",
+        "m2": "m²",
+        "euro": "€"
+      },
+      "policies": {
+        "flexible": "Flexible",
+        "moderate": "Modérée",
+        "strict": "Stricte"
+      },
+      "invalidAmount": "Saisissez un montant, par exemple 45 ou 45,50.",
+      "publication": {
+        "title": "Publication",
+        "published": "Visible sur le site et réservable.",
+        "draft": "Brouillon : invisible sur le site.",
+        "publish": "Publier",
+        "unpublish": "Passer en brouillon",
+        "missing": "Avant de publier :"
+      },
+      "photos": {
+        "title": "Photos",
+        "description": "La première photo est la couverture. Préférez des photos d'au moins 1 600 px de large.",
+        "drop": "Glissez vos photos ici ou",
+        "choose": "choisissez-les",
+        "formats": "JPEG, PNG ou WebP, 20 Mo au plus, 10 à la fois.",
+        "uploading_one": "Envoi de {{count}} photo…",
+        "uploading_other": "Envoi de {{count}} photos…",
+        "cover": "Couverture",
+        "processing": "Préparation…",
+        "label": "Photo {{index}}",
+        "moveUp": "Avancer la photo {{index}}",
+        "moveDown": "Reculer la photo {{index}}",
+        "makeCover": "Mettre en couverture",
+        "altFr": "Description (français)",
+        "altEn": "Description (anglais)",
+        "altHint": "Lue par les lecteurs d'écran, par ex. « Salon avec canapé en rotin ».",
+        "editAlt": "Décrire",
+        "saveAlt": "Enregistrer la description",
+        "altMissing": "Sans description",
+        "delete": "Supprimer la photo {{index}}",
+        "deleteConfirmTitle": "Supprimer cette photo ?",
+        "deleteConfirm": "Elle est retirée du site immédiatement.",
+        "empty": "Aucune photo pour le moment.",
+        "reorderHint": "Glissez une photo pour la déplacer, ou utilisez les flèches."
+      },
+      "amenities": {
+        "title": "Équipements",
+        "description": "Cochez ce que le logement propose.",
+        "save": "Enregistrer les équipements",
+        "saved": "Équipements enregistrés."
+      },
+      "danger": {
+        "title": "Zone sensible",
+        "text": "La suppression est refusée s'il existe des séjours à venir. L'historique des réservations est conservé.",
+        "delete": "Supprimer ce logement",
+        "confirmTitle": "Supprimer « {{name}} » ?",
+        "confirm": "Le logement disparaît du site et du back-office."
+      }
+    },
+    "rates": {
+      "title": "Tarifs",
+      "subtitle": "Prix par période et par logement",
+      "add": "Ajouter une période",
+      "chooseApartment": "Choisir un logement",
+      "tableTitle": "Périodes tarifaires · {{name}}",
+      "empty": "Aucune période à venir pour ce logement.",
+      "noApartment": "Créez d'abord un logement.",
+      "showPast": "Afficher aussi les périodes passées",
+      "unnamed": "Période",
+      "columns": {
+        "period": "Période",
+        "dates": "Dates",
+        "price": "Prix par nuit",
+        "minStay": "Séjour min.",
+        "weekend": "Week-end",
+        "actions": "Actions"
+      },
+      "nights_one": "{{count}} nuit",
+      "nights_other": "{{count}} nuits",
+      "defaultMinStay": "{{count}} (logement)",
+      "dateRange": "du {{from}} au {{to}}",
+      "editLabel": "Modifier la période {{name}}",
+      "deleteLabel": "Supprimer la période {{name}}",
+      "form": {
+        "newTitle": "Nouvelle période",
+        "editTitle": "Modifier la période",
+        "label": "Nom de la période",
+        "labelHint": "Facultatif, par ex. « Semaine des 24 Heures ».",
+        "startsOn": "Du",
+        "endsOn": "Au (inclus)",
+        "nightlyPrice": "Prix par nuit",
+        "minStay": "Séjour minimum",
+        "minStayHint": "Vide : celui du logement ({{count}} nuits).",
+        "weekend": "Supplément week-end",
+        "weekendHint": "Ajouté au prix des nuits du vendredi et du samedi.",
+        "arrivalDays": "Jours d'arrivée autorisés",
+        "arrivalDaysHint": "Tous cochés : aucune restriction.",
+        "save": "Enregistrer la période",
+        "noDay": "Cochez au moins un jour d'arrivée."
+      },
+      "days": {
+        "1": "Lun",
+        "2": "Mar",
+        "3": "Mer",
+        "4": "Jeu",
+        "5": "Ven",
+        "6": "Sam",
+        "7": "Dim"
+      },
+      "deleteConfirmTitle": "Supprimer cette période ?",
+      "deleteConfirm": "Les réservations déjà faites gardent leur prix.",
+      "note": "Les périodes d'un même logement ne peuvent pas se chevaucher. Modifier un tarif ne change pas les réservations déjà faites.",
+      "previewSoon": "L'aperçu du prix d'un séjour test arrivera avec le moteur de calcul du prix (jalon 3)."
+    }
   }
 }

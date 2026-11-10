@@ -19,6 +19,20 @@ export class ApiError extends Error {
     const errors = (this.data as { errors?: Record<string, string[]> } | null)?.errors
     return errors ?? {}
   }
+
+  /** Message renvoyé par l'API (règle métier, validation…), déjà traduit. */
+  get serverMessage(): string | undefined {
+    return (this.data as { message?: string } | null)?.message
+  }
+
+  /** Code stable d'une erreur métier, ex. « apartment_not_publishable ». */
+  get code(): string | undefined {
+    return (this.data as { code?: string } | null)?.code
+  }
+
+  get details(): Record<string, unknown> {
+    return (this.data as { details?: Record<string, unknown> } | null)?.details ?? {}
+  }
 }
 
 function readCookie(name: string): string | null {
@@ -38,7 +52,9 @@ function send(path: string, method: HttpMethod, options: HttpRequestOptions): Pr
     'X-Requested-With': 'XMLHttpRequest',
     'Accept-Language': document.documentElement.lang || 'fr',
   }
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+  // FormData (envoi de fichiers) : le navigateur pose lui-même le Content-Type multipart.
+  const isForm = options.body instanceof FormData
+  if (options.body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
   const xsrf = readCookie('XSRF-TOKEN')
   if (xsrf) headers['X-XSRF-TOKEN'] = xsrf
 
@@ -46,7 +62,7 @@ function send(path: string, method: HttpMethod, options: HttpRequestOptions): Pr
     method,
     headers,
     credentials: 'include',
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
     signal: options.signal,
   })
 }

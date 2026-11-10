@@ -27,6 +27,20 @@ export const router = createBrowserRouter([
             index: true,
             lazy: async () => ({ Component: (await import('@/admin/pages/DashboardPage')).DashboardPage }),
           },
+          {
+            path: 'appartements',
+            lazy: async () => ({ Component: (await import('@/admin/apartments/pages/ApartmentsPage')).ApartmentsPage }),
+          },
+          {
+            path: 'appartements/nouveau',
+            lazy: async () => ({
+              Component: (await import('@/admin/apartments/pages/ApartmentCreatePage')).ApartmentCreatePage,
+            }),
+          },
+          {
+            path: 'appartements/:id',
+            lazy: async () => ({ Component: (await import('@/admin/apartments/pages/ApartmentEditPage')).ApartmentEditPage }),
+          },
         ],
       },
     ],

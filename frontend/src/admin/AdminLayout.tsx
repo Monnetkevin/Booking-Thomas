@@ -23,7 +23,7 @@ export function AdminLayout({ navigation, footer }: AdminLayoutProps) {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'flex min-h-11 shrink-0 items-center gap-3 rounded-[10px] px-3 text-[15px] no-underline',
+      'flex min-h-11 shrink-0 items-center gap-3 rounded-[10px] px-3 text-[15px] whitespace-nowrap no-underline [&>svg]:shrink-0',
       isActive
         ? 'bg-night-soft font-bold text-white hover:text-white'
         : 'font-medium text-night-text hover:bg-night-soft hover:text-white',
