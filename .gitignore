@@ -1,0 +1,20 @@
+# Système et éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dépendances et builds (les sous-projets ont aussi leur .gitignore)
+node_modules/
+vendor/
+dist/
+
+# Données locales Docker
+infra/docker/data/
