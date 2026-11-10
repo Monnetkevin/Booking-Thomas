@@ -1,6 +1,6 @@
-import { useLayoutEffect, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet, ScrollRestoration } from 'react-router'
+import { NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router'
 import type { AdminNavItem } from '@/admin/navigation'
 import { Logo } from '@/components/Logo'
 import { applyLocale } from '@/i18n'
@@ -18,12 +18,20 @@ interface AdminLayoutProps {
 export function AdminLayout({ navigation, footer }: AdminLayoutProps) {
   const { t } = useTranslation()
 
+  const { pathname } = useLocation()
+  const navRef = useRef<HTMLElement>(null)
+
   // Le back-office n'existe qu'en français.
   useLayoutEffect(() => applyLocale('fr'), [])
 
+  // Sur téléphone, le menu défile horizontalement : on y amène l'entrée de la page courante.
+  useEffect(() => {
+    navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [pathname])
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'flex min-h-11 shrink-0 items-center gap-3 rounded-[10px] px-3 text-[15px] no-underline',
+      'flex min-h-11 shrink-0 items-center gap-3 rounded-[10px] px-3 text-[15px] whitespace-nowrap no-underline [&>svg]:shrink-0',
       isActive
         ? 'bg-night-soft font-bold text-white hover:text-white'
         : 'font-medium text-night-text hover:bg-night-soft hover:text-white',
@@ -35,7 +43,7 @@ export function AdminLayout({ navigation, footer }: AdminLayoutProps) {
         <div className="flex items-center px-4 pt-4 pb-2 text-white lg:px-5 lg:pt-5 lg:pb-5">
           <Logo />
         </div>
-        <nav aria-label={t('admin.nav.label')} className="px-3 pb-3 lg:flex-1">
+        <nav ref={navRef} aria-label={t('admin.nav.label')} className="px-3 pb-3 lg:flex-1">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col">
             {navigation.map((item) => (
               <li key={item.to}>

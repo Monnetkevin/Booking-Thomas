@@ -17,6 +17,9 @@ Autres règles :
 - **Modèles** : relations, casts, scopes simples. Pas de logique métier.
 - **Resources** (`app/Http/Resources`) : forme des réponses JSON ; jamais de modèle renvoyé brut.
 - **Enums** (`app/Enums`) pour tous les statuts et types.
+- **Erreurs métier** : un Service lève une sous-classe de `App\Exceptions\DomainException` (code HTTP, `code` stable comme `apartment_not_publishable`, message traduit, `details` éventuels). La SPA s'appuie sur `ApiError.code`, jamais sur le texte.
+- **Suppressions** : logiques (`SoftDeletes`) pour ce qui est référencé par l'historique (logements).
+- **Fichiers** : originaux privés (disque `local`), versions publiques ré-encodées (Medialibrary, file d'attente).
 - Seeders et factories peuvent créer des modèles directement (données, pas métier) ; ils passent par un Repository quand il gère un cache (`SettingRepositoryInterface`).
 - Tests : un test fonctionnel par endpoint (droits, validation, effet) et des tests de Service pour les règles métier, sur PostgreSQL.
 

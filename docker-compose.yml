@@ -24,7 +24,8 @@ services:
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-    command: php artisan queue:work --tries=3
+    # Conversions de photos, e-mails, synchronisation iCal
+    command: php artisan queue:work --tries=3 --timeout=300
     volumes:
       - ./backend:/var/www/backend
     depends_on:
@@ -32,7 +33,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    profiles: ["worker"]
 
   pgsql:
     image: postgres:17-alpine

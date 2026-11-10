@@ -16,9 +16,14 @@ class DatesUnavailableException extends RuntimeException
     /** SQLSTATE d'une violation de contrainte d'exclusion. */
     public const SQLSTATE = '23P01';
 
+    /** Contrainte qui protège les nuits occupées (voir la migration des contraintes). */
+    public const CONSTRAINT = 'availability_blocks_no_overlap';
+
     public static function isExclusionViolation(Throwable $e): bool
     {
-        return $e instanceof QueryException && $e->getCode() === self::SQLSTATE;
+        return $e instanceof QueryException
+            && $e->getCode() === self::SQLSTATE
+            && str_contains($e->getMessage(), self::CONSTRAINT);
     }
 
     public static function from(QueryException $e): self

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Géocodage des adresses des logements (API Adresse de la Géoplateforme, IGN)
+    'geocoding' => [
+        'url' => env('GEOCODING_URL', 'https://data.geopf.fr/geocodage/search'),
+    ],
+
 ];

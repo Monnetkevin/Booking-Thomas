@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* /tmp/pear
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY conf.d/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 # Même UID que l'utilisateur de la machine hôte, pour éviter les fichiers appartenant à root.
 ARG UID=1000
