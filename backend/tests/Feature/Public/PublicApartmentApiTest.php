@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Resources\Public\PublicApartmentDetailResource;
 use App\Models\Amenity;
 use App\Models\Apartment;
 use App\Models\RatePeriod;
 use App\Models\User;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Catalog\CatalogCache;
+use App\Services\Catalog\CatalogPresenter;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
 
@@ -129,10 +130,28 @@ it('vide le cache quand un tarif change', function () {
 });
 
 it('retire le numéro de rue des adresses', function (string $address, string $street) {
-    expect(PublicApartmentDetailResource::streetWithoutNumber($address))->toBe($street);
+    expect(CatalogPresenter::streetWithoutNumber($address))->toBe($street);
 })->with([
     ['12 rue de la Paix', 'rue de la Paix'],
     ['12 bis, rue de la Paix', 'rue de la Paix'],
     ['3B avenue Jean Jaurès', 'avenue Jean Jaurès'],
     ['Place de la République', 'Place de la République'],
 ]);
+
+it('met en cache des données réellement sérialisées (Redis), sans objet PHP', function () {
+    // Vrai stockage sérialisé : le cache en mémoire des tests ne sérialise rien.
+    config(['cache.default' => 'redis']);
+    app()->forgetInstance('cache.store');
+    Cache::clearResolvedInstances();
+    app(CatalogCache::class)->flush();
+
+    $this->getJson('/api/apartments')->assertOk()->assertJsonPath('data.0.name', 'Le Cocon');
+    expect(Cache::store('redis')->tags([CatalogCache::TAG])->get('summaries:fr'))->toBeArray();
+    $this->getJson('/api/apartments')->assertOk()->assertJsonPath('data.0.name', 'Le Cocon');
+    $this->getJson('/api/apartments/le-cocon')->assertOk();
+    $this->getJson('/api/apartments/le-cocon')->assertOk()->assertJsonPath('data.location.street', 'rue de la Paix');
+    $this->getJson('/api/apartments/inconnu')->assertNotFound();
+    $this->getJson('/api/apartments/inconnu')->assertNotFound();
+
+    app(CatalogCache::class)->flush();
+})->skip(fn () => ! extension_loaded('redis'), 'Redis indisponible');

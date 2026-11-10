@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\CalendarRequest;
 use App\Http\Requests\Public\SearchRequest;
-use App\Http\Resources\Public\PublicApartmentResource;
 use App\Http\Resources\Public\QuoteResource;
 use App\Services\Availability\AvailabilityService;
+use App\Services\Catalog\CatalogPresenter;
 use App\Services\Catalog\PublicCatalogService;
 use Illuminate\Http\JsonResponse;
 
@@ -16,6 +16,7 @@ class AvailabilityController extends Controller
     public function __construct(
         private readonly PublicCatalogService $catalog,
         private readonly AvailabilityService $availability,
+        private readonly CatalogPresenter $presenter,
     ) {}
 
     /** GET /api/apartments/{slug}/availability : calendrier d'un logement. */
@@ -36,7 +37,7 @@ class AvailabilityController extends Controller
         $results = $this->availability->search($this->catalog->published(), $request->stay());
 
         return response()->json(['data' => $results->map(fn (array $result) => [
-            ...(new PublicApartmentResource($result['apartment']))->resolve($request),
+            ...$this->presenter->summary($result['apartment'], app()->getLocale()),
             'available' => $result['available'],
             'quote' => $result['quote'] ? (new QuoteResource($result['quote']))->resolve($request) : null,
             'unavailable_reason' => $result['reason'],
