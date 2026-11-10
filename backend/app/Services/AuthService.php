@@ -37,8 +37,10 @@ class AuthService
         $this->ensureIsNotRateLimited($throttleKey);
 
         $user = $this->users->findByEmail($email);
+        // Même coût de hachage que le compte existe ou non : le temps de réponse ne trahit rien.
+        $passwordMatches = $this->hasher->check($password, $user->password ?? $this->dummyHash());
 
-        if (! $user || ! $user->is_active || ! $this->hasher->check($password, $user->password)) {
+        if (! $user || ! $user->is_active || ! $passwordMatches) {
             RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
 
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
@@ -48,6 +50,13 @@ class AuthService
         $this->guard->login($user, $remember);
 
         return $user;
+    }
+
+    private function dummyHash(): string
+    {
+        static $hash = null;
+
+        return $hash ??= $this->hasher->make('mot-de-passe-factice');
     }
 
     public function logout(): void

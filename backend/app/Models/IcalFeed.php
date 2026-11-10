@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\IcalFeedFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
+/**
+ * Flux iCal d'un logement. Le token d'export (40 caractères aléatoires) est fourni à la
+ * création par le service de synchronisation.
+ */
 #[Fillable([
     'apartment_id', 'provider', 'import_url', 'export_token', 'etag', 'content_hash',
     'last_synced_at', 'last_status', 'last_error', 'consecutive_failures', 'is_active',
@@ -16,12 +21,8 @@ use Illuminate\Support\Str;
 #[Hidden(['import_url', 'export_token'])]
 class IcalFeed extends Model
 {
-    protected static function booted(): void
-    {
-        static::creating(function (IcalFeed $feed): void {
-            $feed->export_token ??= Str::random(40);
-        });
-    }
+    /** @use HasFactory<IcalFeedFactory> */
+    use HasFactory;
 
     /**
      * @return array<string, string>

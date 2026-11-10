@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
 
 /**
  * @property BookingStatus $status
@@ -31,23 +30,6 @@ class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
-
-    protected static function booted(): void
-    {
-        static::creating(function (Booking $booking): void {
-            $booking->reference ??= self::generateReference();
-        });
-    }
-
-    /** Référence publique courte et non devinable, ex. « BT-7K2M9QXA ». */
-    public static function generateReference(): string
-    {
-        do {
-            $reference = 'BT-'.Str::upper(Str::random(8));
-        } while (self::where('reference', $reference)->exists());
-
-        return $reference;
-    }
 
     /**
      * @return array<string, string>

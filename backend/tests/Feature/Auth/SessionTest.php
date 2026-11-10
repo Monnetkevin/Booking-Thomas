@@ -36,6 +36,13 @@ it('refuse un mauvais mot de passe sans dire si le compte existe', function (str
     $this->assertGuest('web');
 })->with(['hote@example.com', 'inconnu@example.com']);
 
+it('enregistre les e-mails en minuscules', function () {
+    $user = User::factory()->create(['email' => '  Thomas@Example.COM ', 'password' => 'un-mot-de-passe-solide']);
+
+    expect($user->email)->toBe('thomas@example.com');
+    $this->postJson('/api/auth/login', ['email' => 'thomas@example.com', 'password' => 'un-mot-de-passe-solide'])->assertOk();
+});
+
 it('refuse un compte désactivé', function () {
     $this->admin->update(['is_active' => false]);
 

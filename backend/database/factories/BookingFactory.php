@@ -7,6 +7,7 @@ use App\Enums\BookingStatus;
 use App\Models\Apartment;
 use App\Models\Booking;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Booking>
@@ -19,6 +20,7 @@ class BookingFactory extends Factory
         $nights = 3;
 
         return [
+            'reference' => 'BT-'.Str::upper(Str::random(8)),
             'apartment_id' => Apartment::factory(),
             'source' => BookingSource::Direct,
             'status' => BookingStatus::Confirmed,

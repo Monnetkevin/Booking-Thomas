@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\BookingRepository;
 use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Eloquent\UserRepository;
 use App\Services\AuthService;
@@ -19,6 +21,7 @@ class RepositoryServiceProvider extends ServiceProvider
     /** @var array<class-string, class-string> */
     public array $singletons = [
         UserRepositoryInterface::class => UserRepository::class,
+        BookingRepositoryInterface::class => BookingRepository::class,
         SettingRepositoryInterface::class => SettingRepository::class,
     ];
 

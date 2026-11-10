@@ -20,11 +20,11 @@ synchronisation des calendriers Airbnb par iCal et back-office pour l'hôte.
 Prérequis : Docker (avec Compose), Node.js 22+ et npm.
 
 ```bash
-# 1. Services : PHP, PostgreSQL, Redis, Mailpit
+# 1. API : dépendances PHP et clé, puis services (PHP, PostgreSQL, Redis, Mailpit)
 cp backend/.env.example backend/.env
+docker compose run --rm --no-deps app composer install
+docker compose run --rm --no-deps app php artisan key:generate
 docker compose up -d
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
 
 # 2. Front (sur la machine hôte)

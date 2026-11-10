@@ -27,25 +27,21 @@ it('relie logements, équipements et périodes tarifaires', function () {
         ->and($apartment->ratePeriods)->toHaveCount(1);
 });
 
-it('attribue une référence publique unique à chaque réservation', function () {
+it('compte les nuits d’une réservation', function () {
     $booking = Booking::factory()->create();
 
-    expect($booking->reference)->toMatch('/^BT-[A-Z0-9]{8}$/')
-        ->and($booking->status)->toBe(BookingStatus::Confirmed)
+    expect($booking->status)->toBe(BookingStatus::Confirmed)
         ->and($booking->nights())->toBe(3);
 });
 
-it('chiffre l’URL d’import iCal et génère un token d’export', function () {
-    $feed = IcalFeed::create([
-        'apartment_id' => Apartment::factory()->create()->id,
-        'import_url' => 'https://www.airbnb.fr/calendar/ical/123.ics?s=secret',
-    ]);
+it('chiffre l’URL d’import iCal et masque les secrets du flux', function () {
+    $feed = IcalFeed::factory()->create(['import_url' => 'https://www.airbnb.fr/calendar/ical/123.ics?s=secret']);
 
     $stored = DB::table('ical_feeds')->where('id', $feed->id)->value('import_url');
 
     expect($stored)->not->toContain('airbnb')
         ->and($feed->fresh()->import_url)->toContain('airbnb')
-        ->and($feed->export_token)->toHaveLength(40);
+        ->and($feed->toArray())->not->toHaveKeys(['import_url', 'export_token']);
 });
 
 it('trouve les blocs qui touchent une période', function () {
