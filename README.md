@@ -53,7 +53,7 @@ docker compose exec app vendor/bin/pint      # style
 docker compose exec app vendor/bin/phpstan   # analyse statique (Larastan)
 
 # Frontend
-npm run lint && npm run typecheck && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 ## Façon de travailler
