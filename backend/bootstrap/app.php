@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\DatesUnavailableException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Contrainte d'exclusion PostgreSQL : « ces dates ne sont plus disponibles » (409).
+        $exceptions->map(fn (QueryException $e) => DatesUnavailableException::isExclusionViolation($e)
+            ? DatesUnavailableException::from($e)
+            : $e);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
