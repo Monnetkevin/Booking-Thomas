@@ -1,0 +1,64 @@
+{
+  "site": {
+    "name": "Nom du site",
+    "tagline": "Appartements meublés au Mans"
+  },
+  "nav": {
+    "home": "Accueil",
+    "apartments": "Logements",
+    "contact": "Contact",
+    "menu": "Menu",
+    "close": "Fermer le menu",
+    "main": "Navigation principale",
+    "skip": "Aller au contenu"
+  },
+  "language": {
+    "label": "Langue",
+    "switchTo": "English",
+    "switchToLabel": "Voir le site en anglais"
+  },
+  "footer": {
+    "legal": "Mentions légales",
+    "terms": "Conditions générales de vente",
+    "privacy": "Confidentialité",
+    "rights": "Tous droits réservés."
+  },
+  "home": {
+    "title": "Des appartements où l'on se sent chez soi",
+    "intro": "Réservez en direct, sans frais de plateforme, et payez en toute sécurité.",
+    "cta": "Voir les logements"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "text": "Cette page n'existe pas ou a été déplacée.",
+    "back": "Retour à l'accueil"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue. Réessayez dans un instant.",
+    "retry": "Réessayer"
+  },
+  "admin": {
+    "title": "Administration",
+    "nav": {
+      "label": "Navigation admin",
+      "dashboard": "Tableau de bord"
+    },
+    "login": {
+      "title": "Connexion",
+      "intro": "Espace réservé à l'hôte et à l'équipe de ménage.",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "remember": "Rester connecté",
+      "submit": "Se connecter",
+      "submitting": "Connexion…"
+    },
+    "logout": "Se déconnecter",
+    "connectedAs": "Connecté : {{name}}",
+    "dashboard": {
+      "title": "Tableau de bord",
+      "welcome": "Bonjour {{name}}, le back-office se construit jalon après jalon."
+    },
+    "forbidden": "Votre compte n'a pas accès à cette page."
+  }
+}

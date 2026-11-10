@@ -20,11 +20,11 @@ synchronisation des calendriers Airbnb par iCal et back-office pour l'hôte.
 Prérequis : Docker (avec Compose), Node.js 22+ et npm.
 
 ```bash
-# 1. Services : PHP, PostgreSQL, Redis, Mailpit
+# 1. API : dépendances PHP et clé, puis services (PHP, PostgreSQL, Redis, Mailpit)
 cp backend/.env.example backend/.env
+docker compose run --rm --no-deps app composer install
+docker compose run --rm --no-deps app php artisan key:generate
 docker compose up -d
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
 
 # 2. Front (sur la machine hôte)
@@ -53,10 +53,16 @@ docker compose exec app vendor/bin/pint      # style
 docker compose exec app vendor/bin/phpstan   # analyse statique (Larastan)
 
 # Frontend
-npm run lint && npm run typecheck && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 ## Façon de travailler
 
-- `main` est protégée : tout passe par une pull request dont la CI est verte.
-- Une branche par jalon ou par issue, commits qui référencent l'issue (`Closes #12`).
+| Branche | Rôle | Alimentée par |
+|---|---|---|
+| `jalon-N/<nom>` | Travail d'un jalon, un commit par issue (`Closes #12`) | — |
+| `develop` | Intégration, branche par défaut | PR depuis les branches de jalon |
+| `staging` | Recette avec le client (environnement de test, clés Stripe de test) — créée au moment de la recette | PR depuis `develop` |
+| `main` | Production | PR depuis `staging` (ou `develop` avant la recette) |
+
+`develop`, `staging` et `main` sont protégées : pull request obligatoire et CI verte.
