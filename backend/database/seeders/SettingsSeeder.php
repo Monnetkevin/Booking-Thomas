@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Setting;
+use App\Repositories\Contracts\SettingRepositoryInterface;
 use Illuminate\Database\Seeder;
 
 /**
@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
  */
 class SettingsSeeder extends Seeder
 {
-    public function run(): void
+    public function run(SettingRepositoryInterface $settings): void
     {
         $defaults = [
             // Règles de réservation (globales)
@@ -49,7 +49,7 @@ class SettingsSeeder extends Seeder
         ];
 
         foreach ($defaults as $key => $value) {
-            Setting::query()->firstOrCreate(['key' => $key], ['value' => $value]);
+            $settings->putIfMissing($key, $value);
         }
     }
 }

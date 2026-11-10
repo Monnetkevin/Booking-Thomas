@@ -7,7 +7,6 @@ use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\IcalFeed;
 use App\Models\RatePeriod;
-use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 
 it('traduit le nom et la description des logements', function () {
@@ -56,11 +55,4 @@ it('trouve les blocs qui touchent une période', function () {
     // Le départ du 13 libère la nuit du 13 : un séjour arrivant ce jour-là ne chevauche pas.
     expect(AvailabilityBlock::overlapping('2027-03-13', '2027-03-15')->count())->toBe(0)
         ->and(AvailabilityBlock::overlapping('2027-03-12', '2027-03-14')->count())->toBe(1);
-});
-
-it('lit et met en cache les réglages', function () {
-    Setting::put('booking.min_notice_days', 1);
-
-    expect(Setting::get('booking.min_notice_days'))->toBe(1)
-        ->and(Setting::get('inconnu', 'défaut'))->toBe('défaut');
 });

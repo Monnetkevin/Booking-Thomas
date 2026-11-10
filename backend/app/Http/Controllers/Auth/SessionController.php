@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Authentification de la SPA par cookie de session (Sanctum, garde « web »).
@@ -15,12 +15,21 @@ use Illuminate\Support\Facades\Auth;
  */
 class SessionController extends Controller
 {
+    public function __construct(private readonly AuthService $auth) {}
+
     public function store(LoginRequest $request): UserResource
     {
-        $request->authenticate();
+        $user = $this->auth->login(
+            email: $request->string('email')->toString(),
+            password: $request->string('password')->toString(),
+            remember: $request->boolean('remember'),
+            ip: $request->ip(),
+        );
+
+        // Nouvel identifiant de session après connexion (fixation de session).
         $request->session()->regenerate();
 
-        return new UserResource($request->user());
+        return new UserResource($user);
     }
 
     public function show(Request $request): UserResource
@@ -30,7 +39,7 @@ class SessionController extends Controller
 
     public function destroy(Request $request): Response
     {
-        Auth::guard('web')->logout();
+        $this->auth->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
