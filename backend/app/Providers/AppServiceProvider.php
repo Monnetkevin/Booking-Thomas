@@ -4,7 +4,10 @@ namespace App\Providers;
 
 use App\Services\Geocoding\Geocoder;
 use App\Services\Geocoding\GeoplateformeGeocoder;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Client\Factory as Http;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Lecture publique : 120 requêtes par minute et par adresse IP.
+        RateLimiter::for('public', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));
     }
 }

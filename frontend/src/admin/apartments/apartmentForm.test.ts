@@ -7,6 +7,7 @@ const apartment: Apartment = {
   slug: 'le-cocon',
   status: 'draft',
   name: { fr: 'Le Cocon', en: 'The Cocoon' },
+  tagline: { fr: 'Bohème, rotin et lumière' },
   description: { fr: 'Bohème' },
   address: '12 rue de la Paix',
   postal_code: '72000',
@@ -41,6 +42,7 @@ describe('formulaire de logement', () => {
     expect(result.errors).toBeUndefined()
     expect(result.input).toMatchObject({
       name: { fr: 'Le Cocon', en: 'The Cocoon' },
+      tagline: { fr: 'Bohème, rotin et lumière', en: '' },
       description: { fr: 'Bohème', en: '' },
       capacity: 4,
       surface_m2: 60,

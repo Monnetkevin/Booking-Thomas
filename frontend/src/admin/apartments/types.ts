@@ -42,6 +42,7 @@ export interface Apartment {
   slug: string
   status: ApartmentStatus
   name: Translated
+  tagline: Translated
   description: Translated
   address: string
   postal_code: string
@@ -76,6 +77,7 @@ export interface Apartment {
  */
 export interface ApartmentInput {
   name: Translated
+  tagline: Translated
   description: Translated
   address: string
   postal_code: string

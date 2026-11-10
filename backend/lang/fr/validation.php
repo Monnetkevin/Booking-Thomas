@@ -68,6 +68,8 @@ return [
         'slug' => 'adresse de la page',
         'name.fr' => 'nom (français)',
         'name.en' => 'nom (anglais)',
+        'tagline.fr' => 'accroche (français)',
+        'tagline.en' => 'accroche (anglais)',
         'description.fr' => 'description (français)',
         'description.en' => 'description (anglais)',
         'address' => 'adresse',

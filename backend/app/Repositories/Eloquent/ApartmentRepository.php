@@ -25,6 +25,25 @@ class ApartmentRepository implements ApartmentRepositoryInterface
             ->get();
     }
 
+    public function publishedWithCatalogData(): Collection
+    {
+        return Apartment::query()
+            ->published()
+            ->with(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()])
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function findPublishedBySlug(string $slug): ?Apartment
+    {
+        return Apartment::query()
+            ->published()
+            ->where('slug', $slug)
+            ->with(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()])
+            ->first();
+    }
+
     public function loadDetails(Apartment $apartment): Apartment
     {
         return $apartment->load(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()]);

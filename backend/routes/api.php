@@ -5,7 +5,16 @@ use App\Http\Controllers\Admin\ApartmentController;
 use App\Http\Controllers\Admin\ApartmentPhotoController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\Public\ApartmentController as PublicApartmentController;
 use Illuminate\Support\Facades\Route;
+
+/*
+| Site public : lecture seule, réponses en cache (Redis et en-têtes HTTP, une minute)
+*/
+Route::middleware(['throttle:public', 'cache.headers:public;max_age=60;etag'])->group(function () {
+    Route::get('apartments', [PublicApartmentController::class, 'index']);
+    Route::get('apartments/{slug}', [PublicApartmentController::class, 'show'])->where('slug', '[a-z0-9-]+');
+});
 
 /*
 | Authentification (SPA, cookie de session Sanctum)

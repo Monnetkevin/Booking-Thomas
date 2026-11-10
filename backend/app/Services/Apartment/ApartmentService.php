@@ -8,6 +8,7 @@ use App\Exceptions\Apartment\ApartmentNotPublishableException;
 use App\Jobs\GeocodeApartment;
 use App\Models\Apartment;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
+use App\Services\Catalog\CatalogCache;
 use App\Services\Geocoding\Geocoder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Date;
@@ -24,6 +25,7 @@ class ApartmentService
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
         private readonly Geocoder $geocoder,
+        private readonly CatalogCache $catalog,
     ) {}
 
     /**
@@ -61,6 +63,8 @@ class ApartmentService
 
         GeocodeApartment::dispatch($apartment);
 
+        $this->catalog->flush();
+
         return $this->details($apartment);
     }
 
@@ -95,6 +99,8 @@ class ApartmentService
             GeocodeApartment::dispatch($apartment);
         }
 
+        $this->catalog->flush();
+
         return $this->details($apartment);
     }
 
@@ -125,6 +131,7 @@ class ApartmentService
             'longitude' => $coordinates?->longitude,
             'geocoded_at' => now(),
         ]);
+        $this->catalog->flush();
     }
 
     /**
@@ -141,6 +148,8 @@ class ApartmentService
 
         $this->apartments->update($apartment, ['status' => ApartmentStatus::Published]);
 
+        $this->catalog->flush();
+
         return $this->details($apartment);
     }
 
@@ -148,6 +157,8 @@ class ApartmentService
     public function unpublish(Apartment $apartment): Apartment
     {
         $this->apartments->update($apartment, ['status' => ApartmentStatus::Draft]);
+
+        $this->catalog->flush();
 
         return $this->details($apartment);
     }
@@ -164,6 +175,7 @@ class ApartmentService
         }
 
         $this->apartments->delete($apartment);
+        $this->catalog->flush();
     }
 
     /**
@@ -172,6 +184,8 @@ class ApartmentService
     public function syncAmenities(Apartment $apartment, array $amenityIds): Apartment
     {
         $this->apartments->syncAmenities($apartment, $amenityIds);
+
+        $this->catalog->flush();
 
         return $this->details($apartment);
     }
@@ -182,6 +196,7 @@ class ApartmentService
     public function reorder(array $orderedIds): void
     {
         $this->apartments->reorder($orderedIds);
+        $this->catalog->flush();
     }
 
     /**

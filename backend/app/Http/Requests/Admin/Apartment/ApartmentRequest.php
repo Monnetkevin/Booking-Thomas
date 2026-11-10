@@ -22,6 +22,9 @@ abstract class ApartmentRequest extends FormRequest
             'name' => ['required', 'array'],
             'name.fr' => ['required', 'string', 'max:120'],
             'name.en' => ['nullable', 'string', 'max:120'],
+            'tagline' => ['nullable', 'array'],
+            'tagline.fr' => ['nullable', 'string', 'max:80'],
+            'tagline.en' => ['nullable', 'string', 'max:80'],
             'description' => ['nullable', 'array'],
             'description.fr' => ['nullable', 'string', 'max:5000'],
             'description.en' => ['nullable', 'string', 'max:5000'],
@@ -55,7 +58,7 @@ abstract class ApartmentRequest extends FormRequest
     {
         $data = $this->validated();
 
-        foreach (['name', 'description'] as $field) {
+        foreach (['name', 'tagline', 'description'] as $field) {
             if (isset($data[$field]) && is_array($data[$field])) {
                 $data[$field] = array_filter($data[$field], fn ($value) => filled($value));
             }

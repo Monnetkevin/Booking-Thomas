@@ -24,6 +24,7 @@ class AdminApartmentResource extends JsonResource
             'slug' => $this->slug,
             'status' => $this->status->value,
             'name' => $this->getTranslations('name'),
+            'tagline' => $this->getTranslations('tagline'),
             'description' => $this->getTranslations('description'),
             'address' => $this->address,
             'postal_code' => $this->postal_code,

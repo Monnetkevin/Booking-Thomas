@@ -138,7 +138,10 @@
         "turnoverHint": "Nuits bloquées après chaque départ.",
         "policy": "Politique d'annulation",
         "registration": "Numéro d'enregistrement",
-        "registrationHint": "Affiché sur la fiche si la commune l'exige."
+        "registrationHint": "Affiché sur la fiche si la commune l'exige.",
+        "taglineFr": "Accroche (français)",
+        "taglineEn": "Accroche (anglais)",
+        "taglineHint": "Une phrase courte affichée sur les cartes, par ex. « Bohème, rotin et lumière »."
       },
       "units": {
         "nights": "nuits",
