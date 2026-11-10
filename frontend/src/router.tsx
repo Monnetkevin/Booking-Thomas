@@ -15,11 +15,19 @@ export const router = createBrowserRouter([
   {
     // Le back-office est un morceau de code séparé, chargé seulement sous /admin.
     path: '/admin',
-    lazy: async () => ({ Component: (await import('@/admin/AdminLayout')).AdminLayout }),
     children: [
       {
-        index: true,
-        lazy: async () => ({ Component: (await import('@/admin/pages/DashboardPage')).DashboardPage }),
+        path: 'connexion',
+        lazy: async () => ({ Component: (await import('@/admin/pages/LoginPage')).LoginPage }),
+      },
+      {
+        lazy: async () => ({ Component: (await import('@/admin/AdminShell')).AdminShell }),
+        children: [
+          {
+            index: true,
+            lazy: async () => ({ Component: (await import('@/admin/pages/DashboardPage')).DashboardPage }),
+          },
+        ],
       },
     ],
   },

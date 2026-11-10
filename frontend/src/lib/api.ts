@@ -39,10 +39,7 @@ export async function ensureCsrfCookie(): Promise<void> {
   await fetch('/sanctum/csrf-cookie', { credentials: 'include' })
 }
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const method = options.method ?? 'GET'
-  if (method !== 'GET') await ensureCsrfCookie()
-
+function send(path: string, method: Method, options: RequestOptions): Promise<Response> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -52,13 +49,26 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   const xsrf = readCookie('XSRF-TOKEN')
   if (xsrf) headers['X-XSRF-TOKEN'] = xsrf
 
-  const response = await fetch(`/api${path}`, {
+  return fetch(`/api${path}`, {
     method,
     headers,
     credentials: 'include',
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     signal: options.signal,
   })
+}
+
+export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const method = options.method ?? 'GET'
+  if (method !== 'GET') await ensureCsrfCookie()
+
+  let response = await send(path, method, options)
+
+  // 419 : jeton CSRF expiré (session renouvelée) ; on en reprend un et on réessaie une fois.
+  if (response.status === 419) {
+    await fetch('/sanctum/csrf-cookie', { credentials: 'include' })
+    response = await send(path, method, options)
+  }
 
   if (response.status === 204) return undefined as T
   const data: unknown = await response.json().catch(() => null)
