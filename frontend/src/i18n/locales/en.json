@@ -1,0 +1,40 @@
+{
+  "site": {
+    "name": "Site name",
+    "tagline": "Furnished apartments in Le Mans"
+  },
+  "nav": {
+    "home": "Home",
+    "apartments": "Apartments",
+    "contact": "Contact",
+    "menu": "Menu",
+    "close": "Close menu",
+    "main": "Main navigation"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Français",
+    "switchToLabel": "Voir le site en français"
+  },
+  "footer": {
+    "legal": "Legal notice",
+    "terms": "Terms and conditions",
+    "privacy": "Privacy",
+    "rights": "All rights reserved."
+  },
+  "home": {
+    "title": "Apartments that feel like home",
+    "intro": "Book direct, with no platform fees, and pay securely.",
+    "cta": "See the apartments"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "This page does not exist or has moved.",
+    "back": "Back to home"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong. Please try again in a moment.",
+    "retry": "Try again"
+  }
+}
