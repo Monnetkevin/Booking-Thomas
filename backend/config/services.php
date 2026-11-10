@@ -35,6 +35,13 @@ return [
         ],
     ],
 
+    // Cloudflare Turnstile (anti-robot du formulaire de contact et de la réservation).
+    // Sans clé secrète, la vérification est désactivée (développement local).
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
     // Géocodage des adresses des logements (API Adresse de la Géoplateforme, IGN)
     'geocoding' => [
         'url' => env('GEOCODING_URL', 'https://data.geopf.fr/geocodage/search'),

@@ -26,6 +26,8 @@ interface ApartmentRepositoryInterface
     /** Logement publié et tout ce qu'affiche sa fiche publique, ou null. */
     public function findPublishedBySlug(string $slug): ?Apartment;
 
+    public function idForSlug(string $slug): ?int;
+
     /** Charge tout ce qu'affiche la fiche d'administration. */
     public function loadDetails(Apartment $apartment): Apartment;
 

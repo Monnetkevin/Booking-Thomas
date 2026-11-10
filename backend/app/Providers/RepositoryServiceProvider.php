@@ -7,6 +7,7 @@ use App\Repositories\Contracts\ApartmentPhotoRepositoryInterface;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\ContactMessageRepositoryInterface;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -15,6 +16,7 @@ use App\Repositories\Eloquent\ApartmentPhotoRepository;
 use App\Repositories\Eloquent\ApartmentRepository;
 use App\Repositories\Eloquent\AvailabilityRepository;
 use App\Repositories\Eloquent\BookingRepository;
+use App\Repositories\Eloquent\ContactMessageRepository;
 use App\Repositories\Eloquent\RatePeriodRepository;
 use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Eloquent\UserRepository;
@@ -37,6 +39,7 @@ class RepositoryServiceProvider extends ServiceProvider
         AmenityRepositoryInterface::class => AmenityRepository::class,
         RatePeriodRepositoryInterface::class => RatePeriodRepository::class,
         AvailabilityRepositoryInterface::class => AvailabilityRepository::class,
+        ContactMessageRepositoryInterface::class => ContactMessageRepository::class,
         SettingRepositoryInterface::class => SettingRepository::class,
     ];
 

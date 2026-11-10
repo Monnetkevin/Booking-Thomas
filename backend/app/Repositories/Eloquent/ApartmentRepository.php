@@ -44,6 +44,13 @@ class ApartmentRepository implements ApartmentRepositoryInterface
             ->first();
     }
 
+    public function idForSlug(string $slug): ?int
+    {
+        $id = Apartment::query()->where('slug', $slug)->value('id');
+
+        return $id === null ? null : (int) $id;
+    }
+
     public function loadDetails(Apartment $apartment): Apartment
     {
         return $apartment->load(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()]);

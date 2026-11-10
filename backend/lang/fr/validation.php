@@ -100,6 +100,8 @@ return [
         'name' => 'nom',
         'phone' => 'téléphone',
         'message' => 'message',
+        'captcha' => 'vérification anti-robot',
+        'apartment' => 'logement',
         'arrival' => 'date d’arrivée',
         'departure' => 'date de départ',
         'adults' => 'adultes',

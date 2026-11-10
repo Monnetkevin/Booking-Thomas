@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Services\Geocoding\Geocoder;
 use App\Services\Geocoding\GeoplateformeGeocoder;
+use App\Services\Security\HumanVerifier;
+use App\Services\Security\TurnstileVerifier;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Client\Factory as Http;
 use Illuminate\Http\Request;
@@ -21,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
             $app->make(Http::class),
             (string) config('services.geocoding.url'),
         ));
+        $this->app->bind(HumanVerifier::class, fn ($app) => new TurnstileVerifier(
+            $app->make(Http::class),
+            config('services.turnstile.secret'),
+        ));
     }
 
     /**
@@ -32,5 +38,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('public', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));
         // Devis : 30 par minute et par IP (spec).
         RateLimiter::for('quotes', fn (Request $request) => Limit::perMinute(30)->by((string) $request->ip()));
+        // Contact : 3 messages par minute et par IP (spec).
+        RateLimiter::for('contact', fn (Request $request) => Limit::perMinute(3)->by((string) $request->ip()));
     }
 }
