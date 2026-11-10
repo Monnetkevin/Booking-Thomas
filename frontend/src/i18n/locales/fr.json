@@ -263,7 +263,19 @@
       "deleteConfirmTitle": "Supprimer cette période ?",
       "deleteConfirm": "Les réservations déjà faites gardent leur prix.",
       "note": "Les périodes d'un même logement ne peuvent pas se chevaucher. Modifier un tarif ne change pas les réservations déjà faites.",
-      "previewSoon": "L'aperçu du prix d'un séjour test arrivera avec le moteur de calcul du prix (jalon 3)."
+      "preview": {
+        "title": "Aperçu du prix",
+        "description": "Prix d'un séjour test, calculé comme pour un voyageur.",
+        "arrival": "Arrivée",
+        "departure": "Départ",
+        "adults": "Adultes",
+        "children": "Enfants",
+        "submit": "Calculer",
+        "noRate": "Pas de prix : certaines nuits n'ont pas de tarif."
+      }
     }
+  },
+  "pricing": {
+    "total": "Total"
   }
 }

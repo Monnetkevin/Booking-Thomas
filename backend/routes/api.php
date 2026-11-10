@@ -3,9 +3,11 @@
 use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\ApartmentController;
 use App\Http\Controllers\Admin\ApartmentPhotoController;
+use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Public\ApartmentController as PublicApartmentController;
+use App\Http\Controllers\Public\QuoteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,6 +17,9 @@ Route::middleware(['throttle:public', 'cache.headers:public;max_age=60;etag'])->
     Route::get('apartments', [PublicApartmentController::class, 'index']);
     Route::get('apartments/{slug}', [PublicApartmentController::class, 'show'])->where('slug', '[a-z0-9-]+');
 });
+
+// Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
+Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');
 
 /*
 | Authentification (SPA, cookie de session Sanctum)
@@ -55,4 +60,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('apartments/{apartment:id}/rate-periods', [RatePeriodController::class, 'store']);
     Route::put('rate-periods/{ratePeriod}', [RatePeriodController::class, 'update']);
     Route::delete('rate-periods/{ratePeriod}', [RatePeriodController::class, 'destroy']);
+    Route::post('apartments/{apartment:id}/quote-preview', QuotePreviewController::class);
 });

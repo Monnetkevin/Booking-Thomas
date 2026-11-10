@@ -37,5 +37,8 @@
     "loading": "Loading…",
     "error": "Something went wrong. Please try again in a moment.",
     "retry": "Try again"
+  },
+  "pricing": {
+    "total": "Total"
   }
 }

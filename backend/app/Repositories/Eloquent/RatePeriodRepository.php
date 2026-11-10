@@ -19,6 +19,16 @@ class RatePeriodRepository implements RatePeriodRepositoryInterface
             ->get();
     }
 
+    public function covering(int $apartmentId, string $from, string $to): Collection
+    {
+        return RatePeriod::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('starts_on', '<=', $to)
+            ->where('ends_on', '>=', $from)
+            ->orderBy('starts_on')
+            ->get();
+    }
+
     public function findOverlapping(int $apartmentId, string $from, string $to, ?int $exceptId = null): ?RatePeriod
     {
         return RatePeriod::query()

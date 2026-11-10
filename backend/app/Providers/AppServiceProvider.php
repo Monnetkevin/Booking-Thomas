@@ -30,5 +30,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Lecture publique : 120 requêtes par minute et par adresse IP.
         RateLimiter::for('public', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));
+        // Devis : 30 par minute et par IP (spec).
+        RateLimiter::for('quotes', fn (Request $request) => Limit::perMinute(30)->by((string) $request->ip()));
     }
 }

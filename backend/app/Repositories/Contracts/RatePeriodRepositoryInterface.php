@@ -15,6 +15,13 @@ interface RatePeriodRepositoryInterface
      */
     public function forApartment(Apartment $apartment, bool $includePast = false): Collection;
 
+    /**
+     * Périodes du logement qui touchent [from, to] (dates incluses).
+     *
+     * @return Collection<int, RatePeriod>
+     */
+    public function covering(int $apartmentId, string $from, string $to): Collection;
+
     /** Première période du logement qui recouvre [from, to] (dates incluses), hors $exceptId. */
     public function findOverlapping(int $apartmentId, string $from, string $to, ?int $exceptId = null): ?RatePeriod;
 
