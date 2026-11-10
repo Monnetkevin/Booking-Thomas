@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\DatesUnavailableException;
+use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Authentification de la SPA par cookie de session (Sanctum), même domaine que l'API.
         $middleware->statefulApi();
+        $middleware->alias(['role' => EnsureUserHasRole::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Contrainte d'exclusion PostgreSQL : « ces dates ne sont plus disponibles » (409).
