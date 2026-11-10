@@ -24,9 +24,90 @@
     "rights": "Tous droits réservés."
   },
   "home": {
-    "title": "Des appartements où l'on se sent chez soi",
-    "intro": "Réservez en direct, sans frais de plateforme, et payez en toute sécurité.",
-    "cta": "Voir les logements"
+    "eyebrow": "Le Mans · Appartements meublés",
+    "title": "Des appartements cosy et lumineux au Mans",
+    "intro": "À environ 5 minutes du circuit des 24 Heures et du centre-ville, pour un week-end, un séjour d'affaires ou une escapade à deux.",
+    "metaDescription": "Appartements meublés au Mans, près du circuit des 24 Heures et du centre-ville. Réservez en direct et payez en ligne.",
+    "apartmentsTitle": "Nos appartements",
+    "apartmentsIntro": "Chaque logement a son ambiance. Réservez en direct, du calendrier jusqu'au paiement.",
+    "seeApartment": "Voir l'appartement",
+    "seeAll": "Voir tous les logements",
+    "featuresTitle": "Ce que vous trouverez chez nous",
+    "features": [
+      {
+        "title": "Stationnement gratuit",
+        "text": "Un stationnement gratuit est prévu à proximité de chaque appartement."
+      },
+      {
+        "title": "Cuisine équipée et Wi-Fi",
+        "text": "Tout pour cuisiner et rester connecté, pour un week-end comme pour travailler."
+      },
+      {
+        "title": "Arrivée autonome",
+        "text": "Dans plusieurs appartements, les clés se récupèrent dans une boîte sécurisée."
+      },
+      {
+        "title": "Animaux acceptés",
+        "text": "Dans la plupart des appartements, pour voyager avec votre compagnon."
+      }
+    ],
+    "locationTitle": "Bien placés",
+    "locationIntro": "Le circuit, le tram et le centre-ville sont tout proches.",
+    "locations": [
+      {
+        "value": "5 min",
+        "label": "Circuit des 24 Heures"
+      },
+      {
+        "value": "Tram",
+        "label": "Au pied de plusieurs appartements"
+      },
+      {
+        "value": "Centre",
+        "label": "Le centre-ville à proximité de chacun"
+      }
+    ],
+    "stepsTitle": "Réserver, c'est simple",
+    "steps": [
+      {
+        "title": "Choisissez vos dates",
+        "text": "Le calendrier affiche en temps réel les nuits libres de chaque appartement."
+      },
+      {
+        "title": "Payez en ligne",
+        "text": "Paiement par carte sur une page sécurisée, confirmation immédiate par e-mail."
+      },
+      {
+        "title": "Arrivez à l'heure dite",
+        "text": "Vous recevez les consignes d'arrivée avant votre séjour."
+      }
+    ],
+    "hostTitle": "Votre hôte au Mans",
+    "hostText": "[Quelques lignes de présentation : qui vous accueille, depuis quand, pourquoi ces appartements.]",
+    "hostQuestion": "Une question avant de réserver ? Écrivez-nous, nous répondons rapidement.",
+    "hostCta": "Nous écrire",
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "q": "À quelle heure arrive-t-on et repart-on ?",
+        "a": "Les horaires figurent sur chaque fiche ; l'arrivée autonome est possible dans plusieurs appartements."
+      },
+      {
+        "q": "Que se passe-t-il en cas d'annulation ?",
+        "a": "Les conditions d'annulation de chaque logement sont détaillées sur sa fiche et rappelées avant le paiement."
+      },
+      {
+        "q": "Les animaux sont-ils acceptés ?",
+        "a": "Dans la plupart des appartements : la mention figure dans les équipements de chaque fiche."
+      },
+      {
+        "q": "Comment payer ?",
+        "a": "Par carte, sur une page sécurisée par Stripe. Le séjour est payé en totalité à la réservation."
+      }
+    ],
+    "ctaTitle": "Réservez en direct",
+    "ctaText": "Choisissez vos dates dans le calendrier et payez par carte, sur une page sécurisée.",
+    "ctaButton": "Voir les disponibilités"
   },
   "notFound": {
     "title": "Page introuvable",
@@ -36,7 +117,10 @@
   "common": {
     "loading": "Chargement…",
     "error": "Une erreur est survenue. Réessayez dans un instant.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "admin": {
     "title": "Administration",
@@ -277,5 +361,127 @@
   },
   "pricing": {
     "total": "Total"
+  },
+  "search": {
+    "label": "Rechercher un logement par dates",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "guests": "Voyageurs",
+    "guests_one": "{{count}} voyageur",
+    "guests_other": "{{count}} voyageurs",
+    "submit": "Rechercher",
+    "submitHome": "Voir les appartements disponibles",
+    "invalidDates": "La date de départ doit être après la date d'arrivée."
+  },
+  "listing": {
+    "title": "Nos appartements",
+    "intro": "Des logements meublés au Mans, chacun avec sa propre ambiance. Indiquez vos dates pour voir lesquels sont libres.",
+    "metaDescription": "Appartements meublés au Mans à réserver en direct : photos, équipements, disponibilités et prix détaillé.",
+    "results_one": "{{count}} logement disponible sur {{total}}",
+    "results_other": "{{count}} logements disponibles sur {{total}}",
+    "count_one": "{{count}} logement",
+    "count_other": "{{count}} logements",
+    "clearSearch": "Effacer les dates",
+    "filtersLabel": "Filtrer par équipement",
+    "allFilter": "Tous",
+    "available": "Disponible",
+    "unavailable": "Indisponible à ces dates",
+    "from": "à partir de {{price}}",
+    "perNight": "par nuit",
+    "total_one": "{{price}} pour {{count}} nuit",
+    "total_other": "{{price}} pour {{count}} nuits",
+    "view": "Voir et réserver",
+    "viewLabel": "Voir et réserver {{name}}",
+    "otherDates": "Voir les autres dates",
+    "empty": "Aucun logement ne correspond à ces critères.",
+    "emptyCatalog": "Les logements seront bientôt en ligne.",
+    "questionTitle": "Une question ?",
+    "questionText": "Dates flexibles, séjour long, besoin d'un conseil pour choisir : écrivez-nous.",
+    "contactCta": "Nous contacter",
+    "bedrooms_one": "{{count}} chambre",
+    "bedrooms_other": "{{count}} chambres",
+    "surface": "{{value}} m²"
+  },
+  "detail": {
+    "breadcrumb": "Fil d'Ariane",
+    "allPhotos": "Voir toutes les photos",
+    "allPhotosCount": "Voir les {{count}} photos",
+    "photosTitle": "Photos · {{name}}",
+    "about": "Le logement",
+    "amenities": "Équipements",
+    "rules": "Règles du séjour",
+    "checkIn": "Arrivée",
+    "checkInValue": "à partir de {{time}}",
+    "checkOut": "Départ",
+    "checkOutValue": "avant {{time}}",
+    "minStay": "Séjour minimum",
+    "maxStay": "Séjour maximum",
+    "nights_one": "{{count}} nuit",
+    "nights_other": "{{count}} nuits",
+    "cancellation": "Annulation ({{policy}})",
+    "cancellationTier": "{{percent}} % remboursé jusqu'à {{days}} jours avant l'arrivée",
+    "cancellationTierLast": "{{percent}} % remboursé ensuite",
+    "policies": {
+      "flexible": "flexible",
+      "moderate": "modérée",
+      "strict": "stricte"
+    },
+    "rates": "Tarifs",
+    "rateDates": "du {{from}} au {{to}}",
+    "ratePrice": "{{price}} / nuit",
+    "rateWeekend": "+ {{price}} les nuits du vendredi et du samedi",
+    "rateMinStay": "minimum {{count}} nuits",
+    "cleaningFee": "Frais de ménage : {{price}} par séjour",
+    "location": "Situation",
+    "locationNote": "L'adresse exacte vous est communiquée après la réservation.",
+    "mapLabel": "Carte du quartier de {{name}}",
+    "mapUnavailable": "La carte n'est pas encore disponible pour ce logement.",
+    "registration": "Numéro d'enregistrement : {{number}}",
+    "notFound": "Ce logement n'existe pas ou n'est plus proposé.",
+    "backToList": "Voir tous les logements"
+  },
+  "booking": {
+    "title": "Réservation",
+    "perNight": "par nuit",
+    "from": "À partir de",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "choose": "Choisir",
+    "adults": "Adultes",
+    "children": "Enfants",
+    "childrenHint": "Moins de 18 ans",
+    "calendarLabel": "Choisissez vos dates",
+    "legendUnavailable": "Indisponible",
+    "legendStay": "Votre séjour",
+    "pickArrival": "Choisissez votre date d'arrivée.",
+    "pickDeparture": "Choisissez maintenant votre date de départ ({{count}} nuits minimum).",
+    "clear": "Effacer les dates",
+    "calculating": "Calcul du prix…",
+    "book": "Réserver",
+    "bookSoon": "La réservation en ligne ouvre très bientôt. En attendant, écrivez-nous pour réserver ces dates.",
+    "payment": "Paiement par carte, sécurisé par Stripe.",
+    "calendarError": "Le calendrier n'a pas pu être chargé."
+  },
+  "contact": {
+    "title": "Contact",
+    "intro": "Une question, un séjour long, des dates flexibles ? Écrivez-nous, nous répondons rapidement.",
+    "metaDescription": "Contactez-nous pour une question sur nos appartements meublés au Mans.",
+    "name": "Nom",
+    "email": "Adresse e-mail",
+    "phone": "Téléphone",
+    "phoneHint": "Facultatif",
+    "apartment": "Logement concerné",
+    "apartmentNone": "Aucun en particulier",
+    "message": "Votre message",
+    "messageHint": "10 caractères au moins.",
+    "submit": "Envoyer le message",
+    "privacy": "Vos coordonnées servent uniquement à vous répondre.",
+    "sentTitle": "Message envoyé",
+    "another": "Écrire un autre message",
+    "website": "Ne pas remplir ce champ"
+  },
+  "legal": {
+    "draftNotice": "Texte à compléter et à faire valider par le propriétaire avant la mise en ligne.",
+    "updated": "Dernière mise à jour : {{date}}"
   }
 }

@@ -72,3 +72,46 @@
     }
   }
 }
+
+/* Calendrier de séjour (react-day-picker) aux couleurs du site */
+.stay-calendar .rdp-root {
+  --rdp-accent-color: var(--color-accent);
+  --rdp-accent-background-color: var(--color-accent-soft);
+  --rdp-day-height: 44px;
+  --rdp-day-width: 44px;
+  --rdp-day_button-height: 42px;
+  --rdp-day_button-width: 42px;
+  --rdp-range_middle-background-color: var(--color-accent-soft);
+  --rdp-range_start-date-background-color: var(--color-accent);
+  --rdp-range_end-date-background-color: var(--color-accent);
+  --rdp-today-color: var(--color-ink);
+  font-size: 14px;
+  max-width: 100%;
+}
+.stay-calendar .rdp-months,
+.stay-calendar .rdp-month,
+.stay-calendar .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+.stay-calendar .rdp-day.booked .rdp-day_button {
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
+.stay-calendar .rdp-day.rdp-range_start .rdp-day_button,
+.stay-calendar .rdp-day.rdp-range_end .rdp-day_button {
+  background-color: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.stay-calendar .rdp-day.rdp-range_middle {
+  background-color: var(--color-accent-soft);
+}
+.stay-calendar .rdp-day.rdp-range_middle .rdp-day_button {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.stay-calendar .rdp-disabled:not(.booked) .rdp-day_button {
+  color: #b9aa9b;
+}
