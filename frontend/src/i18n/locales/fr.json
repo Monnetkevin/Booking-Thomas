@@ -88,7 +88,7 @@
         "apartment": "Appartement",
         "status": "Statut",
         "capacity": "Capacité",
-        "basePrice": "Prix actuel",
+        "basePrice": "Prix par nuit",
         "actions": "Actions"
       },
       "status": {
@@ -97,8 +97,8 @@
       },
       "guests_one": "{{count}} voyageur",
       "guests_other": "{{count}} voyageurs",
-      "perNight": "{{price}} / nuit",
-      "noRate": "Pas de tarif",
+      "perNight": "{{price}}",
+      "noRate": "Aucun tarif à venir",
       "editLabel": "Modifier {{name}}",
       "newTitle": "Nouvel appartement",
       "newSubtitle": "Le logement est créé en brouillon ; vous ajouterez ensuite ses photos et ses tarifs.",
@@ -224,7 +224,7 @@
       },
       "nights_one": "{{count}} nuit",
       "nights_other": "{{count}} nuits",
-      "defaultMinStay": "{{count}} (logement)",
+      "defaultMinStay": "{{count}} nuits (par défaut)",
       "dateRange": "du {{from}} au {{to}}",
       "editLabel": "Modifier la période {{name}}",
       "deleteLabel": "Supprimer la période {{name}}",

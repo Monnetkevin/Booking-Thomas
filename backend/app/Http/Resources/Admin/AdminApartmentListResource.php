@@ -26,6 +26,7 @@ class AdminApartmentListResource extends JsonResource
             'name' => $this->getTranslation('name', 'fr'),
             'status' => $this->status->value,
             'capacity' => $this->capacity,
+            'min_stay' => $this->min_stay,
             'position' => $this->position,
             // Prix de la période en cours ou de la prochaine, en centimes (relation filtrée).
             'base_price' => $this->ratePeriods->first()?->nightly_price,

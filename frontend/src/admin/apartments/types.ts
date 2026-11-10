@@ -13,6 +13,7 @@ export interface ApartmentListItem {
   name: string
   status: ApartmentStatus
   capacity: number
+  min_stay: number
   position: number
   /** Prix par nuit de la période en cours ou de la prochaine, en centimes. */
   base_price: number | null
