@@ -115,6 +115,16 @@ class ApartmentService
     }
 
     /**
+     * @param  list<int>  $amenityIds
+     */
+    public function syncAmenities(Apartment $apartment, array $amenityIds): Apartment
+    {
+        $this->apartments->syncAmenities($apartment, $amenityIds);
+
+        return $this->details($apartment);
+    }
+
+    /**
      * @param  list<int>  $orderedIds
      */
     public function reorder(array $orderedIds): void

@@ -12,8 +12,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -48,6 +50,45 @@ class Apartment extends Model implements HasMedia
             'status' => ApartmentStatus::class,
             'cancellation_policy' => CancellationPolicy::class,
         ];
+    }
+
+    /** Tailles générées pour chaque photo : [largeur, hauteur]. */
+    public const PHOTO_SIZES = [
+        'thumb' => [480, 360],
+        'card' => [960, 720],
+        'large' => [1920, 1280],
+    ];
+
+    /**
+     * Les originaux restent privés (disque local) ; seules les versions ré-encodées,
+     * sans métadonnées, sont publiques.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection(self::PHOTOS)
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
+            ->useDisk('local')
+            ->storeConversionsOnDisk('public');
+    }
+
+    /** WebP pour tous les navigateurs, AVIF plus léger pour ceux qui le lisent (srcset). */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        foreach (self::PHOTO_SIZES as $name => [$width, $height]) {
+            $fit = $name === 'thumb' ? Fit::Crop : Fit::Max;
+
+            $this->addMediaConversion($name)
+                ->performOnCollections(self::PHOTOS)
+                ->fit($fit, $width, $height)
+                ->format('webp')
+                ->quality(80);
+
+            $this->addMediaConversion("$name-avif")
+                ->performOnCollections(self::PHOTOS)
+                ->fit($fit, $width, $height)
+                ->format('avif')
+                ->quality(60);
+        }
     }
 
     public function getRouteKeyName(): string

@@ -29,7 +29,7 @@ class AdminApartmentListResource extends JsonResource
             'position' => $this->position,
             // Prix de la période en cours ou de la prochaine, en centimes (relation filtrée).
             'base_price' => $this->ratePeriods->first()?->nightly_price,
-            'cover_url' => $cover?->getAvailableUrl(['thumb']),
+            'cover_url' => $cover?->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : null,
         ];
     }
 }

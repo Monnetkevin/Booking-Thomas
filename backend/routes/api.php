@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\ApartmentController;
+use App\Http\Controllers\Admin\ApartmentPhotoController;
 use App\Http\Controllers\Auth\SessionController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,4 +30,13 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::delete('apartments/{apartment:id}', [ApartmentController::class, 'destroy']);
     Route::post('apartments/{apartment:id}/publish', [ApartmentController::class, 'publish']);
     Route::post('apartments/{apartment:id}/unpublish', [ApartmentController::class, 'unpublish']);
+
+    // Photos (la première est la couverture) et équipements
+    Route::get('apartments/{apartment:id}/photos', [ApartmentPhotoController::class, 'index']);
+    Route::post('apartments/{apartment:id}/photos', [ApartmentPhotoController::class, 'store']);
+    Route::put('apartments/{apartment:id}/photos/order', [ApartmentPhotoController::class, 'reorder']);
+    Route::patch('apartments/{apartment:id}/photos/{photo}', [ApartmentPhotoController::class, 'update'])->whereNumber('photo');
+    Route::delete('apartments/{apartment:id}/photos/{photo}', [ApartmentPhotoController::class, 'destroy'])->whereNumber('photo');
+    Route::get('amenities', [AmenityController::class, 'index']);
+    Route::put('apartments/{apartment:id}/amenities', [AmenityController::class, 'sync']);
 });

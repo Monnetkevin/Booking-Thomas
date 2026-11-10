@@ -26,6 +26,7 @@ docker compose run --rm --no-deps app composer install
 docker compose run --rm --no-deps app php artisan key:generate
 docker compose up -d
 docker compose exec app php artisan migrate --seed
+docker compose exec app php artisan storage:link   # photos publiques
 
 # 2. Front (sur la machine hôte)
 cd frontend
@@ -38,6 +39,8 @@ npm run dev
 | SPA (Vite)               | http://localhost:5173     |
 | API Laravel              | http://localhost:8000/api |
 | Mailpit (e-mails reçus)  | http://localhost:8025     |
+
+Le service `queue` traite les tâches de fond (conversions des photos en WebP et AVIF, e-mails).
 | PostgreSQL               | localhost:5432            |
 
 Vite relaie `/api` et `/sanctum` vers Laravel : la SPA et l'API partagent la même origine, sans CORS.
