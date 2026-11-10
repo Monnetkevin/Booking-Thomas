@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Public\ApartmentController as PublicApartmentController;
+use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\QuoteController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,7 +17,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['throttle:public', 'cache.headers:public;max_age=60;etag'])->group(function () {
     Route::get('apartments', [PublicApartmentController::class, 'index']);
     Route::get('apartments/{slug}', [PublicApartmentController::class, 'show'])->where('slug', '[a-z0-9-]+');
+    Route::get('apartments/{slug}/availability', [AvailabilityController::class, 'calendar'])->where('slug', '[a-z0-9-]+');
 });
+
+// Recherche par dates : calculée à chaque fois (prix et disponibilités du moment).
+Route::get('availability', [AvailabilityController::class, 'search'])->middleware('throttle:public');
 
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BlockType;
+use Carbon\CarbonImmutable;
 use Database\Factories\AvailabilityBlockFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Source unique de vérité des nuits occupées, quelle qu'en soit l'origine.
  * Plage [starts_on, ends_on[ ; PostgreSQL refuse deux blocs actifs qui se recouvrent.
+ *
+ * @property CarbonImmutable $starts_on
+ * @property CarbonImmutable $ends_on
  */
 #[Fillable([
     'apartment_id', 'starts_on', 'ends_on', 'type', 'booking_id', 'ical_feed_id',
