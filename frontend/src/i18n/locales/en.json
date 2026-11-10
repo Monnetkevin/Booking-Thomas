@@ -9,7 +9,8 @@
     "contact": "Contact",
     "menu": "Menu",
     "close": "Close menu",
-    "main": "Main navigation"
+    "main": "Main navigation",
+    "skip": "Skip to content"
   },
   "language": {
     "label": "Language",
