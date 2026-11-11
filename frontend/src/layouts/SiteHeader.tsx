@@ -8,7 +8,7 @@ import { LanguageSwitcher } from '@/i18n/LanguageSwitcher'
 import { useLocale } from '@/i18n/useLocale'
 import { cn } from '@/lib/cn'
 
-/** En-tête « pilule » de la maquette v2 : logements, quartier, contact, langue et bouton Réserver. */
+/** En-tête « pilule » de la maquette v2 : logements, contact, langue et bouton Réserver. */
 export function SiteHeader() {
   const { t } = useTranslation()
   const { to } = useLocale()
@@ -30,12 +30,6 @@ export function SiteHeader() {
         <NavLink to={to('/logements')} className={({ isActive }) => linkClass(isActive)}>
           {t('nav.apartments')}
         </NavLink>
-      </li>
-      <li>
-        {/* Section « Bien placés » de l'accueil. */}
-        <Link to={`${to('/')}#quartier`} className={linkClass(false)}>
-          {t('nav.neighbourhood')}
-        </Link>
       </li>
       <li>
         <NavLink to={to('/contact')} className={({ isActive }) => linkClass(isActive)}>

@@ -197,8 +197,8 @@ export function HomePage() {
         </Container>
       </section>
 
-      {/* Situation (cible du lien « Le quartier » de l'en-tête) */}
-      <section id="quartier" aria-labelledby="quartier-titre" className="scroll-mt-24">
+      {/* Situation */}
+      <section aria-labelledby="quartier-titre">
         <Container className="pb-16 lg:pb-[72px]">
           <h2 id="quartier-titre" className="sr-only">
             {t('home.locationTitle')}
