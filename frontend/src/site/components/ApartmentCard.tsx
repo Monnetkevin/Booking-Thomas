@@ -34,7 +34,7 @@ export function ApartmentCard({ apartment, search = '', headingLevel: Heading = 
 
   return (
     <article className="flex flex-col overflow-hidden rounded-[20px] border border-border bg-white">
-      <div className="relative aspect-[3/2] bg-cream">
+      <div className="relative aspect-[3/2] overflow-hidden bg-cream">
         {apartment.cover && <Picture photo={apartment.cover} sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw" alt="" />}
         {result && (
           <span className="absolute top-3.5 left-3.5">

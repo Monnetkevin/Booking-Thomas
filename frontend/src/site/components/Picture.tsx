@@ -22,7 +22,7 @@ export function Picture({ photo, sizes, className, priority = false, alt }: Pict
   const fallback = photo.sources.card.webp ?? photo.sources.large.webp ?? photo.sources.thumb.webp ?? undefined
 
   return (
-    <picture>
+    <picture className="block h-full w-full">
       {set('avif') && <source type="image/avif" srcSet={set('avif')} sizes={sizes} />}
       {set('webp') && <source type="image/webp" srcSet={set('webp')} sizes={sizes} />}
       <img

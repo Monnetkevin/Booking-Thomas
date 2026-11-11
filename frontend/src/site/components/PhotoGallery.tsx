@@ -25,11 +25,11 @@ export function PhotoGallery({ photos, name }: { photos: PublicPhoto[]; name: st
   return (
     <section aria-label={t('detail.photosTitle', { name })} className="relative">
       <div className="grid gap-3 overflow-hidden rounded-[16px] sm:h-[432px] sm:grid-cols-[2fr_1fr_1fr] sm:grid-rows-2">
-        <div className="aspect-[4/3] sm:row-span-2 sm:aspect-auto">
+        <div className="aspect-[4/3] overflow-hidden sm:row-span-2 sm:aspect-auto">
           {main && <Picture photo={main} sizes="(min-width: 640px) 600px, 100vw" priority alt={main.alt || name} />}
         </div>
         {tiles.map((photo) => (
-          <div key={photo.id} className="hidden sm:block">
+          <div key={photo.id} className="hidden overflow-hidden sm:block">
             <Picture photo={photo} sizes="300px" alt={photo.alt || name} />
           </div>
         ))}
