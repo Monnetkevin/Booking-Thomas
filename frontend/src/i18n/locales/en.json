@@ -10,7 +10,9 @@
     "menu": "Menu",
     "close": "Close menu",
     "main": "Main navigation",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "neighbourhood": "The area",
+    "book": "Book"
   },
   "language": {
     "label": "Language",
@@ -24,94 +26,65 @@
     "rights": "All rights reserved."
   },
   "home": {
-    "eyebrow": "Le Mans · Furnished apartments",
-    "title": "Cosy, bright apartments in Le Mans",
-    "intro": "About 5 minutes from the 24 Hours circuit and the city centre, for a weekend, a business trip or a getaway for two.",
-    "metaDescription": "Furnished apartments in Le Mans, close to the 24 Hours circuit and the city centre. Book direct and pay online.",
-    "apartmentsTitle": "Our apartments",
-    "apartmentsIntro": "Each apartment has its own atmosphere. Book direct, from the calendar to payment.",
-    "seeApartment": "See the apartment",
-    "seeAll": "See all apartments",
-    "featuresTitle": "What you will find",
-    "features": [
-      {
-        "icon": "parking",
-        "title": "Free parking",
-        "text": "Free parking is available near each apartment."
-      },
-      {
-        "icon": "wifi",
-        "title": "Equipped kitchen and Wi-Fi",
-        "text": "Everything to cook and stay connected, for a weekend or for work."
-      },
-      {
-        "icon": "key",
-        "title": "Self check-in",
-        "text": "In several apartments, keys are collected from a secure key box."
-      },
-      {
-        "icon": "pets",
-        "title": "Pets welcome",
-        "text": "In most apartments, so you can travel with your companion."
-      }
+    "title": "Your base in Le Mans",
+    "titleStart": "Your base",
+    "titleAccent": "in Le Mans.",
+    "badge": "Book direct, secure payment",
+    "intro_one": "One furnished apartment with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
+    "intro_other": "{{word}} furnished apartments, each with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
+    "introFallback": "Furnished apartments, each with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
+    "metaDescription": "Furnished apartments in Le Mans, near the 24 Hours circuit and the city centre. Book direct and pay online.",
+    "highlightsLabel": "What you will find",
+    "highlights": [
+      "Free parking",
+      "Equipped kitchen",
+      "Wi-Fi",
+      "Self check-in",
+      "Pets welcome in most",
+      "Tram nearby"
     ],
+    "collectionTitle_one": "One address,|one mood",
+    "collectionTitle_other": "{{word}} addresses,|{{wordLower}} moods",
+    "collectionFallback": "Our addresses,|their moods",
+    "seeAll": "See all",
     "locationTitle": "Well located",
-    "locationIntro": "The circuit, the tram and the city centre are close by.",
     "locations": [
       {
         "value": "5 min",
-        "label": "24 Hours circuit"
+        "label": "from the 24 Hours circuit"
       },
       {
         "value": "Tram",
-        "label": "Right next to several apartments"
+        "label": "right by several apartments"
       },
       {
         "value": "Centre",
-        "label": "The city centre close to each one"
+        "label": "the city centre close to each one"
       }
     ],
-    "stepsTitle": "Booking is simple",
-    "steps": [
-      {
-        "title": "Choose your dates",
-        "text": "The calendar shows the free nights of each apartment in real time."
-      },
-      {
-        "title": "Pay online",
-        "text": "Card payment on a secure page, instant confirmation by e-mail."
-      },
-      {
-        "title": "Arrive on time",
-        "text": "You receive the check-in instructions before your stay."
-      }
-    ],
-    "hostTitle": "Your host in Le Mans",
-    "hostText": "[A few lines of introduction: who welcomes you, since when, why these apartments.]",
-    "hostQuestion": "A question before booking? Write to us, we reply quickly.",
-    "hostCta": "Write to us",
-    "faqTitle": "Frequently asked questions",
-    "faq": [
-      {
-        "q": "What are the check-in and check-out times?",
-        "a": "Times are shown on each apartment page; self check-in is possible in several apartments."
-      },
-      {
-        "q": "What happens if I cancel?",
-        "a": "The cancellation terms of each apartment are detailed on its page and repeated before payment."
-      },
-      {
-        "q": "Are pets allowed?",
-        "a": "In most apartments: it is listed in the amenities of each apartment."
-      },
-      {
-        "q": "How do I pay?",
-        "a": "By card, on a page secured by Stripe. The stay is paid in full when booking."
-      }
-    ],
-    "ctaTitle": "Book direct",
-    "ctaText": "Choose your dates in the calendar and pay by card on a secure page.",
-    "ctaButton": "See availability"
+    "hostEyebrow": "Your host",
+    "hostTitle": "Hello, I'm [First name].",
+    "hostText": "[A few lines of introduction: who welcomes you, since when, why these apartments. The tone stays warm and personal.]",
+    "hostQuestion": "A question before booking? Write to me, I reply quickly.",
+    "hostCta": "Write to your host",
+    "ctaTitle": "Book direct, pay securely.",
+    "ctaText": "Your dates in the calendar, a card payment on a secure page.",
+    "ctaButton": "See availability",
+    "numbers": [
+      "zero",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "eleven",
+      "twelve"
+    ]
   },
   "notFound": {
     "title": "Page not found",

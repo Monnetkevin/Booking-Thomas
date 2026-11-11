@@ -10,7 +10,9 @@
     "menu": "Menu",
     "close": "Fermer le menu",
     "main": "Navigation principale",
-    "skip": "Aller au contenu"
+    "skip": "Aller au contenu",
+    "neighbourhood": "Le quartier",
+    "book": "Réserver"
   },
   "language": {
     "label": "Langue",
@@ -24,94 +26,65 @@
     "rights": "Tous droits réservés."
   },
   "home": {
-    "eyebrow": "Le Mans · Appartements meublés",
-    "title": "Des appartements cosy et lumineux au Mans",
-    "intro": "À environ 5 minutes du circuit des 24 Heures et du centre-ville, pour un week-end, un séjour d'affaires ou une escapade à deux.",
+    "title": "Votre pied-à-terre au Mans",
+    "titleStart": "Votre pied-à-terre",
+    "titleAccent": "au Mans.",
+    "badge": "Réservation en direct, paiement sécurisé",
+    "intro_one": "Un appartement meublé, avec son ambiance, à quelques minutes du circuit des 24 Heures et du centre-ville.",
+    "intro_other": "{{word}} appartements meublés, chacun avec son ambiance, à quelques minutes du circuit des 24 Heures et du centre-ville.",
+    "introFallback": "Des appartements meublés, chacun avec son ambiance, à quelques minutes du circuit des 24 Heures et du centre-ville.",
     "metaDescription": "Appartements meublés au Mans, près du circuit des 24 Heures et du centre-ville. Réservez en direct et payez en ligne.",
-    "apartmentsTitle": "Nos appartements",
-    "apartmentsIntro": "Chaque logement a son ambiance. Réservez en direct, du calendrier jusqu'au paiement.",
-    "seeApartment": "Voir l'appartement",
-    "seeAll": "Voir tous les logements",
-    "featuresTitle": "Ce que vous trouverez chez nous",
-    "features": [
-      {
-        "icon": "parking",
-        "title": "Stationnement gratuit",
-        "text": "Un stationnement gratuit est prévu à proximité de chaque appartement."
-      },
-      {
-        "icon": "wifi",
-        "title": "Cuisine équipée et Wi-Fi",
-        "text": "Tout pour cuisiner et rester connecté, pour un week-end comme pour travailler."
-      },
-      {
-        "icon": "key",
-        "title": "Arrivée autonome",
-        "text": "Dans plusieurs appartements, les clés se récupèrent dans une boîte sécurisée."
-      },
-      {
-        "icon": "pets",
-        "title": "Animaux acceptés",
-        "text": "Dans la plupart des appartements, pour voyager avec votre compagnon."
-      }
+    "highlightsLabel": "Ce que vous trouverez chez nous",
+    "highlights": [
+      "Stationnement gratuit",
+      "Cuisine équipée",
+      "Wi-Fi",
+      "Arrivée autonome",
+      "Animaux acceptés dans la plupart",
+      "Tram à proximité"
     ],
+    "collectionTitle_one": "Une adresse,|une ambiance",
+    "collectionTitle_other": "{{word}} adresses,|{{wordLower}} ambiances",
+    "collectionFallback": "Nos adresses,|leurs ambiances",
+    "seeAll": "Tout voir",
     "locationTitle": "Bien placés",
-    "locationIntro": "Le circuit, le tram et le centre-ville sont tout proches.",
     "locations": [
       {
         "value": "5 min",
-        "label": "Circuit des 24 Heures"
+        "label": "du circuit des 24 Heures"
       },
       {
         "value": "Tram",
-        "label": "Au pied de plusieurs appartements"
+        "label": "au pied de plusieurs appartements"
       },
       {
         "value": "Centre",
-        "label": "Le centre-ville à proximité de chacun"
+        "label": "le centre-ville à proximité de chacun"
       }
     ],
-    "stepsTitle": "Réserver, c'est simple",
-    "steps": [
-      {
-        "title": "Choisissez vos dates",
-        "text": "Le calendrier affiche en temps réel les nuits libres de chaque appartement."
-      },
-      {
-        "title": "Payez en ligne",
-        "text": "Paiement par carte sur une page sécurisée, confirmation immédiate par e-mail."
-      },
-      {
-        "title": "Arrivez à l'heure dite",
-        "text": "Vous recevez les consignes d'arrivée avant votre séjour."
-      }
-    ],
-    "hostTitle": "Votre hôte au Mans",
-    "hostText": "[Quelques lignes de présentation : qui vous accueille, depuis quand, pourquoi ces appartements.]",
-    "hostQuestion": "Une question avant de réserver ? Écrivez-nous, nous répondons rapidement.",
-    "hostCta": "Nous écrire",
-    "faqTitle": "Questions fréquentes",
-    "faq": [
-      {
-        "q": "À quelle heure arrive-t-on et repart-on ?",
-        "a": "Les horaires figurent sur chaque fiche ; l'arrivée autonome est possible dans plusieurs appartements."
-      },
-      {
-        "q": "Que se passe-t-il en cas d'annulation ?",
-        "a": "Les conditions d'annulation de chaque logement sont détaillées sur sa fiche et rappelées avant le paiement."
-      },
-      {
-        "q": "Les animaux sont-ils acceptés ?",
-        "a": "Dans la plupart des appartements : la mention figure dans les équipements de chaque fiche."
-      },
-      {
-        "q": "Comment payer ?",
-        "a": "Par carte, sur une page sécurisée par Stripe. Le séjour est payé en totalité à la réservation."
-      }
-    ],
-    "ctaTitle": "Réservez en direct",
-    "ctaText": "Choisissez vos dates dans le calendrier et payez par carte, sur une page sécurisée.",
-    "ctaButton": "Voir les disponibilités"
+    "hostEyebrow": "Votre hôte",
+    "hostTitle": "Bonjour, moi c'est [Prénom].",
+    "hostText": "[Quelques lignes de présentation : qui vous accueille, depuis quand, pourquoi ces appartements. Le ton reste chaleureux et personnel.]",
+    "hostQuestion": "Une question avant de réserver ? Écrivez-moi, je réponds rapidement.",
+    "hostCta": "Écrire à votre hôte",
+    "ctaTitle": "Réservez en direct, payez en toute sécurité.",
+    "ctaText": "Vos dates dans le calendrier, un paiement par carte sur une page sécurisée.",
+    "ctaButton": "Voir les disponibilités",
+    "numbers": [
+      "zéro",
+      "un",
+      "deux",
+      "trois",
+      "quatre",
+      "cinq",
+      "six",
+      "sept",
+      "huit",
+      "neuf",
+      "dix",
+      "onze",
+      "douze"
+    ]
   },
   "notFound": {
     "title": "Page introuvable",
