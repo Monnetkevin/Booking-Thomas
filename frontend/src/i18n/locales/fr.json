@@ -35,18 +35,22 @@
     "featuresTitle": "Ce que vous trouverez chez nous",
     "features": [
       {
+        "icon": "parking",
         "title": "Stationnement gratuit",
         "text": "Un stationnement gratuit est prévu à proximité de chaque appartement."
       },
       {
+        "icon": "wifi",
         "title": "Cuisine équipée et Wi-Fi",
         "text": "Tout pour cuisiner et rester connecté, pour un week-end comme pour travailler."
       },
       {
+        "icon": "key",
         "title": "Arrivée autonome",
         "text": "Dans plusieurs appartements, les clés se récupèrent dans une boîte sécurisée."
       },
       {
+        "icon": "pets",
         "title": "Animaux acceptés",
         "text": "Dans la plupart des appartements, pour voyager avec votre compagnon."
       }

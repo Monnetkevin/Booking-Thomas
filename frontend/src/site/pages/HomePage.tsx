@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import type { ComponentType, SVGProps } from 'react'
+import { LockIcon, ParkingIcon, PawIcon, WifiIcon } from '@/components/icons'
 import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Container } from '@/components/ui/Container'
 import { useLocale } from '@/i18n/useLocale'
@@ -13,6 +15,14 @@ import { Seo } from '@/site/components/Seo'
 interface Feature {
   title: string
   text: string
+}
+
+/** Icône de chaque atout, choisie par la clé « icon » des traductions. */
+const featureIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+  parking: ParkingIcon,
+  wifi: WifiIcon,
+  key: LockIcon,
+  pets: PawIcon,
 }
 
 function SectionTitle({ title, intro }: { title: string; intro?: string }) {
@@ -31,7 +41,7 @@ export function HomePage() {
   const featured = apartments.data?.slice(0, 3) ?? []
   const [first, second] = featured.map((apartment) => apartment.cover)
 
-  const features = t('home.features', { returnObjects: true }) as Feature[]
+  const features = t('home.features', { returnObjects: true }) as Array<Feature & { icon: string }>
   const locations = t('home.locations', { returnObjects: true }) as Array<{ value: string; label: string }>
   const steps = t('home.steps', { returnObjects: true }) as Feature[]
   const faq = t('home.faq', { returnObjects: true }) as Array<{ q: string; a: string }>
@@ -44,7 +54,7 @@ export function HomePage() {
       <section className="bg-paper">
         <Container className="grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col gap-5">
-            <p className="text-xs font-semibold tracking-[0.08em] text-accent uppercase">{t('home.eyebrow')}</p>
+            <p className="text-xs font-semibold tracking-[0.08em] text-accent-text uppercase">{t('home.eyebrow')}</p>
             <h1 className="text-4xl leading-[1.08] font-semibold sm:text-5xl lg:text-[56px]">{t('home.title')}</h1>
             <p className="max-w-xl text-[17px] leading-relaxed text-muted">{t('home.intro')}</p>
             <SearchForm layout="stack" submitLabel={t('search.submitHome')} />
@@ -86,16 +96,26 @@ export function HomePage() {
       </section>
 
       {/* Ce que vous trouverez */}
-      <section className="bg-sand py-12 sm:py-16">
+      <section className="bg-cream py-12 sm:py-[72px]">
         <Container className="flex flex-col gap-8">
           <SectionTitle title={t('home.featuresTitle')} />
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <li key={feature.title} className="rounded-[var(--radius-card)] bg-white p-6">
-                <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-muted">{feature.text}</p>
-              </li>
-            ))}
+          <ul className="grid gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+            {features.map((feature) => {
+              const FeatureIcon = featureIcons[feature.icon]
+              return (
+                <li key={feature.title} className="flex items-start gap-4 sm:flex-col sm:gap-3">
+                  {FeatureIcon && (
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blush text-accent-strong">
+                      <FeatureIcon width={24} height={24} />
+                    </span>
+                  )}
+                  <div className="flex flex-col gap-1 sm:gap-3">
+                    <h3 className="font-sans text-[17px] font-semibold tracking-normal sm:text-lg">{feature.title}</h3>
+                    <p className="text-[15px] leading-relaxed text-muted">{feature.text}</p>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         </Container>
       </section>
@@ -104,11 +124,11 @@ export function HomePage() {
       <section className="py-12 sm:py-16">
         <Container className="flex flex-col gap-8">
           <SectionTitle title={t('home.locationTitle')} intro={t('home.locationIntro')} />
-          <dl className="grid gap-5 sm:grid-cols-3">
+          <dl className="grid gap-6 sm:grid-cols-3">
             {locations.map((item) => (
-              <div key={item.label} className="flex flex-col-reverse gap-1 border-l-2 border-accent pl-4">
-                <dt className="text-[15px] text-muted">{item.label}</dt>
-                <dd className="font-display text-3xl font-semibold">{item.value}</dd>
+              <div key={item.label} className="flex flex-col-reverse gap-1.5 rounded-[20px] border border-border bg-white p-6">
+                <dt className="text-base">{item.label}</dt>
+                <dd className="font-display text-[32px] font-semibold text-accent-text">{item.value}</dd>
               </div>
             ))}
           </dl>

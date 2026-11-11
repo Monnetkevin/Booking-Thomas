@@ -107,7 +107,7 @@ export function BookingPanel({ apartment, stay, onChange }: BookingPanelProps) {
             {stay.arrival && (
               <button
                 type="button"
-                className="mt-1 min-h-11 text-sm font-semibold text-accent underline underline-offset-4"
+                className="mt-1 min-h-11 text-sm font-semibold text-accent-text underline underline-offset-4"
                 onClick={() => onChange({ ...stay, arrival: null, departure: null })}
               >
                 {t('booking.clear')}

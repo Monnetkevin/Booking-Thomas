@@ -35,18 +35,22 @@
     "featuresTitle": "What you will find",
     "features": [
       {
+        "icon": "parking",
         "title": "Free parking",
         "text": "Free parking is available near each apartment."
       },
       {
+        "icon": "wifi",
         "title": "Equipped kitchen and Wi-Fi",
         "text": "Everything to cook and stay connected, for a weekend or for work."
       },
       {
+        "icon": "key",
         "title": "Self check-in",
         "text": "In several apartments, keys are collected from a secure key box."
       },
       {
+        "icon": "pets",
         "title": "Pets welcome",
         "text": "In most apartments, so you can travel with your companion."
       }

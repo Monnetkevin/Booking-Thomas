@@ -24,8 +24,9 @@
   --color-night-soft: #3f3731;
   --color-night-text: #eadfd3;
 
-  --color-accent: #b4532f; /* terre cuite : actions, liens */
-  --color-accent-strong: #8e3f22; /* survol */
+  --color-accent: #c05630; /* terre cuite : boutons, pastilles (texte blanc 4,5:1) */
+  --color-accent-strong: #a14a29; /* survol, icônes sur fond rosé */
+  --color-accent-text: #b4532f; /* liens et petits textes : lisible sur les fonds clairs */
   --color-accent-soft: #f6e0d3;
 
   --color-success: #2f6b3a;
@@ -56,7 +57,7 @@
   }
 
   a {
-    @apply text-accent underline-offset-4 hover:text-accent-strong;
+    @apply text-accent-text underline-offset-4 hover:text-accent-strong;
   }
 
   :focus-visible {

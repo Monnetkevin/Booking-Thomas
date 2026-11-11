@@ -26,7 +26,7 @@ export function SiteHeader() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       'flex min-h-11 items-center rounded-lg px-3 text-[15px] font-semibold no-underline',
-      isActive ? 'text-accent' : 'text-ink hover:text-accent',
+      isActive ? 'text-accent-text' : 'text-ink hover:text-accent-text',
     )
 
   return (

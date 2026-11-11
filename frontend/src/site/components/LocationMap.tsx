@@ -24,7 +24,7 @@ export default function LocationMap({ latitude, longitude, label }: LocationMapP
       maxZoom: 17,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map)
-    L.circle([latitude, longitude], { radius: 300, color: '#b4532f', fillColor: '#b4532f', fillOpacity: 0.15, weight: 2 }).addTo(map)
+    L.circle([latitude, longitude], { radius: 300, color: '#c05630', fillColor: '#c05630', fillOpacity: 0.15, weight: 2 }).addTo(map)
 
     return () => {
       map.remove()
