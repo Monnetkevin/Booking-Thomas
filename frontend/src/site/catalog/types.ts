@@ -37,15 +37,6 @@ export interface ApartmentSummary {
   amenities: PublicAmenity[]
 }
 
-export interface PublicRate {
-  label: string | null
-  starts_on: string
-  ends_on: string
-  nightly_price: number
-  min_stay: number
-  weekend_supplement: number | null
-}
-
 export interface ApartmentDetail extends ApartmentSummary {
   description: string | null
   check_in_time: string
@@ -66,7 +57,6 @@ export interface ApartmentDetail extends ApartmentSummary {
     longitude: number | null
   }
   photos: PublicPhoto[]
-  rates: PublicRate[]
 }
 
 /** Résultat de recherche par dates. */

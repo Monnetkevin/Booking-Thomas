@@ -430,12 +430,6 @@
       "moderate": "modérée",
       "strict": "stricte"
     },
-    "rates": "Tarifs",
-    "rateDates": "du {{from}} au {{to}}",
-    "ratePrice": "{{price}} / nuit",
-    "rateWeekend": "+ {{price}} les nuits du vendredi et du samedi",
-    "rateMinStay": "minimum {{count}} nuits",
-    "cleaningFee": "Frais de ménage : {{price}} par séjour",
     "location": "Situation",
     "locationNote": "L'adresse exacte vous est communiquée après la réservation.",
     "mapLabel": "Carte du quartier de {{name}}",

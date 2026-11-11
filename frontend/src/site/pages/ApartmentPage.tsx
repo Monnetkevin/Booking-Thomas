@@ -7,8 +7,6 @@ import { Container } from '@/components/ui/Container'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useLocale } from '@/i18n/useLocale'
 import { ApiError } from '@/lib/api'
-import { formatDate } from '@/lib/dates'
-import { formatEuros } from '@/lib/money'
 import { stayFromParams, stayToParams } from '@/site/catalog/searchParams'
 import type { ApartmentDetail } from '@/site/catalog/types'
 import { useApartmentDetail } from '@/site/catalog/useCatalog'
@@ -80,8 +78,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export function ApartmentPage() {
   const { t } = useTranslation()
-  const { locale, to } = useLocale()
-  const numberLocale = locale === 'fr' ? 'fr-FR' : 'en-GB'
+  const { to } = useLocale()
   const slug = useParams().slug ?? ''
   const [params, setParams] = useSearchParams()
   const query = useApartmentDetail(slug)
@@ -198,37 +195,6 @@ export function ApartmentPage() {
             )}
           </section>
 
-          {apartment.rates.length > 0 && (
-            <section>
-              <h2 className="mb-2 text-[22px] font-semibold">{t('detail.rates')}</h2>
-              <ul className="divide-y divide-line">
-                {apartment.rates.map((rate) => (
-                  <li key={rate.starts_on} className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-3.5">
-                    <span>
-                      {rate.label && <strong className="block">{rate.label}</strong>}
-                      <span className="text-muted">
-                        {t('detail.rateDates', { from: formatDate(rate.starts_on, numberLocale), to: formatDate(rate.ends_on, numberLocale) })}
-                      </span>
-                    </span>
-                    <span className="text-right">
-                      <strong className="block">{t('detail.ratePrice', { price: formatEuros(rate.nightly_price, numberLocale) })}</strong>
-                      <span className="text-sm text-muted">
-                        {[
-                          t('detail.rateMinStay', { count: rate.min_stay }),
-                          rate.weekend_supplement ? t('detail.rateWeekend', { price: formatEuros(rate.weekend_supplement, numberLocale) }) : null,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {apartment.cleaning_fee > 0 && (
-                <p className="mt-2 text-sm text-muted">{t('detail.cleaningFee', { price: formatEuros(apartment.cleaning_fee, numberLocale) })}</p>
-              )}
-            </section>
-          )}
 
           <section>
             <h2 className="mb-2 text-[22px] font-semibold">{t('detail.location')}</h2>

@@ -193,12 +193,6 @@
       "moderate": "moderate",
       "strict": "strict"
     },
-    "rates": "Rates",
-    "rateDates": "from {{from}} to {{to}}",
-    "ratePrice": "{{price}} / night",
-    "rateWeekend": "+ {{price}} on Friday and Saturday nights",
-    "rateMinStay": "minimum {{count}} nights",
-    "cleaningFee": "Cleaning fee: {{price}} per stay",
     "location": "Location",
     "locationNote": "The exact address is sent to you after booking.",
     "mapLabel": "Map of the area around {{name}}",

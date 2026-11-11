@@ -4,7 +4,6 @@ namespace App\Services\Catalog;
 
 use App\Models\Amenity;
 use App\Models\Apartment;
-use App\Models\RatePeriod;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -71,14 +70,6 @@ class CatalogPresenter
                 'longitude' => $apartment->longitude === null ? null : round($apartment->longitude, 3),
             ],
             'photos' => $this->readyPhotos($apartment)->map(fn (Media $media) => $this->photo($media, $locale))->values()->all(),
-            'rates' => $apartment->ratePeriods->map(fn (RatePeriod $period) => [
-                'label' => $period->label,
-                'starts_on' => $period->starts_on->toDateString(),
-                'ends_on' => $period->ends_on->toDateString(),
-                'nightly_price' => $period->nightly_price,
-                'min_stay' => $period->min_stay ?? $apartment->min_stay,
-                'weekend_supplement' => $period->weekend_supplement,
-            ])->values()->all(),
         ];
     }
 

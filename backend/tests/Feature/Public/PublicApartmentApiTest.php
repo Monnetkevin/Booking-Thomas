@@ -61,8 +61,7 @@ it('renvoie la fiche sans l’adresse exacte', function () {
         ->assertJsonPath('data.location.latitude', 48.01)
         ->assertJsonPath('data.location.longitude', 0.19)
         ->assertJsonPath('data.cancellation.policy', 'moderate')
-        ->assertJsonPath('data.rates.*.starts_on', ['2026-11-01', '2026-12-01'])
-        ->assertJsonPath('data.rates.1.min_stay', 2)
+        ->assertJsonMissingPath('data.rates')
         ->assertJsonPath('data.photos.0.sources.card.webp', fn ($url) => str_ends_with($url, '.webp'));
 
     expect(json_encode($response->json()))->not->toContain('12 bis');
