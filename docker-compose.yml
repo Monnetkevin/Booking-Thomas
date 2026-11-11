@@ -1,5 +1,5 @@
-# Environnement de développement local. La SPA tourne sur la machine hôte (npm run dev)
-# et relaie /api et /sanctum vers le service app.
+# Environnement de développement local : `docker compose up -d` puis http://localhost:5173.
+# Le service frontend (Vite) relaie /api, /sanctum, le plan du site et robots.txt vers app.
 # Ports publiés sur la machine réglables dans un fichier .env à la racine (à côté de ce
 # fichier), pour faire tourner plusieurs projets en même temps, ex. MAILPIT_UI_PORT=8027.
 services:
@@ -19,6 +19,23 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+
+  # SPA React servie par Vite (rechargement à chaud). Ses node_modules restent dans un
+  # volume Docker, séparés de ceux de la machine.
+  frontend:
+    image: node:24-bookworm-slim
+    working_dir: /app
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_PROXY_TARGET: http://app:8000
+      npm_config_cache: /tmp/npm-cache
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - app
 
   queue:
     build:
@@ -67,3 +84,4 @@ services:
 
 volumes:
   pgsql-data:
+  frontend-node-modules:

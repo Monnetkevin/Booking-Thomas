@@ -24,15 +24,13 @@ Prérequis : Docker (avec Compose), Node.js 22+ et npm.
 cp backend/.env.example backend/.env
 docker compose run --rm --no-deps app composer install
 docker compose run --rm --no-deps app php artisan key:generate
-docker compose up -d
+docker compose up -d                                  # API, base, Redis, Mailpit et SPA (Vite)
 docker compose exec app php artisan migrate --seed
 docker compose exec app php artisan storage:link   # photos publiques
 docker compose exec app php artisan db:seed --class=DemoSeeder   # facultatif : 5 logements de démonstration
 
-# 2. Front (sur la machine hôte)
-cd frontend
-npm install
-npm run dev
+# Site : http://localhost:5173 (le service frontend installe ses dépendances au premier démarrage)
+# Pour lancer Vite hors Docker à la place : cd frontend && npm install && npm run dev
 ```
 
 | Service                  | URL                       |
@@ -44,7 +42,7 @@ npm run dev
 Le service `queue` traite les tâches de fond (conversions des photos en WebP et AVIF, e-mails).
 | PostgreSQL               | localhost:5432            |
 
-Un port déjà pris par un autre projet ? Créez un fichier `.env` à la racine (à côté de `docker-compose.yml`) avec par exemple `MAILPIT_UI_PORT=8027` ; variables disponibles : `APP_PORT`, `PGSQL_PORT`, `REDIS_PORT`, `MAILPIT_UI_PORT`.
+Un port déjà pris par un autre projet ? Créez un fichier `.env` à la racine (à côté de `docker-compose.yml`) avec par exemple `MAILPIT_UI_PORT=8027` ; variables disponibles : `APP_PORT`, `FRONTEND_PORT`, `PGSQL_PORT`, `REDIS_PORT`, `MAILPIT_UI_PORT`.
 
 Vite relaie `/api` et `/sanctum` vers Laravel : la SPA et l'API partagent la même origine, sans CORS.
 
