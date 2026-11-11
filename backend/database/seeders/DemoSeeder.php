@@ -8,6 +8,7 @@ use App\Models\Amenity;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\RatePeriod;
+use App\Services\Apartment\ApartmentService;
 use App\Services\Catalog\CatalogCache;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
@@ -28,10 +29,7 @@ class DemoSeeder extends Seeder
         ['le-loft-balneo', 'Le Loft balnéo', 'The Spa Loft', 'Parenthèse romantique avec baignoire spa', 'Romantic getaway with a spa bath', '41 rue Nationale', 45, 2, 1, 1, 9500, [233, 214, 218], ['wifi', 'balneo', 'self_check_in', 'kitchen', 'bed_linen', 'towels']],
     ];
 
-    /** Positions approximatives au Mans (géocodage réel fait à l'enregistrement dans l'admin). */
-    private const POSITIONS = [[48.0103, 0.1902], [47.9988, 0.2001], [48.0055, 0.1979], [48.0071, 0.1971], [47.9992, 0.1951]];
-
-    public function run(CatalogCache $catalog): void
+    public function run(CatalogCache $catalog, ApartmentService $apartmentService): void
     {
         if (App::isProduction()) {
             throw new RuntimeException('Les données de démonstration ne doivent jamais être chargées en production.');
@@ -56,9 +54,6 @@ class DemoSeeder extends Seeder
                 'address' => $address,
                 'postal_code' => '72000',
                 'city' => 'Le Mans',
-                'latitude' => self::POSITIONS[$i][0],
-                'longitude' => self::POSITIONS[$i][1],
-                'geocoded_at' => now(),
                 'capacity' => $capacity,
                 'bedrooms' => $bedrooms,
                 'beds' => $beds,
@@ -77,6 +72,9 @@ class DemoSeeder extends Seeder
             $this->photos($apartment, $color, $nameFr);
         }
 
+        // Position sur la carte calculée d'après l'adresse, comme pour un logement saisi dans l'admin
+        // (tâches traitées par le service queue).
+        $apartmentService->geocodeMissing();
         $catalog->flush();
     }
 
