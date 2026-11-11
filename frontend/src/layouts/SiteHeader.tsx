@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, useLocation } from 'react-router'
 import { CloseIcon, MenuIcon } from '@/components/icons'
 import { Logo } from '@/components/Logo'
+import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Container } from '@/components/ui/Container'
 import { LanguageSwitcher } from '@/i18n/LanguageSwitcher'
 import { useLocale } from '@/i18n/useLocale'
 import { cn } from '@/lib/cn'
+import { BOOKING_PATH, mainNavigation } from '@/site/navigation'
 
 /** En-tête « pilule » de la maquette v2 : logements, contact, langue et bouton Réserver. */
 export function SiteHeader() {
@@ -26,16 +28,13 @@ export function SiteHeader() {
 
   const links = (
     <>
-      <li>
-        <NavLink to={to('/logements')} className={({ isActive }) => linkClass(isActive)}>
-          {t('nav.apartments')}
-        </NavLink>
-      </li>
-      <li>
-        <NavLink to={to('/contact')} className={({ isActive }) => linkClass(isActive)}>
-          {t('nav.contact')}
-        </NavLink>
-      </li>
+      {mainNavigation.map((link) => (
+        <li key={link.path}>
+          <NavLink to={to(link.path)} className={({ isActive }) => linkClass(isActive)}>
+            {t(link.labelKey)}
+          </NavLink>
+        </li>
+      ))}
       <li>
         <LanguageSwitcher className="flex min-h-11 items-center px-3 text-[15px] font-semibold" />
       </li>
@@ -53,10 +52,7 @@ export function SiteHeader() {
             <ul className="flex items-center gap-2 lg:gap-4">{links}</ul>
           </nav>
           <div className="flex items-center gap-1">
-            <Link
-              to={to('/logements')}
-              className="hidden min-h-11 items-center rounded-full bg-ink px-5 text-sm font-bold text-white no-underline hover:bg-night-soft hover:text-white sm:inline-flex"
-            >
+            <Link to={to(BOOKING_PATH)} className={buttonClasses('dark', 'sm', 'hidden sm:inline-flex')}>
               {t('nav.book')}
             </Link>
             <button
@@ -80,7 +76,7 @@ export function SiteHeader() {
           <ul className="flex flex-col">
             {links}
             <li className="sm:hidden">
-              <Link to={to('/logements')} className={linkClass(false)}>
+              <Link to={to(BOOKING_PATH)} className={linkClass(false)}>
                 {t('nav.book')}
               </Link>
             </li>

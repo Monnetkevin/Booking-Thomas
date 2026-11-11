@@ -396,7 +396,6 @@
     "guests_one": "{{count}} voyageur",
     "guests_other": "{{count}} voyageurs",
     "submit": "Rechercher",
-    "submitHome": "Voir les appartements disponibles",
     "invalidDates": "La date de départ doit être après la date d'arrivée."
   },
   "listing": {

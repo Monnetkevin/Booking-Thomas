@@ -169,3 +169,12 @@ export function PawIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+/** Flèche en diagonale (« ouvrir »), pour les tuiles cliquables. */
+export function ArrowUpRightIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon width={16} height={16} {...props}>
+      <path d="M7 17L17 7M9 7h8v8" />
+    </Icon>
+  )
+}

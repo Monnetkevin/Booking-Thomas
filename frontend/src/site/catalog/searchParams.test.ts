@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { searchFromParams, searchToParams, stayFromParams, stayToParams } from './searchParams'
+import { isValidStay, searchFromParams, searchToParams, stayFromParams, stayToParams } from './searchParams'
 
 describe('paramètres d’URL', () => {
   it('lit une recherche complète et ignore une recherche incohérente', () => {
@@ -31,5 +31,12 @@ describe('paramètres d’URL', () => {
     expect(stayToParams({ arrival: '2026-12-04', departure: null, adults: 2, children: 1 }).toString()).toBe(
       'arrivee=2026-12-04&adultes=2&enfants=1',
     )
+  })
+
+  it('valide un séjour saisi : deux dates, départ après l’arrivée', () => {
+    expect(isValidStay('2026-12-04', '2026-12-07')).toBe(true)
+    expect(isValidStay('2026-12-07', '2026-12-07')).toBe(false)
+    expect(isValidStay('2026-12-07', '2026-12-04')).toBe(false)
+    expect(isValidStay('', '2026-12-04')).toBe(false)
   })
 })

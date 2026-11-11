@@ -48,4 +48,19 @@ src/components/feedback/  chargement, erreurs
 src/lib/                  transport HTTP, client React Query, utilitaires
 ```
 
+Site public (`src/site/`) :
+
+```
+site/catalog/             données des logements : service, hooks, fonctions pures (apartmentFacts, searchParams), useSearchForm
+site/components/          composants d'affichage réutilisables, alimentés par leurs props
+                          (PageSection, ApartmentTile, ApartmentMosaic, FeatureList, StepList, FactCards, FaqList, CtaBanner…)
+site/home/                propre à l'accueil : textes typés (useHomeContent), haut de page, bloc hôte
+site/seo/                 données structurées schema.org
+site/navigation.ts        liens de l'en-tête et du pied de page (listes déclaratives)
+site/pages/               pages : elles assemblent des sections, sans styles ni logique en propre
+```
+
+Une page ne contient ni composant interne ni classes de style répétées : une variante de bouton
+s'ajoute à `buttonClasses` (`dark`, `xl`…), un bloc réutilisable devient un composant de `site/components/`.
+
 Les prix, disponibilités et droits sont toujours décidés par l'API ; le front affiche.

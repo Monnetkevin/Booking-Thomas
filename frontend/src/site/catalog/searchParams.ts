@@ -16,6 +16,11 @@ function count(value: string | null, min: number, max: number, fallback: number)
   return Number.isNaN(parsed) ? fallback : Math.min(max, Math.max(min, parsed))
 }
 
+/** Séjour saisi valable : deux dates, départ après l'arrivée. */
+export function isValidStay(arrival: string, departure: string): boolean {
+  return ISO.test(arrival) && ISO.test(departure) && departure > arrival
+}
+
 /** Critères de recherche complets et cohérents, ou null. */
 export function searchFromParams(params: URLSearchParams): SearchCriteria | null {
   const arrival = validDate(params.get('arrivee'))

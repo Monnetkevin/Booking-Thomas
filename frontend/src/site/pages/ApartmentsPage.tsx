@@ -60,7 +60,7 @@ export function ApartmentsPage() {
         <p className="max-w-[700px] text-[17px] leading-relaxed text-muted">{t('listing.intro')}</p>
       </header>
 
-      <SearchForm key={params.toString()} initial={criteria} layout="pill" />
+      <SearchForm key={params.toString()} initial={criteria} />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         {filters.length > 0 ? (

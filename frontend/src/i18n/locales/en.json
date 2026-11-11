@@ -159,7 +159,6 @@
     "guests_one": "{{count}} guest",
     "guests_other": "{{count}} guests",
     "submit": "Search",
-    "submitHome": "See available apartments",
     "invalidDates": "The check-out date must be after the check-in date."
   },
   "listing": {

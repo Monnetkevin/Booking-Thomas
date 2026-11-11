@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge'
 import { buttonClasses } from '@/components/ui/buttonClasses'
 import { useLocale } from '@/i18n/useLocale'
 import { formatEuros } from '@/lib/money'
+import { apartmentFacts } from '@/site/catalog/apartmentFacts'
 import type { ApartmentSummary, SearchResult } from '@/site/catalog/types'
 import { Picture } from './Picture'
 
@@ -26,11 +27,6 @@ export function ApartmentCard({ apartment, search = '', headingLevel: Heading = 
   const result = isSearchResult(apartment) ? apartment : null
   const href = to(`/logements/${apartment.slug}`) + (search ? `?${search}` : '')
 
-  const meta = [
-    apartment.surface_m2 ? t('listing.surface', { value: apartment.surface_m2 }) : null,
-    t('search.guests', { count: apartment.capacity }),
-    t('listing.bedrooms', { count: apartment.bedrooms }),
-  ].filter(Boolean)
 
   return (
     <article className="flex flex-col overflow-hidden rounded-[28px] border border-border bg-white">
@@ -47,7 +43,7 @@ export function ApartmentCard({ apartment, search = '', headingLevel: Heading = 
       <div className="flex flex-1 flex-col gap-2.5 p-5">
         <Heading className="text-[22px] leading-tight font-semibold">{apartment.name}</Heading>
         {apartment.tagline && <p className="text-[15px] font-semibold text-accent-strong">{apartment.tagline}</p>}
-        <p className="text-sm text-muted">{meta.join(' · ')}</p>
+        <p className="text-sm text-muted">{apartmentFacts(apartment, t)}</p>
         {apartment.amenities.length > 0 && (
           <ul className="flex flex-wrap gap-1.5" aria-label={t('detail.amenities')}>
             {apartment.amenities.slice(0, 3).map((amenity) => (
