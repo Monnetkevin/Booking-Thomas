@@ -1,5 +1,7 @@
 # Environnement de développement local. La SPA tourne sur la machine hôte (npm run dev)
 # et relaie /api et /sanctum vers le service app.
+# Ports publiés sur la machine réglables dans un fichier .env à la racine (à côté de ce
+# fichier), pour faire tourner plusieurs projets en même temps, ex. MAILPIT_UI_PORT=8027.
 services:
   app:
     build:
@@ -11,7 +13,7 @@ services:
     volumes:
       - ./backend:/var/www/backend
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     depends_on:
       pgsql:
         condition: service_healthy
@@ -44,7 +46,7 @@ services:
       - pgsql-data:/var/lib/postgresql/data
       - ./infra/docker/pgsql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "5432:5432"
+      - "${PGSQL_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U booking -d booking"]
       interval: 5s
@@ -54,13 +56,14 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
 
+  # Laravel envoie ses e-mails à mailpit:1025 par le réseau Docker : seule l'interface web
+  # est publiée sur la machine.
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
 
 volumes:
   pgsql-data:

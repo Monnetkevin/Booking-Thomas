@@ -44,6 +44,8 @@ npm run dev
 Le service `queue` traite les tâches de fond (conversions des photos en WebP et AVIF, e-mails).
 | PostgreSQL               | localhost:5432            |
 
+Un port déjà pris par un autre projet ? Créez un fichier `.env` à la racine (à côté de `docker-compose.yml`) avec par exemple `MAILPIT_UI_PORT=8027` ; variables disponibles : `APP_PORT`, `PGSQL_PORT`, `REDIS_PORT`, `MAILPIT_UI_PORT`.
+
 Vite relaie `/api` et `/sanctum` vers Laravel : la SPA et l'API partagent la même origine, sans CORS.
 
 Compte admin créé par le seeder : variables `ADMIN_EMAIL` et `ADMIN_PASSWORD` de `backend/.env`.
