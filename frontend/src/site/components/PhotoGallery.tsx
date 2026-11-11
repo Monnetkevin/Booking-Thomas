@@ -26,11 +26,11 @@ export function PhotoGallery({ photos, name }: { photos: PublicPhoto[]; name: st
     <section aria-label={t('detail.photosTitle', { name })} className="relative">
       <div className="grid gap-3 overflow-hidden rounded-[16px] sm:h-[432px] sm:grid-cols-[2fr_1fr_1fr] sm:grid-rows-2">
         <div className="aspect-[4/3] sm:row-span-2 sm:aspect-auto">
-          {main && <Picture photo={main} sizes="(min-width: 640px) 600px, 100vw" priority />}
+          {main && <Picture photo={main} sizes="(min-width: 640px) 600px, 100vw" priority alt={main.alt || name} />}
         </div>
         {tiles.map((photo) => (
           <div key={photo.id} className="hidden sm:block">
-            <Picture photo={photo} sizes="300px" />
+            <Picture photo={photo} sizes="300px" alt={photo.alt || name} />
           </div>
         ))}
       </div>
@@ -63,9 +63,14 @@ export function PhotoGallery({ photos, name }: { photos: PublicPhoto[]; name: st
         </div>
         {open && (
           <ul className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-            {photos.map((photo) => (
+            {photos.map((photo, index) => (
               <li key={photo.id} className="overflow-hidden rounded-[12px]">
-                <Picture photo={photo} sizes="(min-width: 900px) 896px, 100vw" className="h-auto" />
+                <Picture
+                  photo={photo}
+                  sizes="(min-width: 900px) 896px, 100vw"
+                  className="h-auto"
+                  alt={photo.alt || `${name} (${index + 1}/${photos.length})`}
+                />
               </li>
             ))}
           </ul>

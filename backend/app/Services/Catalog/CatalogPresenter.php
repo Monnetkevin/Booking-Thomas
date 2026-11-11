@@ -92,10 +92,13 @@ class CatalogPresenter
         /** @var array{fr?: string, en?: string} $alt */
         $alt = $media->getCustomProperty('alt', []);
 
+        $originalWidth = (int) $media->getCustomProperty('width', 0);
+        $originalHeight = (int) $media->getCustomProperty('height', 0);
+
         $sources = [];
-        foreach (Apartment::PHOTO_SIZES as $size => [$width]) {
+        foreach (Apartment::PHOTO_SIZES as $size => [$width, $height]) {
             $sources[$size] = [
-                'width' => $width,
+                'width' => self::generatedWidth($size, $width, $height, $originalWidth, $originalHeight),
                 'webp' => $media->hasGeneratedConversion($size) ? $media->getUrl($size) : null,
                 'avif' => $media->hasGeneratedConversion("$size-avif") ? $media->getUrl("$size-avif") : null,
             ];
@@ -108,6 +111,22 @@ class CatalogPresenter
             'height' => $media->getCustomProperty('height'),
             'sources' => $sources,
         ];
+    }
+
+    /**
+     * Largeur réelle d'une version, annoncée dans le srcset : une photo verticale ou petite
+     * est moins large que la boîte maximale, et le navigateur doit le savoir pour choisir
+     * une version assez nette.
+     */
+    public static function generatedWidth(string $size, int $maxWidth, int $maxHeight, int $originalWidth, int $originalHeight): int
+    {
+        if ($size === 'thumb' || $originalWidth <= 0 || $originalHeight <= 0) {
+            return $maxWidth;
+        }
+
+        $scale = min(1, $maxWidth / $originalWidth, $maxHeight / $originalHeight);
+
+        return (int) floor($originalWidth * $scale);
     }
 
     /** « 12 bis, rue de la Paix » → « rue de la Paix ». */

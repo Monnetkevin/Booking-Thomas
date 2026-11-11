@@ -129,6 +129,18 @@ it('vide le cache quand un tarif change', function () {
     $this->getJson('/api/apartments')->assertJsonPath('data.0.price_from', 6000);
 });
 
+it('annonce la largeur réelle de chaque version de photo', function (string $size, int $w, int $h, int $expected) {
+    [$maxWidth, $maxHeight] = Apartment::PHOTO_SIZES[$size];
+
+    expect(CatalogPresenter::generatedWidth($size, $maxWidth, $maxHeight, $w, $h))->toBe($expected);
+})->with([
+    'paysage, carte' => ['card', 3000, 2000, 960],
+    'portrait, carte' => ['card', 1440, 2084, 960],
+    'portrait, grande' => ['large', 1440, 2084, 1440],
+    'petite photo, grande' => ['large', 1200, 800, 1200],
+    'miniature recadrée' => ['thumb', 1440, 2084, 480],
+]);
+
 it('retire le numéro de rue des adresses', function (string $address, string $street) {
     expect(CatalogPresenter::streetWithoutNumber($address))->toBe($street);
 })->with([

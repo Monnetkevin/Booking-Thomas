@@ -53,11 +53,15 @@ class Apartment extends Model implements HasMedia
         ];
     }
 
-    /** Tailles générées pour chaque photo : [largeur, hauteur]. */
+    /**
+     * Tailles générées pour chaque photo : [largeur, hauteur] maximales.
+     * La miniature est recadrée en 4:3 ; les autres gardent les proportions, avec une hauteur
+     * assez grande pour qu'une photo verticale atteigne quand même la largeur annoncée.
+     */
     public const PHOTO_SIZES = [
         'thumb' => [480, 360],
-        'card' => [960, 720],
-        'large' => [1920, 1280],
+        'card' => [960, 1440],
+        'large' => [1920, 2880],
     ];
 
     /**
