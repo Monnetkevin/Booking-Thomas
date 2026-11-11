@@ -84,6 +84,26 @@
       "ten",
       "eleven",
       "twelve"
+    ],
+    "faqTitle": "Frequently asked questions",
+    "faqIntro": "Another question? Write to me, I reply quickly.",
+    "faq": [
+      {
+        "q": "What are the check-in and check-out times?",
+        "a": "Times are shown on each apartment page; self check-in is possible in several apartments."
+      },
+      {
+        "q": "What happens if I cancel?",
+        "a": "The cancellation terms of each apartment are detailed on its page and repeated before payment."
+      },
+      {
+        "q": "Are pets allowed?",
+        "a": "In most apartments: it is listed in the amenities of each apartment."
+      },
+      {
+        "q": "How do I pay?",
+        "a": "By card, on a page secured by Stripe. The stay is paid in full when booking."
+      }
     ]
   },
   "notFound": {

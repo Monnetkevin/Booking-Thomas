@@ -6,6 +6,7 @@ import { useLocale } from '@/i18n/useLocale'
 // Année calculée au chargement de la page, pas à chaque rendu.
 const YEAR = new Date().getFullYear()
 
+/** Pied de page clair de la maquette v2 : mentions à gauche, pages légales à droite. */
 export function SiteFooter() {
   const { t } = useTranslation()
   const { to } = useLocale()
@@ -17,20 +18,20 @@ export function SiteFooter() {
   ]
 
   return (
-    <footer className="mt-auto bg-night text-night-text">
-      <Container className="flex flex-col gap-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+    <footer className="mt-auto border-t border-line">
+      <Container className="flex flex-col gap-4 py-7 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+        <p>
+          © {YEAR} {t('site.name')}. {t('footer.rights')}
+        </p>
         <ul className="flex flex-wrap gap-x-5 gap-y-2">
           {links.map((link) => (
             <li key={link.to}>
-              <Link to={link.to} className="text-night-text underline hover:text-white">
+              <Link to={link.to} className="text-muted underline hover:text-ink">
                 {link.label}
               </Link>
             </li>
           ))}
         </ul>
-        <p>
-          © {YEAR} {t('site.name')}. {t('footer.rights')}
-        </p>
       </Container>
     </footer>
   )

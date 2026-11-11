@@ -17,14 +17,14 @@ export function PhotoGallery({ photos, name }: { photos: PublicPhoto[]; name: st
     if (!open && dialog.open) dialog.close()
   }, [open])
 
-  if (photos.length === 0) return <div className="aspect-[16/9] rounded-[16px] bg-cream" />
+  if (photos.length === 0) return <div className="aspect-[16/9] rounded-[28px] bg-cream" />
 
   const [main, ...others] = photos
   const tiles = others.slice(0, 4)
 
   return (
     <section aria-label={t('detail.photosTitle', { name })} className="relative">
-      <div className="grid gap-3 overflow-hidden rounded-[16px] sm:h-[432px] sm:grid-cols-[2fr_1fr_1fr] sm:grid-rows-2">
+      <div className="grid gap-3 overflow-hidden rounded-[28px] sm:h-[432px] sm:grid-cols-[2fr_1fr_1fr] sm:grid-rows-2">
         <div className="aspect-[4/3] overflow-hidden sm:row-span-2 sm:aspect-auto">
           {main && <Picture photo={main} sizes="(min-width: 640px) 600px, 100vw" priority alt={main.alt || name} />}
         </div>
@@ -38,7 +38,7 @@ export function PhotoGallery({ photos, name }: { photos: PublicPhoto[]; name: st
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="absolute right-3 bottom-3 min-h-11 rounded-[10px] border border-field bg-white px-3.5 text-sm font-semibold text-ink hover:bg-sand"
+          className="absolute right-3 bottom-3 min-h-11 rounded-full border border-field bg-white px-4 text-sm font-semibold text-ink hover:bg-sand"
         >
           {t('detail.allPhotosCount', { count: photos.length })}
         </button>
@@ -64,7 +64,7 @@ export function PhotoGallery({ photos, name }: { photos: PublicPhoto[]; name: st
         {open && (
           <ul className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
             {photos.map((photo, index) => (
-              <li key={photo.id} className="overflow-hidden rounded-[12px]">
+              <li key={photo.id} className="overflow-hidden rounded-[20px]">
                 <Picture
                   photo={photo}
                   sizes="(min-width: 900px) 896px, 100vw"

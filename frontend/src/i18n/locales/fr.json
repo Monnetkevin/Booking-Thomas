@@ -84,6 +84,26 @@
       "dix",
       "onze",
       "douze"
+    ],
+    "faqTitle": "Questions fréquentes",
+    "faqIntro": "Une autre question ? Écrivez-moi, je réponds rapidement.",
+    "faq": [
+      {
+        "q": "À quelle heure arrive-t-on et repart-on ?",
+        "a": "Les horaires figurent sur chaque fiche ; l'arrivée autonome est possible dans plusieurs appartements."
+      },
+      {
+        "q": "Que se passe-t-il en cas d'annulation ?",
+        "a": "Les conditions d'annulation de chaque logement sont détaillées sur sa fiche et rappelées avant le paiement."
+      },
+      {
+        "q": "Les animaux sont-ils acceptés ?",
+        "a": "Dans la plupart des appartements : la mention figure dans les équipements de chaque fiche."
+      },
+      {
+        "q": "Comment payer ?",
+        "a": "Par carte, sur une page sécurisée par Stripe. Le séjour est payé en totalité à la réservation."
+      }
     ]
   },
   "notFound": {

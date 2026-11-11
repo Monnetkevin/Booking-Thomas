@@ -116,3 +116,33 @@
 .stay-calendar .rdp-disabled:not(.booked) .rdp-day_button {
   color: #b9aa9b;
 }
+
+/*
+ * Site public, style v2 de la maquette : titres en Plus Jakarta très gras et serrés,
+ * boutons en pilule, blocs très arrondis. Hors couche CSS pour primer sur les classes
+ * des composants partagés avec le back-office, qui garde son propre style.
+ */
+.vitrine {
+  --radius-card: 28px;
+}
+
+.vitrine :is(h1, h2) {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.vitrine h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.vitrine .btn {
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.vitrine :is(input:not([type='checkbox'], [type='radio']), select, textarea) {
+  border-radius: 14px;
+}

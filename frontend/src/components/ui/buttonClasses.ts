@@ -19,7 +19,7 @@ const sizes: Record<Size, string> = {
 /** Classes d'un bouton, réutilisables sur un <Link>. */
 export function buttonClasses(variant: Variant = 'primary', size: Size = 'md', className?: string) {
   return cn(
-    'inline-flex items-center justify-center gap-2 rounded-xl font-semibold no-underline transition-colors',
+    'btn inline-flex items-center justify-center gap-2 rounded-xl font-semibold no-underline transition-colors',
     'disabled:cursor-not-allowed disabled:opacity-60',
     variants[variant],
     sizes[size],

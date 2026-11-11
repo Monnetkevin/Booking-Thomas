@@ -33,7 +33,7 @@ export function ApartmentCard({ apartment, search = '', headingLevel: Heading = 
   ].filter(Boolean)
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-[20px] border border-border bg-white">
+    <article className="flex flex-col overflow-hidden rounded-[28px] border border-border bg-white">
       <div className="relative aspect-[3/2] overflow-hidden bg-cream">
         {apartment.cover && <Picture photo={apartment.cover} sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw" alt="" />}
         {result && (

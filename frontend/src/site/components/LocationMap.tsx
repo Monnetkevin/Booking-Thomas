@@ -31,5 +31,5 @@ export default function LocationMap({ latitude, longitude, label }: LocationMapP
     }
   }, [latitude, longitude])
 
-  return <div ref={containerRef} role="img" aria-label={label} className="h-[260px] w-full overflow-hidden rounded-[16px] bg-cream" />
+  return <div ref={containerRef} role="img" aria-label={label} className="h-[260px] w-full overflow-hidden rounded-[28px] bg-cream" />
 }

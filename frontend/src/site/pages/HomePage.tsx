@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { PlusIcon } from '@/components/icons'
 import { Container } from '@/components/ui/Container'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { useLocale } from '@/i18n/useLocale'
@@ -10,7 +11,7 @@ import { Picture } from '@/site/components/Picture'
 import { SearchForm } from '@/site/components/SearchForm'
 import { Seo } from '@/site/components/Seo'
 
-/** Titres de l'accueil v2 : Plus Jakarta très gras et serré (et non Fraunces comme le reste du site). */
+/** Titres de la maquette v2 (la police et la graisse viennent de la classe .vitrine). */
 const heading = 'font-sans font-extrabold tracking-[-0.035em]'
 
 /** Bouton sombre arrondi de la maquette v2. */
@@ -94,10 +95,21 @@ export function HomePage() {
 
   const highlights = t('home.highlights', { returnObjects: true }) as string[]
   const locations = t('home.locations', { returnObjects: true }) as Array<{ value: string; label: string }>
+  const faq = t('home.faq', { returnObjects: true }) as Array<{ q: string; a: string }>
 
   return (
     <>
-      <Seo title={t('home.title')} description={t('home.metaDescription')} path="/" image={first?.sources.large.webp} />
+      <Seo
+        title={t('home.title')}
+        description={t('home.metaDescription')}
+        path="/"
+        image={first?.sources.large.webp}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.q, acceptedAnswer: { '@type': 'Answer', text: item.a } })),
+        }}
+      />
 
       {/* Présentation et recherche */}
       <section>
@@ -221,6 +233,37 @@ export function HomePage() {
                 {t('home.hostCta')}
               </Link>
             </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Questions fréquentes : titre à gauche, questions dépliables à droite */}
+      <section aria-labelledby="faq-titre">
+        <Container className="grid gap-8 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-14 lg:pb-[72px]">
+          <div className="flex flex-col items-start gap-4">
+            <h2 id="faq-titre" className={cn(heading, 'text-[34px] leading-[1.05] sm:text-[44px]')}>
+              {t('home.faqTitle')}
+            </h2>
+            <p className="text-[17px] leading-relaxed text-muted">{t('home.faqIntro')}</p>
+            <Link
+              to={to('/contact')}
+              className="border-b-2 border-ink pb-0.5 text-[15px] font-bold text-ink no-underline hover:border-accent-text hover:text-accent-text"
+            >
+              {t('home.hostCta')} →
+            </Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            {faq.map((item) => (
+              <details key={item.q} className="group rounded-[24px] border border-line bg-white open:shadow-[0_12px_32px_rgba(43,38,34,0.06)]">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-transform group-open:rotate-45">
+                    <PlusIcon width={18} height={18} />
+                  </span>
+                </summary>
+                <p className="px-6 pb-6 text-[15px] leading-relaxed text-muted">{item.a}</p>
+              </details>
+            ))}
           </div>
         </Container>
       </section>

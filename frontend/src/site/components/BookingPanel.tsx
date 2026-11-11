@@ -60,7 +60,7 @@ export function BookingPanel({ apartment, stay, onChange }: BookingPanelProps) {
   const dateValue = (date: string | null) => (date ? formatDate(date, numberLocale) : t('booking.choose'))
 
   return (
-    <section aria-labelledby="booking-title" className="flex flex-col gap-5 rounded-[16px] border border-border bg-white p-5 sm:p-6">
+    <section aria-labelledby="booking-title" className="flex flex-col gap-5 rounded-[28px] border border-border bg-white p-5 shadow-[0_12px_32px_rgba(43,38,34,0.06)] sm:p-7">
       <h2 id="booking-title" className="sr-only">{t('booking.title')}</h2>
       {apartment.price_from !== null && (
         <p className="flex items-baseline gap-1.5">

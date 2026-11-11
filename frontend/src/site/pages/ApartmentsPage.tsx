@@ -60,7 +60,7 @@ export function ApartmentsPage() {
         <p className="max-w-[700px] text-[17px] leading-relaxed text-muted">{t('listing.intro')}</p>
       </header>
 
-      <SearchForm key={params.toString()} initial={criteria} />
+      <SearchForm key={params.toString()} initial={criteria} layout="pill" />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         {filters.length > 0 ? (
@@ -103,7 +103,7 @@ export function ApartmentsPage() {
               ))}
           {!source.isPending && (
             <li className="flex">
-              <div className="flex w-full flex-col justify-center gap-3 rounded-[20px] border border-dashed border-[#c9b8a6] bg-cream p-7">
+              <div className="flex w-full flex-col justify-center gap-3 rounded-[28px] border border-dashed border-[#c9b8a6] bg-cream p-7">
                 <h2 className="text-[22px] font-semibold">{t('listing.questionTitle')}</h2>
                 <p className="text-[15px] leading-relaxed text-muted">{t('listing.questionText')}</p>
                 <Link to={to('/contact')} className={buttonClasses('secondary', 'md', 'self-start')}>
