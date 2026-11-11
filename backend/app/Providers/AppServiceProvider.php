@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\Geocoding\FallbackGeocoder;
 use App\Services\Geocoding\Geocoder;
 use App\Services\Geocoding\GeoplateformeGeocoder;
+use App\Services\Geocoding\NominatimGeocoder;
 use App\Services\Security\HumanVerifier;
 use App\Services\Security\TurnstileVerifier;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -19,9 +21,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(Geocoder::class, fn ($app) => new GeoplateformeGeocoder(
-            $app->make(Http::class),
-            (string) config('services.geocoding.url'),
+        // IGN en priorité (adresses françaises), OpenStreetMap si l'IGN est injoignable.
+        $this->app->bind(Geocoder::class, fn ($app) => new FallbackGeocoder(
+            new GeoplateformeGeocoder($app->make(Http::class), (string) config('services.geocoding.url')),
+            new NominatimGeocoder(
+                $app->make(Http::class),
+                (string) config('services.geocoding.fallback_url'),
+                (string) config('services.geocoding.user_agent'),
+            ),
         ));
         $this->app->bind(HumanVerifier::class, fn ($app) => new TurnstileVerifier(
             $app->make(Http::class),

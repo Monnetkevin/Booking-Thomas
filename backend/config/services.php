@@ -42,9 +42,12 @@ return [
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],
 
-    // Géocodage des adresses des logements (API Adresse de la Géoplateforme, IGN)
+    // Géocodage des adresses des logements : API Adresse de la Géoplateforme (IGN),
+    // puis Nominatim (OpenStreetMap) en secours si l'IGN est injoignable.
     'geocoding' => [
         'url' => env('GEOCODING_URL', 'https://data.geopf.fr/geocodage/search'),
+        'fallback_url' => env('GEOCODING_FALLBACK_URL', 'https://nominatim.openstreetmap.org/search'),
+        'user_agent' => env('GEOCODING_USER_AGENT', 'BookingThomas/1.0'),
     ],
 
 ];
