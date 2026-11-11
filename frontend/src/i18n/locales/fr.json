@@ -22,7 +22,8 @@
     "legal": "Mentions légales",
     "terms": "Conditions générales de vente",
     "privacy": "Confidentialité",
-    "rights": "Tous droits réservés."
+    "rights": "Tous droits réservés.",
+    "admin": "Espace hôte"
   },
   "home": {
     "title": "Votre pied-à-terre au Mans",
@@ -33,15 +34,6 @@
     "intro_other": "{{word}} appartements meublés, chacun avec son ambiance, à quelques minutes du circuit des 24 Heures et du centre-ville.",
     "introFallback": "Des appartements meublés, chacun avec son ambiance, à quelques minutes du circuit des 24 Heures et du centre-ville.",
     "metaDescription": "Appartements meublés au Mans, près du circuit des 24 Heures et du centre-ville. Réservez en direct et payez en ligne.",
-    "highlightsLabel": "Ce que vous trouverez chez nous",
-    "highlights": [
-      "Stationnement gratuit",
-      "Cuisine équipée",
-      "Wi-Fi",
-      "Arrivée autonome",
-      "Animaux acceptés dans la plupart",
-      "Tram à proximité"
-    ],
     "collectionTitle_one": "Une adresse,|une ambiance",
     "collectionTitle_other": "{{word}} adresses,|{{wordLower}} ambiances",
     "collectionFallback": "Nos adresses,|leurs ambiances",
@@ -102,6 +94,44 @@
       {
         "q": "Comment payer ?",
         "a": "Par carte, sur une page sécurisée par Stripe. Le séjour est payé en totalité à la réservation."
+      }
+    ],
+    "featuresTitle": "Ce que vous trouverez chez nous",
+    "features": [
+      {
+        "icon": "parking",
+        "title": "Stationnement gratuit",
+        "text": "Un stationnement gratuit est prévu à proximité de chaque appartement."
+      },
+      {
+        "icon": "wifi",
+        "title": "Cuisine équipée et Wi-Fi",
+        "text": "Tout pour cuisiner et rester connecté, pour un week-end comme pour travailler."
+      },
+      {
+        "icon": "key",
+        "title": "Arrivée autonome",
+        "text": "Dans plusieurs appartements, les clés se récupèrent dans une boîte sécurisée."
+      },
+      {
+        "icon": "pets",
+        "title": "Animaux acceptés",
+        "text": "Dans la plupart des appartements, pour voyager avec votre compagnon."
+      }
+    ],
+    "stepsTitle": "Réserver, c'est simple",
+    "steps": [
+      {
+        "title": "Choisissez vos dates",
+        "text": "Le calendrier affiche en temps réel les nuits libres de chaque appartement."
+      },
+      {
+        "title": "Payez en ligne",
+        "text": "Paiement par carte sur une page sécurisée, confirmation immédiate par e-mail."
+      },
+      {
+        "title": "Arrivez à l'heure dite",
+        "text": "Vous recevez les consignes d'arrivée avant votre séjour."
       }
     ]
   },

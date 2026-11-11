@@ -118,18 +118,18 @@
 }
 
 /*
- * Site public, style v2 de la maquette : titres en Plus Jakarta très gras et serrés,
- * boutons en pilule, blocs très arrondis. Hors couche CSS pour primer sur les classes
- * des composants partagés avec le back-office, qui garde son propre style.
+ * Site public, mélange des maquettes v1 et v2 : grands titres en Fraunces (v1), intertitres
+ * en Plus Jakarta gras, boutons en pilule et blocs très arrondis (v2). Hors couche CSS pour
+ * primer sur les classes des composants partagés avec le back-office, qui garde son style.
  */
 .vitrine {
   --radius-card: 28px;
 }
 
 .vitrine :is(h1, h2) {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .vitrine h3 {

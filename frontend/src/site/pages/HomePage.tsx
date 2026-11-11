@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { PlusIcon } from '@/components/icons'
+import type { ComponentType, SVGProps } from 'react'
+import { LockIcon, ParkingIcon, PawIcon, PlusIcon, WifiIcon } from '@/components/icons'
 import { Container } from '@/components/ui/Container'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { useLocale } from '@/i18n/useLocale'
@@ -11,8 +12,21 @@ import { Picture } from '@/site/components/Picture'
 import { SearchForm } from '@/site/components/SearchForm'
 import { Seo } from '@/site/components/Seo'
 
-/** Titres de la maquette v2 (la police et la graisse viennent de la classe .vitrine). */
-const heading = 'font-sans font-extrabold tracking-[-0.035em]'
+/** Grands titres : Fraunces (la police et la graisse viennent de la classe .vitrine). */
+const heading = 'font-display font-semibold'
+
+interface Feature {
+  title: string
+  text: string
+}
+
+/** Icône de chaque atout, choisie par la clé « icon » des traductions. */
+const featureIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+  parking: ParkingIcon,
+  wifi: WifiIcon,
+  key: LockIcon,
+  pets: PawIcon,
+}
 
 /** Bouton sombre arrondi de la maquette v2. */
 const darkButton =
@@ -93,7 +107,8 @@ export function HomePage() {
     count > 0 ? t('home.collectionTitle', { count, word: capitalized, wordLower: word }) : t('home.collectionFallback')
   ).split('|')
 
-  const highlights = t('home.highlights', { returnObjects: true }) as string[]
+  const features = t('home.features', { returnObjects: true }) as Array<Feature & { icon: string }>
+  const steps = t('home.steps', { returnObjects: true }) as Feature[]
   const locations = t('home.locations', { returnObjects: true }) as Array<{ value: string; label: string }>
   const faq = t('home.faq', { returnObjects: true }) as Array<{ q: string; a: string }>
 
@@ -114,12 +129,12 @@ export function HomePage() {
       {/* Présentation et recherche */}
       <section>
         <Container className="grid items-center gap-10 pt-10 pb-8 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:pt-[72px] lg:pb-10">
-          <div className="flex flex-col gap-6 sm:gap-7">
+          <div className="flex min-w-0 flex-col gap-6 sm:gap-7">
             <p className="flex items-center gap-2 self-start rounded-full border border-line bg-white px-3.5 py-2 text-[13px] font-bold">
               <span aria-hidden="true" className="size-2 rounded-full bg-[#2e9e5b]" />
               {t('home.badge')}
             </p>
-            <h1 className={cn(heading, 'text-[44px] leading-[1] tracking-[-0.045em] sm:text-6xl lg:text-[64px] lg:leading-[0.98] xl:text-[76px]')}>
+            <h1 className={cn(heading, 'text-[38px] leading-[1.04] min-[400px]:text-[44px] sm:text-6xl lg:text-[64px] xl:text-[72px]')}>
               {/* « pied-à-terre » ne se coupe pas au trait d'union. */}
               {t('home.titleStart')
                 .split(' ')
@@ -137,33 +152,45 @@ export function HomePage() {
             </div>
           </div>
 
-          <div aria-hidden="true" className="relative h-[340px] sm:h-[460px] lg:h-[520px]">
-            <div className="absolute inset-y-0 right-0 left-10 overflow-hidden rounded-[32px] bg-[#e8d3b8] sm:left-[60px] sm:rounded-[40px]">
+          <div aria-hidden="true" className="relative mx-auto h-[360px] w-full max-w-[460px] sm:h-[480px] lg:h-[540px] lg:max-w-none">
+            <div className="absolute inset-y-0 right-0 left-10 overflow-hidden rounded-t-full rounded-b-[32px] bg-[#e8d3b8] sm:left-[60px] sm:rounded-b-[40px]">
               {first && <Picture photo={first} sizes="(min-width: 1024px) 560px, 90vw" priority alt="" />}
             </div>
-            <div className="absolute bottom-6 left-0 h-[170px] w-[140px] overflow-hidden rounded-[24px] border-[6px] border-paper bg-[#f1d3cb] sm:bottom-10 sm:h-[230px] sm:w-[190px] sm:rounded-[28px]">
+            <div className="absolute bottom-6 left-0 h-[190px] w-[140px] overflow-hidden rounded-t-full rounded-b-[24px] border-[6px] border-paper bg-[#f1d3cb] sm:bottom-10 sm:h-[260px] sm:w-[190px] sm:rounded-b-[28px]">
               {second && <Picture photo={second} sizes="190px" alt="" />}
             </div>
           </div>
         </Container>
       </section>
 
-      {/* Atouts */}
-      <section aria-label={t('home.highlightsLabel')}>
-        <Container className="pb-12 sm:pb-14">
-          <ul className="flex flex-wrap gap-2.5">
-            {highlights.map((item) => (
-              <li key={item} className="rounded-full border border-[#e4d8c8] bg-white px-[18px] py-2.5 text-sm font-semibold">
-                {item}
-              </li>
-            ))}
+      {/* Atouts (v1) : icônes sur fond crème */}
+      <section className="mt-6 bg-cream py-14 sm:py-[72px]">
+        <Container className="flex flex-col gap-8">
+          <h2 className={cn(heading, 'text-3xl leading-tight sm:text-4xl')}>{t('home.featuresTitle')}</h2>
+          <ul className="grid gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+            {features.map((feature) => {
+              const FeatureIcon = featureIcons[feature.icon]
+              return (
+                <li key={feature.title} className="flex items-start gap-4 sm:flex-col sm:gap-3">
+                  {FeatureIcon && (
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blush text-accent-strong">
+                      <FeatureIcon width={24} height={24} />
+                    </span>
+                  )}
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <h3 className="text-[17px] sm:text-lg">{feature.title}</h3>
+                    <p className="text-[15px] leading-relaxed text-muted">{feature.text}</p>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         </Container>
       </section>
 
       {/* Mosaïque des logements */}
       <section>
-        <Container className="flex flex-col gap-8 pt-6 pb-16 lg:pb-[72px]">
+        <Container className="flex flex-col gap-8 py-16 lg:py-[72px]">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className={cn(heading, 'text-[34px] leading-[1.05] sm:text-[44px]')}>
               {titleLine1}
@@ -207,10 +234,28 @@ export function HomePage() {
             {locations.map((item) => (
               <div key={item.label} className="flex flex-col-reverse gap-2 rounded-[28px] border border-line bg-white p-7 sm:p-8">
                 <dt className="text-base text-muted">{item.label}</dt>
-                <dd className={cn(heading, 'text-[40px] leading-none tracking-[-0.04em] text-accent sm:text-5xl')}>{item.value}</dd>
+                <dd className={cn(heading, 'text-[40px] leading-none text-accent sm:text-5xl')}>{item.value}</dd>
               </div>
             ))}
           </dl>
+        </Container>
+      </section>
+
+      {/* Réserver, c'est simple (v1) */}
+      <section className="mb-16 bg-sand py-14 sm:py-[72px] lg:mb-[72px]">
+        <Container className="flex flex-col gap-8">
+          <h2 className={cn(heading, 'text-3xl leading-tight sm:text-4xl')}>{t('home.stepsTitle')}</h2>
+          <ol className="grid gap-6 sm:grid-cols-3">
+            {steps.map((step, index) => (
+              <li key={step.title} className="flex flex-col gap-2.5">
+                <span aria-hidden="true" className="flex size-10 items-center justify-center rounded-full bg-accent font-bold text-white">
+                  {index + 1}
+                </span>
+                <h3 className="text-lg">{step.title}</h3>
+                <p className="text-[15px] leading-relaxed text-muted">{step.text}</p>
+              </li>
+            ))}
+          </ol>
         </Container>
       </section>
 
@@ -219,7 +264,7 @@ export function HomePage() {
         <Container className="pb-16 lg:pb-[72px]">
           <div className="grid items-center gap-8 rounded-[32px] border border-line bg-white p-6 sm:p-10 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:gap-14 lg:rounded-[40px] lg:p-12">
             {/* Emplacement de la photo de l'hôte, à fournir par le client. */}
-            <div aria-hidden="true" className="flex h-[240px] items-center justify-center rounded-[28px] bg-[#f1d3cb] sm:h-[320px] lg:h-[380px] lg:rounded-[32px]">
+            <div aria-hidden="true" className="flex h-[260px] items-center justify-center rounded-t-full rounded-b-[28px] bg-[#f1d3cb] sm:h-[340px] lg:h-[380px]">
               <svg viewBox="0 0 28 28" className="size-16 text-accent-strong opacity-60">
                 <path d="M8 20V12l6-4 6 4v8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
               </svg>
@@ -271,14 +316,14 @@ export function HomePage() {
       {/* Appel à réserver */}
       <section>
         <Container className="pb-14">
-          <div className="flex flex-col items-start gap-6 rounded-[32px] bg-accent px-6 py-10 sm:px-12 sm:py-14 lg:flex-row lg:items-center lg:justify-between lg:rounded-[40px]">
+          <div className="flex flex-col items-start gap-6 rounded-[32px] bg-night px-6 py-10 sm:px-12 sm:py-14 lg:flex-row lg:items-center lg:justify-between lg:rounded-[40px]">
             <div className="flex max-w-[620px] flex-col gap-2.5">
               <h2 className={cn(heading, 'text-[32px] leading-[1.05] text-white sm:text-[44px]')}>{t('home.ctaTitle')}</h2>
-              <p className="text-[17px] leading-relaxed text-white">{t('home.ctaText')}</p>
+              <p className="text-[17px] leading-relaxed text-night-text">{t('home.ctaText')}</p>
             </div>
             <Link
               to={to('/logements')}
-              className="inline-flex min-h-14 shrink-0 items-center rounded-full bg-white px-8 text-base font-bold text-ink no-underline hover:bg-paper hover:text-ink"
+              className="inline-flex min-h-14 shrink-0 items-center rounded-full bg-accent px-8 text-base font-bold text-white no-underline hover:bg-accent-strong hover:text-white"
             >
               {t('home.ctaButton')}
             </Link>

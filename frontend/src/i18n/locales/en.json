@@ -22,7 +22,8 @@
     "legal": "Legal notice",
     "terms": "Terms and conditions",
     "privacy": "Privacy",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "admin": "Host area"
   },
   "home": {
     "title": "Your base in Le Mans",
@@ -33,15 +34,6 @@
     "intro_other": "{{word}} furnished apartments, each with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
     "introFallback": "Furnished apartments, each with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
     "metaDescription": "Furnished apartments in Le Mans, near the 24 Hours circuit and the city centre. Book direct and pay online.",
-    "highlightsLabel": "What you will find",
-    "highlights": [
-      "Free parking",
-      "Equipped kitchen",
-      "Wi-Fi",
-      "Self check-in",
-      "Pets welcome in most",
-      "Tram nearby"
-    ],
     "collectionTitle_one": "One address,|one mood",
     "collectionTitle_other": "{{word}} addresses,|{{wordLower}} moods",
     "collectionFallback": "Our addresses,|their moods",
@@ -102,6 +94,44 @@
       {
         "q": "How do I pay?",
         "a": "By card, on a page secured by Stripe. The stay is paid in full when booking."
+      }
+    ],
+    "featuresTitle": "What you will find",
+    "features": [
+      {
+        "icon": "parking",
+        "title": "Free parking",
+        "text": "Free parking is available near each apartment."
+      },
+      {
+        "icon": "wifi",
+        "title": "Equipped kitchen and Wi-Fi",
+        "text": "Everything to cook and stay connected, for a weekend or for work."
+      },
+      {
+        "icon": "key",
+        "title": "Self check-in",
+        "text": "In several apartments, keys are collected from a secure key box."
+      },
+      {
+        "icon": "pets",
+        "title": "Pets welcome",
+        "text": "In most apartments, so you can travel with your companion."
+      }
+    ],
+    "stepsTitle": "Booking is simple",
+    "steps": [
+      {
+        "title": "Choose your dates",
+        "text": "The calendar shows the free nights of each apartment in real time."
+      },
+      {
+        "title": "Pay online",
+        "text": "Card payment on a secure page, instant confirmation by e-mail."
+      },
+      {
+        "title": "Arrive on time",
+        "text": "You receive the check-in instructions before your stay."
       }
     ]
   },

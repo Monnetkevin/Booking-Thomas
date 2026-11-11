@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { LockIcon } from '@/components/icons'
 import { Container } from '@/components/ui/Container'
 import { useLocale } from '@/i18n/useLocale'
 
@@ -23,7 +24,7 @@ export function SiteFooter() {
         <p>
           © {YEAR} {t('site.name')}. {t('footer.rights')}
         </p>
-        <ul className="flex flex-wrap gap-x-5 gap-y-2">
+        <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
           {links.map((link) => (
             <li key={link.to}>
               <Link to={link.to} className="text-muted underline hover:text-ink">
@@ -31,6 +32,13 @@ export function SiteFooter() {
               </Link>
             </li>
           ))}
+          {/* Accès discret au back-office (non localisé, exclu des moteurs par robots.txt). */}
+          <li>
+            <Link to="/admin" className="inline-flex items-center gap-1.5 text-muted no-underline opacity-70 hover:text-ink hover:opacity-100">
+              <LockIcon width={14} height={14} />
+              {t('footer.admin')}
+            </Link>
+          </li>
         </ul>
       </Container>
     </footer>
