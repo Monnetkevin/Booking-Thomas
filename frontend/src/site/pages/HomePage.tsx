@@ -282,33 +282,30 @@ export function HomePage() {
         </Container>
       </section>
 
-      {/* Questions fréquentes : titre à gauche, questions dépliables à droite */}
-      <section aria-labelledby="faq-titre">
-        <Container className="grid gap-8 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-14 lg:pb-[72px]">
-          <div className="flex flex-col items-start gap-4">
-            <h2 id="faq-titre" className={cn(heading, 'text-[34px] leading-[1.05] sm:text-[44px]')}>
+      {/* Questions fréquentes (v1) : liste dépliable dans un bloc blanc, sur fond sable */}
+      <section aria-labelledby="faq-titre" className="mb-14 bg-sand py-14 sm:py-[72px]">
+        <Container>
+          <div className="mx-auto flex max-w-3xl flex-col gap-6">
+            <h2 id="faq-titre" className={cn(heading, 'text-3xl leading-tight sm:text-4xl')}>
               {t('home.faqTitle')}
             </h2>
-            <p className="text-[17px] leading-relaxed text-muted">{t('home.faqIntro')}</p>
-            <Link
-              to={to('/contact')}
-              className="border-b-2 border-ink pb-0.5 text-[15px] font-bold text-ink no-underline hover:border-accent-text hover:text-accent-text"
-            >
-              {t('home.hostCta')} →
-            </Link>
-          </div>
-          <div className="flex flex-col gap-3">
-            {faq.map((item) => (
-              <details key={item.q} className="group rounded-[24px] border border-line bg-white open:shadow-[0_12px_32px_rgba(43,38,34,0.06)]">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
-                  {item.q}
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-transform group-open:rotate-45">
-                    <PlusIcon width={18} height={18} />
-                  </span>
-                </summary>
-                <p className="px-6 pb-6 text-[15px] leading-relaxed text-muted">{item.a}</p>
-              </details>
-            ))}
+            <div className="flex flex-col divide-y divide-line rounded-[var(--radius-card)] bg-white">
+              {faq.map((item) => (
+                <details key={item.q} className="group px-6 py-5">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-semibold [&::-webkit-details-marker]:hidden">
+                    {item.q}
+                    <PlusIcon aria-hidden="true" width={20} height={20} className="shrink-0 text-accent-text transition-transform group-open:rotate-45" />
+                  </summary>
+                  <p className="mt-2 text-[15px] leading-relaxed text-muted">{item.a}</p>
+                </details>
+              ))}
+            </div>
+            <p className="text-[15px] text-muted">
+              {t('home.faqIntro')}{' '}
+              <Link to={to('/contact')} className="font-semibold">
+                {t('home.hostCta')}
+              </Link>
+            </p>
           </div>
         </Container>
       </section>
