@@ -218,7 +218,7 @@ export function ApartmentPage() {
           </section>
         </div>
 
-        <aside className="order-1 lg:sticky lg:top-20 lg:order-2">
+        <aside className="order-1 lg:sticky lg:top-24 lg:order-2">
           <BookingPanel
             apartment={apartment}
             stay={stay}
