@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Public;
 
 use App\Models\Booking;
+use App\Services\Booking\BookingLinks;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,6 +25,8 @@ class PendingBookingResource extends JsonResource
             'expires_at' => $this->expires_at?->toIso8601String(),
             'total' => $this->total_amount,
             'currency' => 'EUR',
+            // Page de suivi du voyageur (lien signé, aussi envoyé par e-mail).
+            'tracking_url' => app(BookingLinks::class)->trackingUrl($this->resource),
         ];
     }
 }

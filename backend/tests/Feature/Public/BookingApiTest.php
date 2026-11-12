@@ -42,7 +42,8 @@ it('crée une réservation en attente, au prix recalculé par le serveur', funct
         ->assertCreated()
         ->assertJsonPath('data.status', 'pending')
         ->assertJsonPath('data.total', 24000 + 4000 + 600)
-        ->assertJsonPath('data.expires_at', now()->addMinutes(30)->toIso8601String());
+        ->assertJsonPath('data.expires_at', now()->addMinutes(30)->toIso8601String())
+        ->assertJsonPath('data.tracking_url', fn (string $url) => str_contains($url, '/en/reservation/BT-') && str_contains($url, 'signature='));
 
     $booking = Booking::firstOrFail();
     expect($response->json('data.reference'))->toBe($booking->reference)->toMatch('/^BT-[A-Z0-9]{8}$/')

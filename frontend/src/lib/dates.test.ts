@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, nightsBetween, fromIso, toIso } from './dates'
+import { formatDate, nightsBetween, formatLongDate, fromIso, toIso } from './dates'
 
 describe('dates', () => {
   it('affiche une date courte en français, sans décalage de fuseau', () => {
@@ -15,5 +15,10 @@ describe('dates', () => {
   it('convertit une date du calendrier en « AAAA-MM-JJ » et inversement, sans décalage de fuseau', () => {
     expect(toIso(new Date(2026, 11, 4))).toBe('2026-12-04')
     expect(toIso(fromIso('2027-01-31'))).toBe('2027-01-31')
+  })
+
+  it('écrit une date longue avec le jour de la semaine', () => {
+    expect(formatLongDate('2026-11-17')).toBe('mar. 17 nov. 2026')
+    expect(formatLongDate('2026-11-17', 'en-GB')).toBe('Tue, 17 Nov 2026')
   })
 })

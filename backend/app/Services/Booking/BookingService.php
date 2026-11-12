@@ -93,6 +93,12 @@ class BookingService
         return $booking;
     }
 
+    /** Charge ce qu'affiche la page de suivi du voyageur (logement et photos). */
+    public function forTracking(Booking $booking): Booking
+    {
+        return $booking->load('apartment.media');
+    }
+
     /**
      * Expire les réservations en attente non payées à temps et libère leurs nuits.
      *

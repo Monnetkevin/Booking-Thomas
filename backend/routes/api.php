@@ -31,6 +31,10 @@ Route::post('contact', [ContactController::class, 'store'])->middleware('throttl
 // Réservation en attente de paiement : 5 par minute et par IP, anti-robot.
 Route::post('bookings', [BookingController::class, 'store'])->middleware('throttle:bookings');
 
+// Suivi par le voyageur : lien signé reçu par e-mail (signature du chemin relatif).
+Route::get('bookings/{booking:reference}', [BookingController::class, 'show'])
+    ->middleware(['signed:relative', 'throttle:public'])->name('bookings.show');
+
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');
 

@@ -25,6 +25,18 @@ export function formatDate(isoDate: string, locale = 'fr-FR'): string {
   )
 }
 
+/** « 2026-11-17 » → « mar. 17 nov. 2026 » (jour de la semaine compris). */
+export function formatLongDate(isoDate: string, locale = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(
+    toDate(isoDate),
+  )
+}
+
+/** Heure d'un instant ISO, dans le fuseau du navigateur : « 14:30 ». */
+export function formatTime(isoDateTime: string, locale = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(isoDateTime))
+}
+
 /** Nombre de nuits entre deux dates, ex. du 1er au 4 → 3. */
 export function nightsBetween(from: string, to: string): number {
   return Math.round((toDate(to).getTime() - toDate(from).getTime()) / 86_400_000)
