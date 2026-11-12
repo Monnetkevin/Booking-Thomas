@@ -16,6 +16,18 @@ interface ApartmentRepositoryInterface
      */
     public function list(?ApartmentStatus $status = null): Collection;
 
+    /**
+     * Logements publiés, dans l'ordre, avec photos, équipements et périodes à venir.
+     *
+     * @return Collection<int, Apartment>
+     */
+    public function publishedWithCatalogData(): Collection;
+
+    /** Logement publié et tout ce qu'affiche sa fiche publique, ou null. */
+    public function findPublishedBySlug(string $slug): ?Apartment;
+
+    public function idForSlug(string $slug): ?int;
+
     /** Charge tout ce qu'affiche la fiche d'administration. */
     public function loadDetails(Apartment $apartment): Apartment;
 

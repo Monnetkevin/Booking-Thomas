@@ -1,12 +1,25 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { PublicLayout } from '@/layouts/PublicLayout'
-import { HomePage } from '@/pages/HomePage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
 
-/** Pages publiques, identiques en français (/) et en anglais (/en). */
+const legalRoutes = { legal: 'mentions-legales', terms: 'cgv', privacy: 'confidentialite' } as const
+
+/**
+ * Pages publiques, identiques en français (/) et en anglais (/en). Chaque page est un
+ * morceau de code chargé à la demande : l'accueil ne télécharge ni le calendrier ni la carte.
+ */
 const publicPages: RouteObject[] = [
-  { index: true, element: <HomePage /> },
-  { path: '*', element: <NotFoundPage /> },
+  { index: true, lazy: async () => ({ Component: (await import('@/site/pages/HomePage')).HomePage }) },
+  { path: 'logements', lazy: async () => ({ Component: (await import('@/site/pages/ApartmentsPage')).ApartmentsPage }) },
+  { path: 'logements/:slug', lazy: async () => ({ Component: (await import('@/site/pages/ApartmentPage')).ApartmentPage }) },
+  { path: 'contact', lazy: async () => ({ Component: (await import('@/site/pages/ContactPage')).ContactPage }) },
+  ...(Object.keys(legalRoutes) as Array<keyof typeof legalRoutes>).map((page) => ({
+    path: legalRoutes[page],
+    lazy: async () => {
+      const { LegalPage } = await import('@/site/pages/LegalPage')
+      return { Component: () => <LegalPage page={page} /> }
+    },
+  })),
+  { path: '*', lazy: async () => ({ Component: (await import('@/site/pages/NotFoundPage')).NotFoundPage }) },
 ]
 
 export const router = createBrowserRouter([

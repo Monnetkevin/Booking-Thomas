@@ -10,7 +10,8 @@
     "menu": "Menu",
     "close": "Close menu",
     "main": "Main navigation",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "book": "Book"
   },
   "language": {
     "label": "Language",
@@ -21,12 +22,118 @@
     "legal": "Legal notice",
     "terms": "Terms and conditions",
     "privacy": "Privacy",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "admin": "Host area"
   },
   "home": {
-    "title": "Apartments that feel like home",
-    "intro": "Book direct, with no platform fees, and pay securely.",
-    "cta": "See the apartments"
+    "title": "Your base in Le Mans",
+    "titleStart": "Your base",
+    "titleAccent": "in Le Mans.",
+    "badge": "Book direct, secure payment",
+    "intro_one": "One furnished apartment with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
+    "intro_other": "{{word}} furnished apartments, each with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
+    "introFallback": "Furnished apartments, each with its own mood, a few minutes from the 24 Hours circuit and the city centre.",
+    "metaDescription": "Furnished apartments in Le Mans, near the 24 Hours circuit and the city centre. Book direct and pay online.",
+    "collectionTitle_one": "One address,|one mood",
+    "collectionTitle_other": "{{word}} addresses,|{{wordLower}} moods",
+    "collectionFallback": "Our addresses,|their moods",
+    "seeAll": "See all",
+    "locationTitle": "Well located",
+    "locations": [
+      {
+        "value": "5 min",
+        "label": "from the 24 Hours circuit"
+      },
+      {
+        "value": "Tram",
+        "label": "right by several apartments"
+      },
+      {
+        "value": "Centre",
+        "label": "the city centre close to each one"
+      }
+    ],
+    "hostEyebrow": "Your host",
+    "hostTitle": "Hello, I'm [First name].",
+    "hostText": "[A few lines of introduction: who welcomes you, since when, why these apartments. The tone stays warm and personal.]",
+    "hostQuestion": "A question before booking? Write to me, I reply quickly.",
+    "hostCta": "Write to your host",
+    "ctaTitle": "Book direct, pay securely.",
+    "ctaText": "Your dates in the calendar, a card payment on a secure page.",
+    "ctaButton": "See availability",
+    "numbers": [
+      "zero",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "eleven",
+      "twelve"
+    ],
+    "faqTitle": "Frequently asked questions",
+    "faqIntro": "Another question? Write to me, I reply quickly.",
+    "faq": [
+      {
+        "q": "What are the check-in and check-out times?",
+        "a": "Times are shown on each apartment page; self check-in is possible in several apartments."
+      },
+      {
+        "q": "What happens if I cancel?",
+        "a": "The cancellation terms of each apartment are detailed on its page and repeated before payment."
+      },
+      {
+        "q": "Are pets allowed?",
+        "a": "In most apartments: it is listed in the amenities of each apartment."
+      },
+      {
+        "q": "How do I pay?",
+        "a": "By card, on a page secured by Stripe. The stay is paid in full when booking."
+      }
+    ],
+    "featuresTitle": "What you will find",
+    "features": [
+      {
+        "icon": "parking",
+        "title": "Free parking",
+        "text": "Free parking is available near each apartment."
+      },
+      {
+        "icon": "wifi",
+        "title": "Equipped kitchen and Wi-Fi",
+        "text": "Everything to cook and stay connected, for a weekend or for work."
+      },
+      {
+        "icon": "key",
+        "title": "Self check-in",
+        "text": "In several apartments, keys are collected from a secure key box."
+      },
+      {
+        "icon": "pets",
+        "title": "Pets welcome",
+        "text": "In most apartments, so you can travel with your companion."
+      }
+    ],
+    "stepsTitle": "Booking is simple",
+    "steps": [
+      {
+        "title": "Choose your dates",
+        "text": "The calendar shows the free nights of each apartment in real time."
+      },
+      {
+        "title": "Pay online",
+        "text": "Card payment on a secure page, instant confirmation by e-mail."
+      },
+      {
+        "title": "Arrive on time",
+        "text": "You receive the check-in instructions before your stay."
+      }
+    ]
   },
   "notFound": {
     "title": "Page not found",
@@ -36,6 +143,129 @@
   "common": {
     "loading": "Loading…",
     "error": "Something went wrong. Please try again in a moment.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next",
+    "chooseDate": "Select",
+    "calendarFor": "Calendar: {{label}}"
+  },
+  "pricing": {
+    "total": "Total"
+  },
+  "search": {
+    "label": "Search apartments by dates",
+    "arrival": "Check-in",
+    "departure": "Check-out",
+    "guests": "Guests",
+    "guests_one": "{{count}} guest",
+    "guests_other": "{{count}} guests",
+    "submit": "Search",
+    "invalidDates": "The check-out date must be after the check-in date."
+  },
+  "listing": {
+    "title": "Our apartments",
+    "intro": "Furnished apartments in Le Mans, each with its own atmosphere. Enter your dates to see which ones are free.",
+    "metaDescription": "Furnished apartments in Le Mans to book direct: photos, amenities, availability and detailed price.",
+    "results_one": "{{count}} apartment available out of {{total}}",
+    "results_other": "{{count}} apartments available out of {{total}}",
+    "count_one": "{{count}} apartment",
+    "count_other": "{{count}} apartments",
+    "clearSearch": "Clear dates",
+    "filtersLabel": "Filter by amenity",
+    "allFilter": "All",
+    "available": "Available",
+    "unavailable": "Not available on these dates",
+    "from": "from {{price}}",
+    "perNight": "per night",
+    "total_one": "{{price}} for {{count}} night",
+    "total_other": "{{price}} for {{count}} nights",
+    "view": "View and book",
+    "viewLabel": "View and book {{name}}",
+    "otherDates": "See other dates",
+    "empty": "No apartment matches these criteria.",
+    "emptyCatalog": "Our apartments will be online soon.",
+    "questionTitle": "A question?",
+    "questionText": "Flexible dates, long stay, need advice to choose: write to us.",
+    "contactCta": "Contact us",
+    "bedrooms_one": "{{count}} bedroom",
+    "bedrooms_other": "{{count}} bedrooms",
+    "surface": "{{value}} m²"
+  },
+  "detail": {
+    "breadcrumb": "Breadcrumb",
+    "allPhotos": "See all photos",
+    "allPhotosCount": "See all {{count}} photos",
+    "photosTitle": "Photos · {{name}}",
+    "about": "The apartment",
+    "amenities": "Amenities",
+    "rules": "House rules",
+    "checkIn": "Check-in",
+    "checkInValue": "from {{time}}",
+    "checkOut": "Check-out",
+    "checkOutValue": "before {{time}}",
+    "minStay": "Minimum stay",
+    "maxStay": "Maximum stay",
+    "nights_one": "{{count}} night",
+    "nights_other": "{{count}} nights",
+    "cancellation": "Cancellation ({{policy}})",
+    "cancellationTier": "{{percent}}% refunded up to {{days}} days before check-in",
+    "cancellationTierLast": "{{percent}}% refunded afterwards",
+    "policies": {
+      "flexible": "flexible",
+      "moderate": "moderate",
+      "strict": "strict"
+    },
+    "location": "Location",
+    "locationNote": "The exact address is sent to you after booking.",
+    "mapLabel": "Map of the area around {{name}}",
+    "mapUnavailable": "The map is not available yet for this apartment.",
+    "registration": "Registration number: {{number}}",
+    "notFound": "This apartment does not exist or is no longer offered.",
+    "backToList": "See all apartments"
+  },
+  "booking": {
+    "title": "Booking",
+    "perNight": "per night",
+    "from": "From",
+    "arrival": "Check-in",
+    "departure": "Check-out",
+    "choose": "Select",
+    "adults": "Adults",
+    "children": "Children",
+    "childrenHint": "Under 18",
+    "calendarLabel": "Choose your dates",
+    "legendUnavailable": "Unavailable",
+    "legendStay": "Your stay",
+    "pickArrival": "Choose your check-in date.",
+    "pickDeparture": "Now choose your check-out date ({{count}} nights minimum).",
+    "clear": "Clear dates",
+    "calculating": "Calculating the price…",
+    "book": "Book",
+    "bookSoon": "Online booking opens very soon. In the meantime, write to us to book these dates.",
+    "payment": "Card payment, secured by Stripe.",
+    "calendarError": "The calendar could not be loaded."
+  },
+  "contact": {
+    "title": "Contact",
+    "intro": "A question, a long stay, flexible dates? Write to us, we reply quickly.",
+    "metaDescription": "Contact us with any question about our furnished apartments in Le Mans.",
+    "name": "Name",
+    "email": "E-mail address",
+    "phone": "Phone",
+    "phoneHint": "Optional",
+    "apartment": "Apartment",
+    "apartmentNone": "None in particular",
+    "message": "Your message",
+    "messageHint": "At least 10 characters.",
+    "submit": "Send the message",
+    "privacy": "Your details are only used to reply to you.",
+    "sentTitle": "Message sent",
+    "another": "Write another message",
+    "website": "Do not fill in this field"
+  },
+  "legal": {
+    "draftNotice": "Text to be completed and approved by the owner before going live.",
+    "updated": "Last updated: {{date}}"
   }
 }

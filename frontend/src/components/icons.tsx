@@ -130,3 +130,68 @@ export function PencilIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function ParkingIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="5" y="5" width="14" height="14" rx="3" />
+      <path d="M10 16V8h2.5a2 2 0 0 1 0 4H10" />
+    </Icon>
+  )
+}
+
+export function WifiIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M5 10a10 10 0 0 1 14 0M8 13a6 6 0 0 1 8 0" />
+      <circle cx="12" cy="17" r="1" fill="currentColor" />
+    </Icon>
+  )
+}
+
+export function LockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="6" y="11" width="12" height="9" rx="2" />
+      <path d="M9 11V8a3 3 0 0 1 6 0v3" />
+    </Icon>
+  )
+}
+
+export function PawIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12 13c-2.5 0-5 2.6-5 4.8 0 1.3 1 2.2 2.3 2.2.9 0 1.7-.5 2.7-.5s1.8.5 2.7.5c1.3 0 2.3-.9 2.3-2.2 0-2.2-2.5-4.8-5-4.8z" />
+      <circle cx="8.5" cy="8" r="1.6" />
+      <circle cx="15.5" cy="8" r="1.6" />
+      <circle cx="5" cy="12" r="1.4" />
+      <circle cx="19" cy="12" r="1.4" />
+    </Icon>
+  )
+}
+
+/** Flèche en diagonale (« ouvrir »), pour les tuiles cliquables. */
+export function ArrowUpRightIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon width={16} height={16} {...props}>
+      <path d="M7 17L17 7M9 7h8v8" />
+    </Icon>
+  )
+}
+
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon width={18} height={18} {...props}>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </Icon>
+  )
+}
+
+export function CheckIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </Icon>
+  )
+}

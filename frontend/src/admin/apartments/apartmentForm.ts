@@ -5,6 +5,8 @@ import type { Apartment, ApartmentInput, CancellationPolicy } from './types'
 export interface ApartmentFormValues {
   nameFr: string
   nameEn: string
+  taglineFr: string
+  taglineEn: string
   descriptionFr: string
   descriptionEn: string
   address: string
@@ -28,6 +30,8 @@ export interface ApartmentFormValues {
 export const emptyApartmentForm: ApartmentFormValues = {
   nameFr: '',
   nameEn: '',
+  taglineFr: '',
+  taglineEn: '',
   descriptionFr: '',
   descriptionEn: '',
   address: '',
@@ -54,6 +58,8 @@ export function formFromApartment(apartment: Apartment): ApartmentFormValues {
   return {
     nameFr: apartment.name.fr ?? '',
     nameEn: apartment.name.en ?? '',
+    taglineFr: apartment.tagline.fr ?? '',
+    taglineEn: apartment.tagline.en ?? '',
     descriptionFr: apartment.description.fr ?? '',
     descriptionEn: apartment.description.en ?? '',
     address: apartment.address,
@@ -94,6 +100,7 @@ export function apartmentInputFromForm(
   return {
     input: {
       name: { fr: values.nameFr.trim(), en: values.nameEn.trim() },
+      tagline: { fr: values.taglineFr.trim(), en: values.taglineEn.trim() },
       description: { fr: values.descriptionFr.trim(), en: values.descriptionEn.trim() },
       address: values.address.trim(),
       postal_code: values.postalCode.trim(),
@@ -119,6 +126,8 @@ export function apartmentInputFromForm(
 const apiFieldMap: Record<string, keyof ApartmentFormValues> = {
   'name.fr': 'nameFr',
   'name.en': 'nameEn',
+  'tagline.fr': 'taglineFr',
+  'tagline.en': 'taglineEn',
   'description.fr': 'descriptionFr',
   'description.en': 'descriptionEn',
   address: 'address',

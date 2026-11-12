@@ -6,6 +6,7 @@ use App\Exceptions\Photo\InvalidPhotoOrderException;
 use App\Exceptions\Photo\TooManyPhotosException;
 use App\Models\Apartment;
 use App\Repositories\Contracts\ApartmentPhotoRepositoryInterface;
+use App\Services\Catalog\CatalogCache;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,10 @@ class ApartmentPhotoService
 {
     public const MAX_PHOTOS = 30;
 
-    public function __construct(private readonly ApartmentPhotoRepositoryInterface $photos) {}
+    public function __construct(
+        private readonly ApartmentPhotoRepositoryInterface $photos,
+        private readonly CatalogCache $catalog,
+    ) {}
 
     /**
      * @return Collection<int, Media>
@@ -41,7 +45,7 @@ class ApartmentPhotoService
             throw new TooManyPhotosException(self::MAX_PHOTOS);
         }
 
-        return collect($files)->map(function (UploadedFile $file) use ($apartment): Media {
+        $uploaded = collect($files)->map(function (UploadedFile $file) use ($apartment): Media {
             [$width, $height] = getimagesize($file->getRealPath()) ?: [null, null];
 
             return $this->photos->add($apartment, $file, [
@@ -50,6 +54,9 @@ class ApartmentPhotoService
                 'height' => $height,
             ]);
         });
+        $this->catalog->flush();
+
+        return $uploaded;
     }
 
     /**
@@ -68,6 +75,7 @@ class ApartmentPhotoService
         }
 
         DB::transaction(fn () => $this->photos->setOrder($orderedIds));
+        $this->catalog->flush();
 
         return $this->photos->list($apartment->refresh());
     }
@@ -79,14 +87,18 @@ class ApartmentPhotoService
     {
         $photo = $this->photos->findForApartment($apartment, $photoId);
 
-        return $this->photos->setCustomProperty($photo, 'alt', [
+        $photo = $this->photos->setCustomProperty($photo, 'alt', [
             'fr' => trim((string) ($alt['fr'] ?? '')),
             'en' => trim((string) ($alt['en'] ?? '')),
         ]);
+        $this->catalog->flush();
+
+        return $photo;
     }
 
     public function delete(Apartment $apartment, int $photoId): void
     {
         $this->photos->delete($this->photos->findForApartment($apartment, $photoId));
+        $this->catalog->flush();
     }
 }

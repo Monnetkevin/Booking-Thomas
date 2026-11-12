@@ -41,8 +41,10 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
     name: field,
     value: values[field],
     error: error(field),
-    onChange: (event: { target: { value: string } }) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }))
+    // Valeur seule (liste, calendrier) ou évènement d'un champ texte.
+    onChange: (input: string | { target: { value: string } }) => {
+      const value = typeof input === 'string' ? input : input.target.value
+      setValues((current) => ({ ...current, [field]: value }))
       setLocalErrors((current) => {
         const { [field]: _removed, ...rest } = current
         return rest
@@ -68,6 +70,8 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label={f('nameFr')} required maxLength={120} {...bind('nameFr')} />
           <TextField label={f('nameEn')} hint={f('translationHint')} maxLength={120} {...bind('nameEn')} />
+          <TextField label={f('taglineFr')} hint={f('taglineHint')} maxLength={80} {...bind('taglineFr')} />
+          <TextField label={f('taglineEn')} hint={f('translationHint')} maxLength={80} {...bind('taglineEn')} />
           <TextArea label={f('descriptionFr')} hint={f('descriptionHint')} maxLength={5000} {...bind('descriptionFr')} />
           <TextArea label={f('descriptionEn')} hint={f('translationHint')} maxLength={5000} {...bind('descriptionEn')} />
         </div>

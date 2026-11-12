@@ -5,6 +5,7 @@ namespace App\Services\Rate;
 use App\Models\Apartment;
 use App\Models\RatePeriod;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
+use App\Services\Catalog\CatalogCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,10 @@ use Illuminate\Validation\ValidationException;
  */
 class RatePeriodService
 {
-    public function __construct(private readonly RatePeriodRepositoryInterface $periods) {}
+    public function __construct(
+        private readonly RatePeriodRepositoryInterface $periods,
+        private readonly CatalogCache $catalog,
+    ) {}
 
     /**
      * @return Collection<int, RatePeriod>
@@ -54,6 +58,7 @@ class RatePeriodService
     public function delete(RatePeriod $period): void
     {
         $this->periods->delete($period);
+        $this->catalog->flush();
     }
 
     /**
@@ -79,8 +84,11 @@ class RatePeriodService
     private function guarded(callable $write): RatePeriod
     {
         try {
-            /** @var RatePeriod */
-            return DB::transaction(fn () => $write());
+            /** @var RatePeriod $period */
+            $period = DB::transaction(fn () => $write());
+            $this->catalog->flush();
+
+            return $period;
         } catch (QueryException $e) {
             if ($e->getCode() === '23P01' && str_contains($e->getMessage(), 'rate_periods_no_overlap')) {
                 throw ValidationException::withMessages(['starts_on' => __('rates.overlap_generic')]);

@@ -13,7 +13,7 @@ export function PublicLayout() {
   useLayoutEffect(() => applyLocale(locale), [locale])
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="vitrine flex min-h-dvh flex-col">
       <a
         href="#contenu"
         className="sr-only z-50 rounded-lg bg-white px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2"

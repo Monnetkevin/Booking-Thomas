@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apartmentKeys } from '@/admin/apartments/keys'
 import { rateService, type RateService } from './rateService'
+import type { StayRequest } from '@/lib/pricing/types'
 import type { RatePeriodInput } from './types'
 
 export const rateKeys = {
@@ -38,4 +39,9 @@ export function useSaveRatePeriod(apartmentId: number, service: RateService = ra
 export function useDeleteRatePeriod(apartmentId: number, service: RateService = rateService) {
   const refresh = useRefresh(apartmentId)
   return useMutation({ mutationFn: (id: number) => service.remove(id), onSuccess: refresh })
+}
+
+/** Aperçu du prix d'un séjour test (écran Tarifs). */
+export function useQuotePreview(apartmentId: number, service: RateService = rateService) {
+  return useMutation({ mutationFn: (stay: StayRequest) => service.preview(apartmentId, stay) })
 }

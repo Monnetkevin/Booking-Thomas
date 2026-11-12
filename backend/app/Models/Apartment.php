@@ -23,7 +23,7 @@ use Spatie\Translatable\HasTranslations;
  * @property CancellationPolicy $cancellation_policy
  */
 #[Fillable([
-    'slug', 'name', 'description', 'address', 'postal_code', 'city', 'latitude', 'longitude', 'geocoded_at',
+    'slug', 'name', 'tagline', 'description', 'address', 'postal_code', 'city', 'latitude', 'longitude', 'geocoded_at',
     'capacity', 'bedrooms', 'beds', 'bathrooms', 'surface_m2', 'check_in_time', 'check_out_time',
     'min_stay', 'max_stay', 'turnover_days', 'cleaning_fee', 'cancellation_policy',
     'registration_number', 'status', 'position',
@@ -37,7 +37,7 @@ class Apartment extends Model implements HasMedia
     public const PHOTOS = 'photos';
 
     /** @var list<string> */
-    public array $translatable = ['name', 'description'];
+    public array $translatable = ['name', 'tagline', 'description'];
 
     /**
      * @return array<string, string>
@@ -53,11 +53,15 @@ class Apartment extends Model implements HasMedia
         ];
     }
 
-    /** Tailles générées pour chaque photo : [largeur, hauteur]. */
+    /**
+     * Tailles générées pour chaque photo : [largeur, hauteur] maximales.
+     * La miniature est recadrée en 4:3 ; les autres gardent les proportions, avec une hauteur
+     * assez grande pour qu'une photo verticale atteigne quand même la largeur annoncée.
+     */
     public const PHOTO_SIZES = [
         'thumb' => [480, 360],
-        'card' => [960, 720],
-        'large' => [1920, 1280],
+        'card' => [960, 1440],
+        'large' => [1920, 2880],
     ];
 
     /**

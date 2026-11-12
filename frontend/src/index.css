@@ -24,8 +24,9 @@
   --color-night-soft: #3f3731;
   --color-night-text: #eadfd3;
 
-  --color-accent: #b4532f; /* terre cuite : actions, liens */
-  --color-accent-strong: #8e3f22; /* survol */
+  --color-accent: #c05630; /* terre cuite : boutons, pastilles (texte blanc 4,5:1) */
+  --color-accent-strong: #a14a29; /* survol, icônes sur fond rosé */
+  --color-accent-text: #b4532f; /* liens et petits textes : lisible sur les fonds clairs */
   --color-accent-soft: #f6e0d3;
 
   --color-success: #2f6b3a;
@@ -56,7 +57,7 @@
   }
 
   a {
-    @apply text-accent underline-offset-4 hover:text-accent-strong;
+    @apply text-accent-text underline-offset-4 hover:text-accent-strong;
   }
 
   :focus-visible {
@@ -71,4 +72,105 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* Calendriers (react-day-picker) aux couleurs du site : séjour sur la fiche, choix d'une date */
+.date-picker .rdp-root,
+.stay-calendar .rdp-root {
+  --rdp-accent-color: var(--color-accent);
+  --rdp-accent-background-color: var(--color-accent-soft);
+  --rdp-day-height: 44px;
+  --rdp-day-width: 44px;
+  --rdp-day_button-height: 42px;
+  --rdp-day_button-width: 42px;
+  --rdp-range_middle-background-color: var(--color-accent-soft);
+  --rdp-range_start-date-background-color: var(--color-accent);
+  --rdp-range_end-date-background-color: var(--color-accent);
+  --rdp-today-color: var(--color-ink);
+  font-size: 14px;
+  max-width: 100%;
+}
+.date-picker .rdp-root {
+  --rdp-day-height: 40px;
+  --rdp-day-width: 40px;
+  --rdp-day_button-height: 38px;
+  --rdp-day_button-width: 38px;
+}
+.date-picker .rdp-months,
+.date-picker .rdp-month,
+.date-picker .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+.date-picker .rdp-selected .rdp-day_button {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+}
+.date-picker .rdp-day_button:hover:not([disabled]) {
+  background-color: var(--color-accent-soft);
+}
+.date-picker .rdp-selected .rdp-day_button:hover {
+  background-color: var(--color-accent-strong);
+}
+.date-picker .rdp-chevron {
+  fill: var(--color-accent);
+}
+.stay-calendar .rdp-months,
+.stay-calendar .rdp-month,
+.stay-calendar .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+.stay-calendar .rdp-day.booked .rdp-day_button {
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
+.stay-calendar .rdp-day.rdp-range_start .rdp-day_button,
+.stay-calendar .rdp-day.rdp-range_end .rdp-day_button {
+  background-color: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.stay-calendar .rdp-day.rdp-range_middle {
+  background-color: var(--color-accent-soft);
+}
+.stay-calendar .rdp-day.rdp-range_middle .rdp-day_button {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.stay-calendar .rdp-disabled:not(.booked) .rdp-day_button {
+  color: #b9aa9b;
+}
+
+/*
+ * Site public, mélange des maquettes v1 et v2 : grands titres en Fraunces (v1), intertitres
+ * en Plus Jakarta gras, boutons en pilule et blocs très arrondis (v2). Hors couche CSS pour
+ * primer sur les classes des composants partagés avec le back-office, qui garde son style.
+ */
+.vitrine {
+  --radius-card: 28px;
+}
+
+.vitrine :is(h1, h2) {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.vitrine h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.vitrine .btn {
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.vitrine :is(input:not([type='checkbox'], [type='radio']), select, textarea) {
+  border-radius: 14px;
 }

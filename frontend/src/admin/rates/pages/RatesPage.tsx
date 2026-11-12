@@ -14,6 +14,7 @@ import { Section } from '@/components/ui/Section'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api'
 import { RatePeriodForm } from '../components/RatePeriodForm'
+import { QuotePreviewPanel } from '../components/QuotePreviewPanel'
 import { RatePeriodList } from '../components/RatePeriodList'
 import { emptyRateForm, formFromPeriod, rateErrorsFromApi } from '../rateForm'
 import type { RatePeriod } from '../types'
@@ -77,7 +78,7 @@ function ApartmentRates({ apartmentId, name, minStay }: { apartmentId: number; n
   const editingPeriod = editing !== null && editing !== 'new' ? editing : null
 
   return (
-    <div className={editing === null ? '' : 'grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(340px,1fr)]'}>
+    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(340px,1fr)]">
       <Section
         title={t('admin.rates.tableTitle', { name })}
         actions={
@@ -105,10 +106,11 @@ function ApartmentRates({ apartmentId, name, minStay }: { apartmentId: number; n
         )}
         {remove.isError && <Alert tone="danger">{t('common.error')}</Alert>}
         <p className="mt-4 text-sm text-muted">{t('admin.rates.note')}</p>
-        <p className="mt-1 text-sm text-muted">{t('admin.rates.previewSoon')}</p>
       </Section>
 
-      {editing !== null && (
+      {editing === null ? (
+        <QuotePreviewPanel apartmentId={apartmentId} />
+      ) : (
         <Section title={editingPeriod ? t('admin.rates.form.editTitle') : t('admin.rates.form.newTitle')}>
           {save.isError && !saveError && <Alert tone="danger">{t('common.error')}</Alert>}
           <RatePeriodForm

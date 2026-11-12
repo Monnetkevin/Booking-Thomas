@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 
 // L'API Laravel est servie sous le même domaine que la SPA : en local, Vite relaie
-// /api et /sanctum vers le conteneur "app" (pas de CORS, cookies de session partagés).
+// /api, /sanctum, le plan du site et robots.txt vers le conteneur "app" (pas de CORS, cookies de session partagés).
 const apiTarget = process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8000'
 
 export default defineConfig({
@@ -17,6 +17,8 @@ export default defineConfig({
     proxy: {
       '/api': { target: apiTarget, changeOrigin: false },
       '/sanctum': { target: apiTarget, changeOrigin: false },
+      '/sitemap.xml': { target: apiTarget, changeOrigin: false },
+      '/robots.txt': { target: apiTarget, changeOrigin: false },
     },
   },
 })
