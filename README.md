@@ -38,6 +38,7 @@ docker compose exec app php artisan db:seed --class=DemoSeeder   # facultatif : 
 | SPA (Vite)               | http://localhost:5173     |
 | API Laravel              | http://localhost:8000/api |
 | Mailpit (e-mails reçus)  | http://localhost:8025     |
+| Aperçu des e-mails       | http://localhost:8000/dev/mails (local uniquement) |
 
 Le service `queue` traite les tâches de fond (conversions des photos en WebP et AVIF, e-mails).
 | PostgreSQL               | localhost:5432            |

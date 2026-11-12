@@ -1,18 +1,19 @@
-<x-mail::message>
-# Nouveau message
+<x-mail::message :reason="$reason">
+# {{ __('mail.contact.title') }}
 
-**De :** {{ $contact->name }} ({{ $contact->email }}{{ $contact->phone ? ', '.$contact->phone : '' }})
+**{{ __('mail.contact.from') }}** {{ $contact->name }} ({{ $contact->email }}{{ $contact->phone ? ', '.$contact->phone : '' }})
 @if ($contact->apartment)
-**Logement :** {{ $contact->apartment->getTranslation('name', 'fr') }}
+
+**{{ __('mail.contact.apartment') }}** {{ $contact->apartment->getTranslation('name', 'fr') }}
 @endif
 
 <x-mail::panel>
 {{ $contact->message }}
 </x-mail::panel>
 
-Répondez directement à cet e-mail pour écrire à {{ $contact->name }}.
+{{ __('mail.contact.reply', ['name' => $contact->name]) }}
 
-<x-mail::button :url="$adminUrl">
-Ouvrir le back-office
+<x-mail::button :url="$adminUrl" color="dark">
+{{ __('mail.contact.open_admin') }}
 </x-mail::button>
 </x-mail::message>
