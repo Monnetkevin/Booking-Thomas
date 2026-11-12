@@ -5,7 +5,7 @@ namespace App\Services\Catalog;
 use App\Enums\CancellationPolicy;
 use App\Models\Apartment;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
-use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Services\Booking\CancellationTerms;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -21,7 +21,7 @@ class PublicCatalogService
 {
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
-        private readonly SettingRepositoryInterface $settings,
+        private readonly CancellationTerms $cancellation,
         private readonly CatalogPresenter $presenter,
         private readonly CatalogCache $cache,
     ) {}
@@ -83,9 +83,6 @@ class PublicCatalogService
      */
     public function cancellationTiers(CancellationPolicy $policy): array
     {
-        /** @var array<string, list<array{days_before: int, refund_percent: int}>> $policies */
-        $policies = $this->settings->get('cancellation_policies', []);
-
-        return $policies[$policy->value] ?? [];
+        return $this->cancellation->tiers($policy);
     }
 }

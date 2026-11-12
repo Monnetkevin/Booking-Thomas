@@ -47,5 +47,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('quotes', fn (Request $request) => Limit::perMinute(30)->by((string) $request->ip()));
         // Contact : 3 messages par minute et par IP (spec).
         RateLimiter::for('contact', fn (Request $request) => Limit::perMinute(3)->by((string) $request->ip()));
+        // Réservations : 5 par minute et par IP (spec).
+        RateLimiter::for('bookings', fn (Request $request) => Limit::perMinute(5)->by((string) $request->ip()));
     }
 }

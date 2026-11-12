@@ -41,6 +41,7 @@ docker compose exec app php artisan db:seed --class=DemoSeeder   # facultatif : 
 | Aperçu des e-mails       | http://localhost:8000/dev/mails (local uniquement) |
 
 Le service `queue` traite les tâches de fond (conversions des photos en WebP et AVIF, e-mails).
+Le service `scheduler` lance les tâches planifiées (expiration des réservations non payées au bout de 30 minutes…).
 | PostgreSQL               | localhost:5432            |
 
 Un port déjà pris par un autre projet ? Créez un fichier `.env` à la racine (à côté de `docker-compose.yml`) avec par exemple `MAILPIT_UI_PORT=8027` ; variables disponibles : `APP_PORT`, `FRONTEND_PORT`, `PGSQL_PORT`, `REDIS_PORT`, `MAILPIT_UI_PORT`.

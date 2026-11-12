@@ -53,6 +53,22 @@ services:
       redis:
         condition: service_started
 
+  scheduler:
+    build:
+      context: infra/docker/php
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    # Tâches planifiées (cron en production) : expiration des réservations non payées…
+    command: php artisan schedule:work
+    volumes:
+      - ./backend:/var/www/backend
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   pgsql:
     image: postgres:17-alpine
     environment:

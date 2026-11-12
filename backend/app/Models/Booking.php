@@ -12,12 +12,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 /**
  * @property BookingStatus $status
  * @property BookingSource $source
  * @property CarbonImmutable $arrival
  * @property CarbonImmutable $departure
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $confirmed_at
+ * @property Carbon|null $cancelled_at
+ * @property array<string, mixed> $price_breakdown
+ * @property array{policy: string, tiers: list<array{days_before: int, refund_percent: int}>} $cancellation_policy
  */
 #[Fillable([
     'reference', 'apartment_id', 'source', 'status', 'guest_name', 'guest_email', 'guest_phone',

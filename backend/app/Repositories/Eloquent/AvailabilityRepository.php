@@ -2,7 +2,9 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Enums\BlockType;
 use App\Models\AvailabilityBlock;
+use App\Models\Booking;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,6 +19,22 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
     public function activeBlocks(int $apartmentId, string $from, string $to): Collection
     {
         return $this->query($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
+    }
+
+    public function blockForBooking(Booking $booking): AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->create([
+            'apartment_id' => $booking->apartment_id,
+            'booking_id' => $booking->id,
+            'starts_on' => $booking->arrival->toDateString(),
+            'ends_on' => $booking->departure->toDateString(),
+            'type' => BlockType::Booking,
+        ]);
+    }
+
+    public function releaseBooking(Booking $booking): void
+    {
+        AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
     }
 
     /**
