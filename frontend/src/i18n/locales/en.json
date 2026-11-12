@@ -312,6 +312,7 @@
     "question": "A question about your booking?",
     "contact": "Write to us",
     "invalidTitle": "Invalid link",
-    "invalidText": "This booking link is not valid. Use the link received by email, or write to us with your reference."
+    "invalidText": "This booking link is not valid. Use the link received by email, or write to us with your reference.",
+    "downloadPdf": "Download the confirmation (PDF)"
   }
 }

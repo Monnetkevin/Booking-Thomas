@@ -34,6 +34,8 @@ Route::post('bookings', [BookingController::class, 'store'])->middleware('thrott
 // Suivi par le voyageur : lien signé reçu par e-mail (signature du chemin relatif).
 Route::get('bookings/{booking:reference}', [BookingController::class, 'show'])
     ->middleware(['signed:relative', 'throttle:public'])->name('bookings.show');
+Route::get('bookings/{booking:reference}/pdf', [BookingController::class, 'pdf'])
+    ->middleware(['signed:relative', 'throttle:public'])->name('bookings.pdf');
 
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');

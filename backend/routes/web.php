@@ -15,4 +15,5 @@ Route::get('robots.txt', [SeoController::class, 'robots']);
 if (app()->environment('local')) {
     Route::get('dev/mails', [MailPreviewController::class, 'index']);
     Route::get('dev/mails/{name}/{locale}', [MailPreviewController::class, 'show']);
+    Route::get('dev/pdf/booking/{locale}', [MailPreviewController::class, 'pdf']);
 }

@@ -4,6 +4,7 @@ namespace App\Services\Booking;
 
 use App\Enums\BookingSource;
 use App\Enums\BookingStatus;
+use App\Events\BookingConfirmed;
 use App\Exceptions\Booking\StayNotAllowedException;
 use App\Exceptions\DatesUnavailableException;
 use App\Models\Apartment;
@@ -91,6 +92,36 @@ class BookingService
         $this->availabilityService->flushApartment($apartment->id);
 
         return $booking;
+    }
+
+    /**
+     * Confirme une réservation en attente : les nuits restent bloquées pour de bon, et le
+     * voyageur comme l'hôte reçoivent la confirmation avec le PDF. Appelée par le webhook
+     * de paiement (jalon 9) ; sans effet sur une réservation déjà confirmée, pour qu'un
+     * événement reçu deux fois n'envoie pas deux e-mails.
+     */
+    public function confirm(Booking $booking): Booking
+    {
+        if ($booking->status !== BookingStatus::Pending) {
+            return $booking;
+        }
+
+        DB::transaction(function () use ($booking): void {
+            $this->bookings->update($booking, [
+                'status' => BookingStatus::Confirmed,
+                'confirmed_at' => now(),
+                'expires_at' => null,
+            ]);
+            BookingConfirmed::dispatch($booking);
+        });
+
+        return $booking;
+    }
+
+    /** Une confirmation (e-mail, PDF) existe pour les réservations confirmées ou terminées. */
+    public function hasConfirmation(Booking $booking): bool
+    {
+        return in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::Completed], true);
     }
 
     /** Charge ce qu'affiche la page de suivi du voyageur (logement et photos). */

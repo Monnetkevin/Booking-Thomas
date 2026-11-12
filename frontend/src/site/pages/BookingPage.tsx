@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { QuoteBreakdown } from '@/components/QuoteBreakdown'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { DownloadIcon } from '@/components/icons'
+import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Container } from '@/components/ui/Container'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useLocale } from '@/i18n/useLocale'
@@ -53,6 +55,12 @@ export function BookingPage() {
       ) : (
         <>
           <BookingStatusBanner booking={query.data} />
+          {query.data.pdf_url && (
+            <a href={query.data.pdf_url} className={buttonClasses('secondary', 'md', 'self-start')} download>
+              <DownloadIcon aria-hidden="true" width={18} height={18} />
+              {t('tracking.downloadPdf')}
+            </a>
+          )}
           <BookingStaySummary booking={query.data} />
           <section aria-labelledby="prix-titre" className="rounded-[var(--radius-card)] border border-line bg-white p-5 sm:p-7">
             <h2 id="prix-titre" className="mb-4 text-xl">

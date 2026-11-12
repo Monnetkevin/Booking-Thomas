@@ -549,6 +549,7 @@
     "question": "Une question sur votre réservation ?",
     "contact": "Écrivez-nous",
     "invalidTitle": "Lien invalide",
-    "invalidText": "Ce lien de réservation n'est pas valide. Utilisez le lien reçu par e-mail, ou écrivez-nous en indiquant votre référence."
+    "invalidText": "Ce lien de réservation n'est pas valide. Utilisez le lien reçu par e-mail, ou écrivez-nous en indiquant votre référence.",
+    "downloadPdf": "Télécharger la confirmation (PDF)"
   }
 }

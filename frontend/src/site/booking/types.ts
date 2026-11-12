@@ -27,4 +27,6 @@ export interface BookingTracking {
   }
   price: Quote
   cancellation: CancellationTerms
+  /** Confirmation PDF (lien signé), une fois la réservation confirmée. */
+  pdf_url: string | null
 }

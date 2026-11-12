@@ -195,3 +195,11 @@ export function CheckIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function DownloadIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+    </Icon>
+  )
+}

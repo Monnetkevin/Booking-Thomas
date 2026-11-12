@@ -21,6 +21,16 @@ class BookingLinks
             .'?signature='.$this->signature('bookings.show', $booking);
     }
 
+    /**
+     * Confirmation PDF, téléchargeable depuis l'e-mail ou la page de suivi. Servie par
+     * l'API sous le même domaine que le site (/api).
+     */
+    public function pdfUrl(Booking $booking): string
+    {
+        return rtrim((string) config('booking.frontend_url'), '/')
+            ."/api/bookings/{$booking->reference}/pdf?signature=".$this->signature('bookings.pdf', $booking);
+    }
+
     /** Signature d'une route de l'API, transmise par la page du site. */
     public function signature(string $route, Booking $booking): string
     {

@@ -4,6 +4,7 @@ namespace App\Http\Resources\Public;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Services\Booking\BookingLinks;
 use App\Services\Catalog\CatalogPresenter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -62,6 +63,7 @@ class BookingTrackingResource extends JsonResource
                 'currency' => 'EUR',
             ],
             'cancellation' => $this->cancellation_policy,
+            'pdf_url' => $confirmed ? app(BookingLinks::class)->pdfUrl($this->resource) : null,
         ];
     }
 }
