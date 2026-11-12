@@ -76,7 +76,7 @@ export function ContactPage() {
               label={t('contact.apartment')}
               value={apartment}
               error={error('apartment')}
-              onChange={(event) => setApartment(event.target.value)}
+              onChange={setApartment}
               options={[
                 { value: '', label: t('contact.apartmentNone') },
                 ...(apartments.data ?? []).map((item) => ({ value: item.slug, label: item.name })),

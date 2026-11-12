@@ -75,7 +75,7 @@ export function SearchForm({ initial, submitLabel }: { initial?: SearchCriteria 
               appearance="pill"
               aria-labelledby={labelId}
               value={form.guests}
-              onChange={(event) => form.setGuests(Number(event.target.value))}
+              onChange={(value) => form.setGuests(Number(value))}
               options={Array.from({ length: MAX_GUESTS }, (_, i) => ({ value: i + 1, label: t('search.guests', { count: i + 1 }) }))}
             />
           )}

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { enGB, fr } from 'react-day-picker/locale'
 import 'react-day-picker/style.css'
@@ -8,6 +8,7 @@ import { useLocale } from '@/i18n/useLocale'
 import { cn } from '@/lib/cn'
 import { formatDate, fromIso, toIso } from '@/lib/dates'
 import { controlClasses, type FieldAppearance } from './fieldStyles'
+import { useDismiss } from './useDismiss'
 
 export interface DatePickerProps {
   /** Date « AAAA-MM-JJ », ou chaîne vide. */
@@ -52,24 +53,8 @@ export function DatePicker({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
 
-  useEffect(() => {
-    if (!open) return
-    const closeOnOutside = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setOpen(false)
-        buttonRef.current?.focus()
-      }
-    }
-    document.addEventListener('mousedown', closeOnOutside)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutside)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(open, rootRef, close, buttonRef)
 
   const selected = value ? fromIso(value) : undefined
   const disabledDays = [...(min ? [{ before: fromIso(min) }] : []), ...(max ? [{ after: fromIso(max) }] : [])]

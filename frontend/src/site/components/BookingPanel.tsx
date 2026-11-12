@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { QuoteBreakdown } from '@/components/QuoteBreakdown'
@@ -23,18 +23,32 @@ interface BookingPanelProps {
   onChange: (stay: StaySelection) => void
 }
 
+/**
+ * Nombre de voyageurs. Libellé relié par aria-labelledby (pas d'élément <label> autour :
+ * un clic dans la liste ouverte la rouvrirait).
+ */
 function Counter({ label, hint, value, min, max, onChange }: { label: string; hint?: string; value: number; min: number; max: number; onChange: (value: number) => void }) {
+  const labelId = useId()
+  const hintId = useId()
+
   return (
-    <label className="flex flex-col gap-1 text-xs font-bold tracking-[0.04em] text-muted uppercase">
-      {label}
+    <div className="flex flex-col gap-1">
+      <span id={labelId} className="text-xs font-bold tracking-[0.04em] text-muted uppercase">
+        {label}
+      </span>
       <Select
-        className="tracking-normal normal-case"
+        aria-labelledby={labelId}
+        aria-describedby={hint ? hintId : undefined}
         value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={(next) => onChange(Number(next))}
         options={Array.from({ length: max - min + 1 }, (_, i) => ({ value: min + i, label: String(min + i) }))}
       />
-      {hint && <span className="font-medium tracking-normal normal-case">{hint}</span>}
-    </label>
+      {hint && (
+        <span id={hintId} className="text-xs font-medium text-muted">
+          {hint}
+        </span>
+      )}
+    </div>
   )
 }
 

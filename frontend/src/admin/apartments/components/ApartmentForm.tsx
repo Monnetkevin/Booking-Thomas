@@ -41,8 +41,10 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
     name: field,
     value: values[field],
     error: error(field),
-    onChange: (event: { target: { value: string } }) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }))
+    // Valeur seule (liste, calendrier) ou évènement d'un champ texte.
+    onChange: (input: string | { target: { value: string } }) => {
+      const value = typeof input === 'string' ? input : input.target.value
+      setValues((current) => ({ ...current, [field]: value }))
       setLocalErrors((current) => {
         const { [field]: _removed, ...rest } = current
         return rest

@@ -1,9 +1,9 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
 import { DatePicker, type DatePickerProps } from './DatePicker'
 import { FieldMessages } from './FieldMessages'
 import { describedBy, fieldClasses } from './fieldStyles'
-import { Select, type SelectOption } from './Select'
+import { Select, type SelectProps } from './Select'
 
 interface BaseProps {
   label: string
@@ -72,8 +72,9 @@ export function TextArea({ label, error, hint, id, className, rows = 5, ...props
   )
 }
 
-interface SelectFieldProps extends BaseProps, Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
-  options: SelectOption[]
+interface SelectFieldProps extends Omit<BaseProps, 'suffix'>, Pick<SelectProps, 'options' | 'value' | 'onChange' | 'disabled' | 'name'> {
+  id?: string
+  className?: string
 }
 
 /** Liste déroulante avec libellé, aide et erreur. */

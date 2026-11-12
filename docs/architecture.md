@@ -61,7 +61,7 @@ site/pages/               pages : elles assemblent des sections, sans styles ni 
 ```
 
 Champs de formulaire : toujours les composants de `components/ui/`, jamais un `<select>` ou un
-`<input type="date">` directement — `Select` / `SelectField` (liste native, case redessinée) et
+`<input type="date">` directement — `Select` / `SelectField` (liste au thème du site, modèle ARIA combobox) et
 `DatePicker` / `DateField` (calendrier aux couleurs du site, date affichée dans la langue du site).
 L'apparence `pill` sert à la barre de recherche, `field` aux formulaires.
 
