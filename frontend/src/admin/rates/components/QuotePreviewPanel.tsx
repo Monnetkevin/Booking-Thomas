@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { QuoteBreakdown } from '@/components/QuoteBreakdown'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
-import { TextField } from '@/components/ui/Field'
+import { DateField, TextField } from '@/components/ui/Field'
 import { Section } from '@/components/ui/Section'
 import { ApiError } from '@/lib/api'
 import { useQuotePreview } from '../useRates'
@@ -33,8 +33,8 @@ export function QuotePreviewPanel({ apartmentId }: { apartmentId: number }) {
     <Section title={t('admin.rates.preview.title')} description={t('admin.rates.preview.description')}>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
         <div className="grid grid-cols-2 gap-3">
-          <TextField label={t('admin.rates.preview.arrival')} type="date" value={stay.arrival} error={fieldError('arrival')} onChange={(e) => setStay({ ...stay, arrival: e.target.value })} />
-          <TextField label={t('admin.rates.preview.departure')} type="date" min={stay.arrival || undefined} value={stay.departure} error={fieldError('departure')} onChange={(e) => setStay({ ...stay, departure: e.target.value })} />
+          <DateField label={t('admin.rates.preview.arrival')} value={stay.arrival} error={fieldError('arrival')} onChange={(arrival) => setStay({ ...stay, arrival })} />
+          <DateField label={t('admin.rates.preview.departure')} min={stay.arrival || undefined} value={stay.departure} error={fieldError('departure')} onChange={(departure) => setStay({ ...stay, departure })} />
           <TextField label={t('admin.rates.preview.adults')} type="number" min={1} inputMode="numeric" value={stay.adults} error={fieldError('adults')} onChange={(e) => setStay({ ...stay, adults: e.target.value })} />
           <TextField label={t('admin.rates.preview.children')} type="number" min={0} inputMode="numeric" value={stay.children} onChange={(e) => setStay({ ...stay, children: e.target.value })} />
         </div>

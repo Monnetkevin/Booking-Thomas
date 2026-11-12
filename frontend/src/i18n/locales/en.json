@@ -146,7 +146,9 @@
     "retry": "Try again",
     "close": "Close",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "chooseDate": "Select",
+    "calendarFor": "Calendar: {{label}}"
   },
   "pricing": {
     "total": "Total"

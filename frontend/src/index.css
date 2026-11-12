@@ -74,7 +74,8 @@
   }
 }
 
-/* Calendrier de séjour (react-day-picker) aux couleurs du site */
+/* Calendriers (react-day-picker) aux couleurs du site : séjour sur la fiche, choix d'une date */
+.date-picker .rdp-root,
 .stay-calendar .rdp-root {
   --rdp-accent-color: var(--color-accent);
   --rdp-accent-background-color: var(--color-accent-soft);
@@ -88,6 +89,33 @@
   --rdp-today-color: var(--color-ink);
   font-size: 14px;
   max-width: 100%;
+}
+.date-picker .rdp-root {
+  --rdp-day-height: 40px;
+  --rdp-day-width: 40px;
+  --rdp-day_button-height: 38px;
+  --rdp-day_button-width: 38px;
+}
+.date-picker .rdp-months,
+.date-picker .rdp-month,
+.date-picker .rdp-month_grid {
+  width: 100%;
+  max-width: none;
+}
+.date-picker .rdp-selected .rdp-day_button {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+}
+.date-picker .rdp-day_button:hover:not([disabled]) {
+  background-color: var(--color-accent-soft);
+}
+.date-picker .rdp-selected .rdp-day_button:hover {
+  background-color: var(--color-accent-strong);
+}
+.date-picker .rdp-chevron {
+  fill: var(--color-accent);
 }
 .stay-calendar .rdp-months,
 .stay-calendar .rdp-month,

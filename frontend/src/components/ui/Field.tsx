@@ -1,7 +1,9 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
+import { DatePicker, type DatePickerProps } from './DatePicker'
 import { FieldMessages } from './FieldMessages'
 import { describedBy, fieldClasses } from './fieldStyles'
+import { Select, type SelectOption } from './Select'
 
 interface BaseProps {
   label: string
@@ -70,10 +72,11 @@ export function TextArea({ label, error, hint, id, className, rows = 5, ...props
   )
 }
 
-interface SelectFieldProps extends BaseProps, SelectHTMLAttributes<HTMLSelectElement> {
-  options: Array<{ value: string; label: string }>
+interface SelectFieldProps extends BaseProps, Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+  options: SelectOption[]
 }
 
+/** Liste déroulante avec libellé, aide et erreur. */
 export function SelectField({ label, error, hint, id, className, options, ...props }: SelectFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
@@ -81,19 +84,41 @@ export function SelectField({ label, error, hint, id, className, options, ...pro
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
       <Label htmlFor={inputId}>{label}</Label>
-      <select
+      <Select
         id={inputId}
-        aria-invalid={error ? true : undefined}
+        options={options}
+        invalid={Boolean(error)}
         aria-describedby={describedBy(inputId, hint, error)}
-        className={fieldClasses(Boolean(error), 'min-h-11')}
         {...props}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      />
+      <FieldMessages id={inputId} hint={hint} error={error} />
+    </div>
+  )
+}
+
+interface DateFieldProps extends Pick<DatePickerProps, 'value' | 'onChange' | 'min' | 'max' | 'disabled' | 'placeholder'> {
+  label: string
+  error?: string
+  hint?: string
+  id?: string
+  className?: string
+}
+
+/** Date choisie dans le calendrier du site, avec libellé, aide et erreur. */
+export function DateField({ label, error, hint, id, className, ...props }: DateFieldProps) {
+  const generatedId = useId()
+  const inputId = id ?? generatedId
+
+  return (
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      <Label htmlFor={inputId}>{label}</Label>
+      <DatePicker
+        id={inputId}
+        label={label}
+        invalid={Boolean(error)}
+        aria-describedby={describedBy(inputId, hint, error)}
+        {...props}
+      />
       <FieldMessages id={inputId} hint={hint} error={error} />
     </div>
   )

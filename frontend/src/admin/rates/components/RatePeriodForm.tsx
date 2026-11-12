@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
-import { TextField } from '@/components/ui/Field'
+import { DateField, TextField } from '@/components/ui/Field'
 import { cn } from '@/lib/cn'
 import { ALL_DAYS, rateInputFromForm, type RateFormErrors, type RateFormValues } from '../rateForm'
 import type { IsoDay, RatePeriodInput } from '../types'
@@ -42,6 +42,12 @@ export function RatePeriodForm({ initialValues, apartmentMinStay, pending, serve
     onChange: (event: { target: { value: string } }) => update(field, event.target.value),
   })
 
+  const bindDate = (field: 'startsOn' | 'endsOn') => ({
+    value: values[field],
+    error: message(field),
+    onChange: (value: string) => update(field, value),
+  })
+
   const toggleDay = (day: IsoDay) =>
     update('arrivalDays', values.arrivalDays.includes(day) ? values.arrivalDays.filter((d) => d !== day) : [...values.arrivalDays, day])
 
@@ -59,8 +65,8 @@ export function RatePeriodForm({ initialValues, apartmentMinStay, pending, serve
       {/* Focus à l'ouverture : sur téléphone, le formulaire vient aussi à l'écran. */}
       <TextField label={t('admin.rates.form.label')} hint={t('admin.rates.form.labelHint')} maxLength={80} autoFocus {...bind('label')} />
       <div className="grid grid-cols-2 gap-3">
-        <TextField label={t('admin.rates.form.startsOn')} type="date" required {...bind('startsOn')} />
-        <TextField label={t('admin.rates.form.endsOn')} type="date" required min={values.startsOn || undefined} {...bind('endsOn')} />
+        <DateField label={t('admin.rates.form.startsOn')} {...bindDate('startsOn')} />
+        <DateField label={t('admin.rates.form.endsOn')} min={values.startsOn || undefined} {...bindDate('endsOn')} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <TextField label={t('admin.rates.form.nightlyPrice')} inputMode="decimal" required suffix="€" {...bind('nightlyPrice')} />

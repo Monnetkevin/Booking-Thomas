@@ -1,3 +1,4 @@
+import { fromIso, toIso } from '@/lib/dates'
 import type { AvailabilityCalendar } from './types'
 
 /**
@@ -5,21 +6,13 @@ import type { AvailabilityCalendar } from './types'
  * saisie ; le devis côté serveur reste seul juge.
  */
 
-export function isoDate(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
-}
-
-export function fromIso(iso: string): Date {
-  const [year, month, day] = iso.split('-').map(Number)
-  return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1)
-}
+// Conversions date ↔ « AAAA-MM-JJ » partagées avec les composants de base (lib/dates).
+export { fromIso, toIso as isoDate } from '@/lib/dates'
 
 export function addDays(iso: string, days: number): string {
   const date = fromIso(iso)
   date.setDate(date.getDate() + days)
-  return isoDate(date)
+  return toIso(date)
 }
 
 /** Jour ISO : 1 = lundi … 7 = dimanche. */

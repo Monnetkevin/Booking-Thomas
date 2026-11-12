@@ -178,3 +178,12 @@ export function ArrowUpRightIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon width={18} height={18} {...props}>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </Icon>
+  )
+}

@@ -15,6 +15,7 @@ import { stayCalendarRules } from '@/site/catalog/stayCalendar'
 import type { ApartmentDetail } from '@/site/catalog/types'
 import { useAvailabilityCalendar, useQuote } from '@/site/catalog/useCatalog'
 import { StayCalendar } from './StayCalendar'
+import { Select } from '@/components/ui/Select'
 
 interface BookingPanelProps {
   apartment: ApartmentDetail
@@ -26,17 +27,12 @@ function Counter({ label, hint, value, min, max, onChange }: { label: string; hi
   return (
     <label className="flex flex-col gap-1 text-xs font-bold tracking-[0.04em] text-muted uppercase">
       {label}
-      <select
-        className="min-h-11 rounded-[10px] border border-field bg-white px-3 text-[15px] font-medium tracking-normal text-ink normal-case"
+      <Select
+        className="tracking-normal normal-case"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-      >
-        {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((count) => (
-          <option key={count} value={count}>
-            {count}
-          </option>
-        ))}
-      </select>
+        options={Array.from({ length: max - min + 1 }, (_, i) => ({ value: min + i, label: String(min + i) }))}
+      />
       {hint && <span className="font-medium tracking-normal normal-case">{hint}</span>}
     </label>
   )

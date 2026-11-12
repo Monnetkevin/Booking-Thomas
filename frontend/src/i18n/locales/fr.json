@@ -146,7 +146,9 @@
     "retry": "Réessayer",
     "close": "Fermer",
     "previous": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "chooseDate": "Choisir",
+    "calendarFor": "Calendrier : {{label}}"
   },
   "admin": {
     "title": "Administration",
