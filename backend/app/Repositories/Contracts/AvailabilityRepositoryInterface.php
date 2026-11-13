@@ -29,4 +29,28 @@ interface AvailabilityRepositoryInterface
 
     /** Libère les nuits d'une réservation (expirée ou annulée). */
     public function releaseBooking(Booking $booking): void;
+
+    /**
+     * Blocs actifs hors conflit qui touchent [from, to[, avec leur réservation éventuelle.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection;
+
+    /**
+     * Tous les blocs importés d'un flux iCal, actifs ou non.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function feedBlocks(int $feedId): Collection;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function createBlock(array $attributes): AvailabilityBlock;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock;
 }

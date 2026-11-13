@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Services\Ical;
+
+use App\Enums\IcalProvider;
+use App\Exceptions\Ical\IcalFeedAlreadyExistsException;
+use App\Jobs\SyncIcalFeed;
+use App\Models\Apartment;
+use App\Models\IcalFeed;
+use App\Repositories\Contracts\IcalFeedRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
+
+/**
+ * Calendriers des plateformes, gérés depuis le back-office : un par logement et par
+ * plateforme. Une nouvelle URL d'import est relue tout de suite, depuis zéro.
+ */
+class IcalFeedService
+{
+    /** Longueur du token secret de l'URL d'export (spec). */
+    public const TOKEN_LENGTH = 40;
+
+    public function __construct(private readonly IcalFeedRepositoryInterface $feeds) {}
+
+    /**
+     * @return Collection<int, IcalFeed>
+     */
+    public function list(): Collection
+    {
+        return $this->feeds->all();
+    }
+
+    /**
+     * @throws IcalFeedAlreadyExistsException
+     */
+    public function create(Apartment $apartment, IcalProvider $provider, ?string $importUrl): IcalFeed
+    {
+        if ($this->feeds->exists($apartment->id, $provider)) {
+            throw new IcalFeedAlreadyExistsException($provider);
+        }
+
+        $feed = $this->feeds->create([
+            'apartment_id' => $apartment->id,
+            'provider' => $provider,
+            'import_url' => $importUrl,
+            'export_token' => Str::random(self::TOKEN_LENGTH),
+            'is_active' => true,
+        ]);
+        $this->syncSoon($feed);
+
+        return $feed;
+    }
+
+    /**
+     * Désactiver un calendrier arrête l'import mais garde ses nuits bloquées : elles ne
+     * sont jamais libérées sans que la plateforme l'ait dit.
+     *
+     * @param  array{import_url?: string|null, is_active?: bool}  $data
+     */
+    public function update(IcalFeed $feed, array $data): IcalFeed
+    {
+        if (array_key_exists('import_url', $data) && $data['import_url'] !== $feed->import_url) {
+            // Autre calendrier : rien de l'ancien (ETag, contenu, erreurs) ne vaut plus.
+            $data += ['etag' => null, 'content_hash' => null, 'last_status' => null, 'last_error' => null, 'consecutive_failures' => 0];
+        }
+
+        $this->feeds->update($feed, $data);
+        $this->syncSoon($feed);
+
+        return $feed;
+    }
+
+    private function syncSoon(IcalFeed $feed): void
+    {
+        if ($feed->is_active && filled($feed->import_url) && $feed->last_status === null) {
+            SyncIcalFeed::dispatch($feed);
+        }
+    }
+}

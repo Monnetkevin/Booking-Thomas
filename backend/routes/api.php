@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\ApartmentController;
 use App\Http\Controllers\Admin\ApartmentPhotoController;
+use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Auth\SessionController;
@@ -80,4 +81,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('rate-periods/{ratePeriod}', [RatePeriodController::class, 'update']);
     Route::delete('rate-periods/{ratePeriod}', [RatePeriodController::class, 'destroy']);
     Route::post('apartments/{apartment:id}/quote-preview', QuotePreviewController::class);
+
+    // Calendriers des plateformes (Airbnb) : import et export iCal
+    Route::get('ical-feeds', [IcalFeedController::class, 'index']);
+    Route::post('apartments/{apartment:id}/ical-feeds', [IcalFeedController::class, 'store']);
+    Route::patch('ical-feeds/{icalFeed}', [IcalFeedController::class, 'update']);
 });

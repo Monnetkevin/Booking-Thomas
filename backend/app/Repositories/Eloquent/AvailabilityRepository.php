@@ -46,6 +46,32 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
     }
 
+    public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection
+    {
+        return $this->query($apartmentId, $from, $to)
+            ->when($exceptBlockId !== null, fn (Builder $query) => $query->whereKeyNot($exceptBlockId))
+            ->with('booking')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function feedBlocks(int $feedId): Collection
+    {
+        return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->get();
+    }
+
+    public function createBlock(array $attributes): AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->create($attributes);
+    }
+
+    public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock
+    {
+        $block->update($attributes);
+
+        return $block;
+    }
+
     /**
      * @return Builder<AvailabilityBlock>
      */
