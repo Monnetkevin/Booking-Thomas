@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Public\ApartmentController as PublicApartmentController;
 use App\Http\Controllers\Public\AvailabilityController;
+use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\QuoteController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,15 @@ Route::get('availability', [AvailabilityController::class, 'search'])->middlewar
 
 // Formulaire de contact : 3 messages par minute et par IP, anti-robot.
 Route::post('contact', [ContactController::class, 'store'])->middleware('throttle:contact');
+
+// Réservation en attente de paiement : 5 par minute et par IP, anti-robot.
+Route::post('bookings', [BookingController::class, 'store'])->middleware('throttle:bookings');
+
+// Suivi par le voyageur : lien signé reçu par e-mail (signature du chemin relatif).
+Route::get('bookings/{booking:reference}', [BookingController::class, 'show'])
+    ->middleware(['signed:relative', 'throttle:public'])->name('bookings.show');
+Route::get('bookings/{booking:reference}/pdf', [BookingController::class, 'pdf'])
+    ->middleware(['signed:relative', 'throttle:public'])->name('bookings.pdf');
 
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');

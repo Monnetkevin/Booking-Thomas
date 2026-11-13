@@ -11,6 +11,7 @@ import { stayFromParams, stayToParams } from '@/site/catalog/searchParams'
 import type { ApartmentDetail } from '@/site/catalog/types'
 import { useApartmentDetail } from '@/site/catalog/useCatalog'
 import { BookingPanel } from '@/site/components/BookingPanel'
+import { CancellationTiers } from '@/site/components/CancellationTiers'
 import { PhotoGallery } from '@/site/components/PhotoGallery'
 import { Seo } from '@/site/components/Seo'
 
@@ -110,7 +111,6 @@ export function ApartmentPage() {
     t('search.guests', { count: apartment.capacity }),
     apartment.surface_m2 ? t('listing.surface', { value: apartment.surface_m2 }) : null,
   ].filter(Boolean)
-  const tiers = apartment.cancellation.tiers
 
   return (
     <Container className="flex flex-col gap-6 py-8 sm:py-10">
@@ -177,22 +177,9 @@ export function ApartmentPage() {
               <InfoRow label={t('detail.minStay')} value={t('detail.nights', { count: apartment.min_stay })} />
               <InfoRow label={t('detail.maxStay')} value={t('detail.nights', { count: apartment.max_stay })} />
             </dl>
-            {tiers.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-base font-semibold">
-                  {t('detail.cancellation', { policy: t(`detail.policies.${apartment.cancellation.policy}`) })}
-                </h3>
-                <ul className="mt-1 list-disc pl-5 text-[15px] text-muted">
-                  {tiers.map((tier) =>
-                    tier.days_before > 0 ? (
-                      <li key={tier.days_before}>{t('detail.cancellationTier', { percent: tier.refund_percent, days: tier.days_before })}</li>
-                    ) : (
-                      <li key="last">{t('detail.cancellationTierLast', { percent: tier.refund_percent })}</li>
-                    ),
-                  )}
-                </ul>
-              </div>
-            )}
+            <div className="mt-4">
+              <CancellationTiers terms={apartment.cancellation} />
+            </div>
           </section>
 
 

@@ -267,5 +267,52 @@
   "legal": {
     "draftNotice": "Text to be completed and approved by the owner before going live.",
     "updated": "Last updated: {{date}}"
+  },
+  "tracking": {
+    "title": "Your booking",
+    "reference": "Booking {{reference}}",
+    "status": {
+      "pending": {
+        "title": "Awaiting payment",
+        "text": "Your nights are held until {{time}}. Without payment by then, they will be released."
+      },
+      "confirmed": {
+        "title": "Booking confirmed",
+        "text": "Thank you! Your payment has been received. You will receive check-in instructions before your stay."
+      },
+      "completed": {
+        "title": "Stay completed",
+        "text": "Thank you for staying with us. See you soon!"
+      },
+      "cancelled": {
+        "title": "Booking cancelled",
+        "text": "This booking has been cancelled. Any refund follows the cancellation terms below."
+      },
+      "expired": {
+        "title": "Booking expired",
+        "text": "The payment was not completed in time: the nights have been released. You can book again."
+      }
+    },
+    "stayTitle": "Your stay",
+    "arrival": "Check-in",
+    "departure": "Check-out",
+    "arrivalValue": "{{date}}, from {{time}}",
+    "departureValue": "{{date}}, before {{time}}",
+    "guests": "Guests",
+    "adults_one": "{{count}} adult",
+    "adults_other": "{{count}} adults",
+    "children_one": "{{count}} child",
+    "children_other": "{{count}} children",
+    "address": "Address",
+    "addressPending": "The exact address will be sent to you once the booking is confirmed.",
+    "bookedBy": "Booked by",
+    "priceTitle": "Price",
+    "seeApartment": "View the apartment",
+    "rebook": "Choose other dates",
+    "question": "A question about your booking?",
+    "contact": "Write to us",
+    "invalidTitle": "Invalid link",
+    "invalidText": "This booking link is not valid. Use the link received by email, or write to us with your reference.",
+    "downloadPdf": "Download the confirmation (PDF)"
   }
 }

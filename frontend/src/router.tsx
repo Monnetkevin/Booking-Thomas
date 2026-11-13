@@ -12,6 +12,8 @@ const publicPages: RouteObject[] = [
   { path: 'logements', lazy: async () => ({ Component: (await import('@/site/pages/ApartmentsPage')).ApartmentsPage }) },
   { path: 'logements/:slug', lazy: async () => ({ Component: (await import('@/site/pages/ApartmentPage')).ApartmentPage }) },
   { path: 'contact', lazy: async () => ({ Component: (await import('@/site/pages/ContactPage')).ContactPage }) },
+  // Suivi d'une réservation : lien signé reçu par e-mail.
+  { path: 'reservation/:reference', lazy: async () => ({ Component: (await import('@/site/pages/BookingPage')).BookingPage }) },
   ...(Object.keys(legalRoutes) as Array<keyof typeof legalRoutes>).map((page) => ({
     path: legalRoutes[page],
     lazy: async () => {

@@ -504,5 +504,52 @@
   "legal": {
     "draftNotice": "Texte à compléter et à faire valider par le propriétaire avant la mise en ligne.",
     "updated": "Dernière mise à jour : {{date}}"
+  },
+  "tracking": {
+    "title": "Votre réservation",
+    "reference": "Réservation {{reference}}",
+    "status": {
+      "pending": {
+        "title": "En attente de paiement",
+        "text": "Vos nuits sont réservées jusqu'à {{time}}. Sans paiement d'ici là, elles seront libérées."
+      },
+      "confirmed": {
+        "title": "Réservation confirmée",
+        "text": "Merci ! Votre paiement est bien reçu. Vous recevrez les consignes d'arrivée avant votre séjour."
+      },
+      "completed": {
+        "title": "Séjour terminé",
+        "text": "Merci d'avoir séjourné chez nous. À bientôt !"
+      },
+      "cancelled": {
+        "title": "Réservation annulée",
+        "text": "Cette réservation a été annulée. Le remboursement éventuel suit le barème d'annulation ci-dessous."
+      },
+      "expired": {
+        "title": "Réservation expirée",
+        "text": "Le paiement n'a pas été finalisé à temps : les nuits ont été libérées. Vous pouvez refaire une réservation."
+      }
+    },
+    "stayTitle": "Votre séjour",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "arrivalValue": "{{date}}, à partir de {{time}}",
+    "departureValue": "{{date}}, avant {{time}}",
+    "guests": "Voyageurs",
+    "adults_one": "{{count}} adulte",
+    "adults_other": "{{count}} adultes",
+    "children_one": "{{count}} enfant",
+    "children_other": "{{count}} enfants",
+    "address": "Adresse",
+    "addressPending": "L'adresse exacte vous sera communiquée une fois la réservation confirmée.",
+    "bookedBy": "Réservé par",
+    "priceTitle": "Prix",
+    "seeApartment": "Voir le logement",
+    "rebook": "Choisir d'autres dates",
+    "question": "Une question sur votre réservation ?",
+    "contact": "Écrivez-nous",
+    "invalidTitle": "Lien invalide",
+    "invalidText": "Ce lien de réservation n'est pas valide. Utilisez le lien reçu par e-mail, ou écrivez-nous en indiquant votre référence.",
+    "downloadPdf": "Télécharger la confirmation (PDF)"
   }
 }

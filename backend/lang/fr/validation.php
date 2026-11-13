@@ -106,5 +106,16 @@ return [
         'departure' => 'date de départ',
         'adults' => 'adultes',
         'children' => 'enfants',
+        'country' => 'pays',
+        'accept_terms' => 'conditions générales de vente',
+    ],
+
+    'custom' => [
+        'accept_terms' => [
+            'accepted' => 'Merci d’accepter les conditions générales de vente pour réserver.',
+        ],
+        'country' => [
+            'regex' => 'Choisissez un pays dans la liste.',
+        ],
     ],
 ];

@@ -37,8 +37,23 @@ class BookingFactory extends Factory
             'cleaning_fee' => 4000,
             'tourist_tax' => 600,
             'total_amount' => 28600,
-            'price_breakdown' => [],
-            'cancellation_policy' => ['model' => 'moderate', 'tiers' => []],
+            // Même format que Quote::toArray(), figé à la création.
+            'price_breakdown' => [
+                'nights' => collect(range(0, $nights - 1))
+                    ->map(fn (int $i) => ['date' => $arrival->copy()->addDays($i)->toDateString(), 'price' => 8000, 'weekend_supplement' => 0])
+                    ->all(),
+                'accommodation' => 24000,
+                'cleaning_fee' => 4000,
+                'tourist_tax' => 600,
+                'lines' => [
+                    ['type' => 'accommodation', 'label' => "$nights nuits", 'amount' => 24000],
+                    ['type' => 'cleaning', 'label' => 'Ménage', 'amount' => 4000],
+                    ['type' => 'tourist_tax', 'label' => 'Taxe de séjour', 'amount' => 600],
+                ],
+                'total' => 28600,
+                'currency' => 'EUR',
+            ],
+            'cancellation_policy' => ['policy' => 'moderate', 'tiers' => []],
             'confirmed_at' => now(),
         ];
     }

@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Cloudflare Turnstile : défi anti-robot invisible pour les visiteurs.
- * Sans clé secrète configurée (développement local), la vérification est désactivée.
+ * Sans clé secrète configurée, la vérification est désactivée en développement local ;
+ * en production, tout est refusé : un oubli de configuration n'ouvre pas la porte aux robots.
  */
 class TurnstileVerifier implements HumanVerifier
 {
@@ -17,12 +18,17 @@ class TurnstileVerifier implements HumanVerifier
     public function __construct(
         private readonly Http $http,
         private readonly ?string $secret,
+        private readonly bool $required = false,
     ) {}
 
     public function verify(?string $token, ?string $ip): bool
     {
         if (blank($this->secret)) {
-            return true;
+            if ($this->required) {
+                Log::error('Turnstile : clé secrète absente, envoi refusé');
+            }
+
+            return ! $this->required;
         }
         if (blank($token)) {
             return false;

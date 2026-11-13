@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | E-mails Markdown : gabarits publiés dans resources/views/vendor/mail (en-tête, pied de
+    | page, récapitulatif de séjour) et thème aux couleurs du site.
+    */
+
+    'markdown' => [
+        'theme' => 'booking',
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];
