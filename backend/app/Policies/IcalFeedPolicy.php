@@ -13,6 +13,11 @@ class IcalFeedPolicy
         return $user->isActiveAdmin();
     }
 
+    public function view(User $user, IcalFeed $feed): bool
+    {
+        return $user->isActiveAdmin();
+    }
+
     public function create(User $user): bool
     {
         return $user->isActiveAdmin();

@@ -87,4 +87,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('apartments/{apartment:id}/ical-feeds', [IcalFeedController::class, 'store']);
     Route::patch('ical-feeds/{icalFeed}', [IcalFeedController::class, 'update']);
     Route::post('ical-feeds/{icalFeed}/export-token', [IcalFeedController::class, 'regenerateExportToken']);
+    Route::get('ical-feeds/{icalFeed}/logs', [IcalFeedController::class, 'logs']);
+    // Lecture immédiate : 6 par minute, pour ne pas solliciter la plateforme à l'excès.
+    Route::post('ical-feeds/{icalFeed}/sync', [IcalFeedController::class, 'sync'])->middleware('throttle:6,1');
 });

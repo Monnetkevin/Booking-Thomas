@@ -8,6 +8,7 @@ use App\Enums\IcalProvider;
 use App\Mail\BookingConfirmedGuest;
 use App\Mail\BookingConfirmedHost;
 use App\Mail\IcalConflictAlert;
+use App\Mail\IcalFeedFailingAlert;
 use App\Mail\NewContactMessage;
 use App\Mail\TransactionalMail;
 use App\Models\Apartment;
@@ -41,6 +42,10 @@ class MailPreviewCatalog
             'booking-host' => [
                 'label' => 'Nouvelle réservation (hôte)',
                 'build' => fn (string $locale): TransactionalMail => new BookingConfirmedHost($this->sampleBooking($locale)),
+            ],
+            'ical-failing' => [
+                'label' => 'Calendrier Airbnb en erreur (hôte)',
+                'build' => fn (string $locale): TransactionalMail => new IcalFeedFailingAlert($this->sampleFailingFeed()),
             ],
             'ical-conflict' => [
                 'label' => 'Conflit de dates avec Airbnb (hôte)',
@@ -100,6 +105,19 @@ class MailPreviewCatalog
         $block->setRelation('icalFeed', new IcalFeed(['provider' => IcalProvider::Airbnb]));
 
         return $block;
+    }
+
+    /** Calendrier Airbnb d'exemple, en panne depuis trois lectures. */
+    private function sampleFailingFeed(): IcalFeed
+    {
+        $feed = new IcalFeed([
+            'provider' => IcalProvider::Airbnb, 'consecutive_failures' => 3,
+            'last_error' => __('ical.errors.http', ['status' => 503], 'fr'),
+            'last_succeeded_at' => now()->subHour(),
+        ]);
+        $feed->setRelation('apartment', $this->sampleBooking('fr')->apartment);
+
+        return $feed;
     }
 
     private function sampleContact(): ContactMessage

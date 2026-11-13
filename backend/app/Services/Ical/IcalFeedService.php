@@ -3,10 +3,13 @@
 namespace App\Services\Ical;
 
 use App\Enums\IcalProvider;
+use App\Enums\IcalSyncTrigger;
 use App\Exceptions\Ical\IcalFeedAlreadyExistsException;
+use App\Exceptions\Ical\IcalFeedNotImportableException;
 use App\Jobs\SyncIcalFeed;
 use App\Models\Apartment;
 use App\Models\IcalFeed;
+use App\Models\IcalSyncLog;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
@@ -20,7 +23,13 @@ class IcalFeedService
     /** Longueur du token secret de l'URL d'export (spec). */
     public const TOKEN_LENGTH = 40;
 
-    public function __construct(private readonly IcalFeedRepositoryInterface $feeds) {}
+    /** Lignes du journal affichées par le back-office. */
+    public const LOG_LIMIT = 20;
+
+    public function __construct(
+        private readonly IcalFeedRepositoryInterface $feeds,
+        private readonly IcalImportService $imports,
+    ) {}
 
     /**
      * @return Collection<int, IcalFeed>
@@ -68,6 +77,22 @@ class IcalFeedService
         $this->syncSoon($feed);
 
         return $feed;
+    }
+
+    /**
+     * @throws IcalFeedNotImportableException
+     */
+    public function syncNow(IcalFeed $feed): IcalSyncLog
+    {
+        return $this->imports->sync($feed, IcalSyncTrigger::Manual);
+    }
+
+    /**
+     * @return Collection<int, IcalSyncLog>
+     */
+    public function logs(IcalFeed $feed): Collection
+    {
+        return $this->feeds->recentLogs($feed, self::LOG_LIMIT);
     }
 
     /**

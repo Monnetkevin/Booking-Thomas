@@ -55,7 +55,7 @@ it('bloque les nuits des réservations Airbnb à venir, avec le lien vers la ré
     $result = ($this->sync)();
 
     expect($result->status)->toBe(IcalSyncStatus::Success)
-        ->and($result->created)->toBe(2)
+        ->and($result->created_count)->toBe(2)
         ->and(array_values(feedNights($this->feed)))->toBe([
             ['2026-11-21', '2026-11-25', true],
             ['2026-12-03', '2026-12-05', true],
@@ -110,7 +110,7 @@ it('déplace un séjour modifié et libère les nuits d’un séjour annulé che
     airbnbServes(icalFixture('airbnb-modified'), '"v2"');
     $result = ($this->sync)();
 
-    expect($result)->updated->toBe(1)->removed->toBe(1)->created->toBe(0)
+    expect($result)->updated_count->toBe(1)->removed_count->toBe(1)->created_count->toBe(0)
         ->and(array_values(feedNights($this->feed)))->toBe([
             ['2026-11-22', '2026-11-26', true],
             ['2026-12-03', '2026-12-05', false],
@@ -189,7 +189,7 @@ it('enregistre en conflit, sans la refuser, une réservation Airbnb qui recouvre
 
     $result = ($this->sync)();
 
-    expect($result->conflicts)->toBe(1)
+    expect($result->conflict_count)->toBe(1)
         ->and(AvailabilityBlock::query()->where('external_uid', 'like', '1418fb94e984%')->value('has_conflict'))->toBeTrue()
         ->and(AvailabilityBlock::query()->where('booking_id', $booking->id)->value('has_conflict'))->toBeFalse();
 });

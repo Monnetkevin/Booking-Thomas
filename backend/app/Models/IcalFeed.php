@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $etag
  * @property string|null $content_hash
  * @property Carbon|null $last_synced_at
+ * @property Carbon|null $last_succeeded_at
  * @property IcalSyncStatus|null $last_status
  * @property string|null $last_error
  * @property int $consecutive_failures
@@ -32,7 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 #[Fillable([
     'apartment_id', 'provider', 'import_url', 'export_token', 'etag', 'content_hash',
-    'last_synced_at', 'last_status', 'last_error', 'consecutive_failures', 'is_active',
+    'last_synced_at', 'last_succeeded_at', 'last_status', 'last_error', 'consecutive_failures', 'is_active',
 ])]
 #[Hidden(['import_url', 'export_token'])]
 class IcalFeed extends Model
@@ -50,6 +51,7 @@ class IcalFeed extends Model
             'import_url' => 'encrypted',
             'last_status' => IcalSyncStatus::class,
             'last_synced_at' => 'datetime',
+            'last_succeeded_at' => 'datetime',
             'is_active' => 'boolean',
         ];
     }
@@ -58,6 +60,12 @@ class IcalFeed extends Model
     public function apartment(): BelongsTo
     {
         return $this->belongsTo(Apartment::class);
+    }
+
+    /** @return HasMany<IcalSyncLog, $this> */
+    public function syncLogs(): HasMany
+    {
+        return $this->hasMany(IcalSyncLog::class);
     }
 
     /** @return HasMany<AvailabilityBlock, $this> */

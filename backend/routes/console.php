@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\SyncIcalFeed;
+use App\Models\IcalSyncLog;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Services\Apartment\ApartmentService;
@@ -44,6 +45,9 @@ Artisan::command('ical:sync', function (IcalFeedRepositoryInterface $feeds) {
 
 // Réservations Airbnb bloquées sur le site 15 minutes au plus après leur création.
 Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping();
+
+// Journal des synchronisations conservé 30 jours.
+Schedule::command('model:prune', ['--model' => [IcalSyncLog::class]])->daily();
 
 // Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
 Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping();

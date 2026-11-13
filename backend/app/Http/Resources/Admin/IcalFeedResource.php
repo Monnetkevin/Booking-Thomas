@@ -29,6 +29,7 @@ class IcalFeedResource extends JsonResource
             'export_url' => SiteUrl::to("/ical/{$this->export_token}.ics"),
             'is_active' => $this->is_active,
             'last_synced_at' => $this->last_synced_at?->toIso8601String(),
+            'last_succeeded_at' => $this->last_succeeded_at?->toIso8601String(),
             'last_status' => $this->last_status?->value,
             'last_error' => $this->last_error,
             'consecutive_failures' => $this->consecutive_failures,

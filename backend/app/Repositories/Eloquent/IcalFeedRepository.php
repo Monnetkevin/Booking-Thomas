@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Enums\IcalProvider;
 use App\Models\IcalFeed;
+use App\Models\IcalSyncLog;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -39,5 +40,17 @@ class IcalFeedRepository implements IcalFeedRepositoryInterface
         $feed->update($attributes);
 
         return $feed;
+    }
+
+    public function recordSync(IcalFeed $feed, array $feedAttributes, array $log): IcalSyncLog
+    {
+        $feed->update($feedAttributes);
+
+        return $feed->syncLogs()->create($log);
+    }
+
+    public function recentLogs(IcalFeed $feed, int $limit): Collection
+    {
+        return $feed->syncLogs()->latest('id')->limit($limit)->get();
     }
 }
