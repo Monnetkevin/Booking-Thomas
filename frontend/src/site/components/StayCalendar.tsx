@@ -1,6 +1,7 @@
 import { DayPicker, type DateRange } from 'react-day-picker'
 import { enGB, fr } from 'react-day-picker/locale'
 import 'react-day-picker/style.css'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '@/i18n/useLocale'
 import { fromIso, isoDate, type StayCalendarRules } from '@/site/catalog/stayCalendar'
@@ -22,6 +23,7 @@ export function StayCalendar({ calendar, rules, arrival, departure, onChange }: 
   const { t } = useTranslation()
   const { locale } = useLocale()
   const choosingDeparture = arrival !== null && departure === null
+  const unavailable = useMemo(() => new Set(calendar.unavailable), [calendar.unavailable])
 
   const selectable = (date: Date) => {
     const day = isoDate(date)
@@ -49,11 +51,14 @@ export function StayCalendar({ calendar, rules, arrival, departure, onChange }: 
         defaultMonth={arrival ? fromIso(arrival) : fromIso(calendar.first_arrival)}
         disabled={(date) => !selectable(date)}
         modifiers={{
-          booked: (date) => !rules.isNightFree(isoDate(date)),
+          // Barrées : les nuits prises ou non ouvertes ; les jours passés sont seulement grisés.
+          booked: (date) => unavailable.has(isoDate(date)),
           range_start: range?.from,
           range_end: range?.to,
           range_middle: range?.from && range.to ? { after: range.from, before: range.to } : undefined,
         }}
+        // Classe CSS du modificateur « booked » (nuits barrées) : react-day-picker ne l'ajoute pas de lui-même.
+        modifiersClassNames={{ booked: 'booked' }}
         onDayClick={handleClick}
         showOutsideDays={false}
         aria-label={t('booking.calendarLabel')}
