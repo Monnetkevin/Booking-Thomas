@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
 /**
- * POST /api/bookings : réservation en attente de paiement, nuits bloquées 30 minutes.
+ * POST /api/bookings : réservation en attente de paiement, nuits bloquées 40 minutes.
  * GET /api/bookings/{référence} : suivi par le voyageur, depuis son lien signé.
  * GET /api/bookings/{référence}/pdf : confirmation PDF (lien signé).
  */

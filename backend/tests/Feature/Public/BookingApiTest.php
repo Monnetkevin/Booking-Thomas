@@ -2,14 +2,21 @@
 
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
+use App\Events\BookingConfirmed;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\RatePeriod;
+use App\Repositories\Contracts\AvailabilityRepositoryInterface;
+use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\RatePeriodRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Repositories\Eloquent\BookingRepository;
+use App\Services\Booking\BookingService;
 use App\Services\Booking\StayRules;
 use App\Services\Security\HumanVerifier;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 
 beforeEach(function () {
@@ -42,7 +49,7 @@ it('crée une réservation en attente, au prix recalculé par le serveur', funct
         ->assertCreated()
         ->assertJsonPath('data.status', 'pending')
         ->assertJsonPath('data.total', 24000 + 4000 + 600)
-        ->assertJsonPath('data.expires_at', now()->addMinutes(30)->toIso8601String())
+        ->assertJsonPath('data.expires_at', now()->addMinutes(40)->toIso8601String())
         ->assertJsonPath('data.tracking_url', fn (string $url) => str_contains($url, '/en/reservation/BT-') && str_contains($url, 'signature='));
 
     $booking = Booking::firstOrFail();
@@ -77,9 +84,33 @@ it('bloque les nuits : un second voyageur ne peut plus les réserver', function 
 
 it('répond 409 si les nuits sont prises au même instant par un autre voyageur', function () {
     // Les règles passent (vérifiées avant l'autre réservation), la contrainte PostgreSQL tranche.
-    $this->mock(StayRules::class)->shouldReceive('violations')->andReturn([]);
+    $this->mock(StayRules::class, function ($rules) {
+        $rules->shouldReceive('violations')->andReturn([]);
+        $rules->shouldReceive('isFree')->andReturn(true);
+    });
     AvailabilityBlock::factory()->for($this->apartment)->create([
         'starts_on' => '2026-11-18', 'ends_on' => '2026-11-19', 'type' => BlockType::Manual,
+    ]);
+
+    $this->postJson('/api/bookings', bookingPayload())
+        ->assertStatus(409)
+        ->assertJsonPath('code', 'dates_unavailable');
+    expect(Booking::count())->toBe(0);
+});
+
+it('répond 409 si le battement de ménage est pris au même instant (revérifié sous le verrou du logement)', function () {
+    // Le devis passe (calculé avant l'autre réservation) ; le bloc voisin ne recouvre pas
+    // les nuits, donc la contrainte PostgreSQL ne dit rien : c'est le verrou qui tranche.
+    $this->apartment->update(['turnover_days' => 1]);
+    $rules = Mockery::mock(StayRules::class, [
+        app(RatePeriodRepositoryInterface::class),
+        app(AvailabilityRepositoryInterface::class),
+        app(SettingRepositoryInterface::class),
+    ])->makePartial();
+    $rules->shouldReceive('violations')->andReturn([]);
+    $this->instance(StayRules::class, $rules);
+    AvailabilityBlock::factory()->for($this->apartment)->create([
+        'starts_on' => '2026-11-20', 'ends_on' => '2026-11-22', 'type' => BlockType::Manual,
     ]);
 
     $this->postJson('/api/bookings', bookingPayload())
@@ -125,19 +156,56 @@ it('limite à 5 réservations par minute et par adresse IP', function () {
     $this->postJson('/api/bookings', bookingPayload())->assertTooManyRequests();
 });
 
-it('expire une réservation non payée après 30 minutes et libère ses nuits', function () {
+it('expire une réservation non payée après 40 minutes et libère ses nuits', function () {
     $this->postJson('/api/bookings', bookingPayload())->assertCreated();
 
-    Date::setTestNow('2026-11-10 14:29:00');
+    Date::setTestNow('2026-11-10 14:39:00');
     $this->artisan('bookings:expire')->assertSuccessful();
     expect(Booking::firstOrFail()->status)->toBe(BookingStatus::Pending);
 
-    Date::setTestNow('2026-11-10 14:31:00');
+    Date::setTestNow('2026-11-10 14:41:00');
     $this->artisan('bookings:expire')->expectsOutputToContain('1 réservation(s) expirée(s)')->assertSuccessful();
 
     expect(Booking::firstOrFail()->status)->toBe(BookingStatus::Expired)
         ->and(AvailabilityBlock::firstOrFail()->is_active)->toBeFalse();
     $this->postJson('/api/bookings', bookingPayload(['email' => 'autre@example.com']))->assertCreated();
+});
+
+it('n’expire pas une réservation confirmée entre-temps par le paiement', function () {
+    $this->postJson('/api/bookings', bookingPayload())->assertCreated();
+    $booking = Booking::firstOrFail();
+    Date::setTestNow('2026-11-10 14:41:00');
+
+    // La tâche d'expiration a déjà lu la réservation « pending » quand le paiement la confirme.
+    $bookings = Mockery::mock(BookingRepository::class)->makePartial();
+    $bookings->shouldReceive('overduePending')->andReturnUsing(function () use ($booking) {
+        $stale = Booking::query()->whereKey($booking->id)->get();
+        app(BookingService::class)->confirm($booking);
+
+        return $stale;
+    });
+    $this->instance(BookingRepositoryInterface::class, $bookings);
+
+    $this->artisan('bookings:expire')->expectsOutputToContain('0 réservation(s) expirée(s)')->assertSuccessful();
+
+    expect($booking->fresh()->status)->toBe(BookingStatus::Confirmed)
+        ->and(AvailabilityBlock::firstOrFail()->is_active)->toBeTrue();
+});
+
+it('ne confirme pas une réservation expirée entre-temps', function () {
+    Event::fake([BookingConfirmed::class]);
+    $this->postJson('/api/bookings', bookingPayload())->assertCreated();
+    $stale = Booking::firstOrFail();
+    Date::setTestNow('2026-11-10 14:41:00');
+    $this->artisan('bookings:expire')->assertSuccessful();
+
+    // Le modèle en main date d'avant l'expiration : il se croit encore « pending ».
+    app(BookingService::class)->confirm($stale);
+
+    expect($stale->fresh()->status)->toBe(BookingStatus::Expired)
+        ->and($stale->status)->toBe(BookingStatus::Expired)
+        ->and(AvailabilityBlock::firstOrFail()->is_active)->toBeFalse();
+    Event::assertNotDispatched(BookingConfirmed::class);
 });
 
 it('planifie l’expiration chaque minute', function () {

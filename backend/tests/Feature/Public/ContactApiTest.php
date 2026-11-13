@@ -76,6 +76,12 @@ describe('Turnstile', function () {
         expect((new TurnstileVerifier(app(Factory::class), null))->verify(null, '127.0.0.1'))->toBeTrue();
     });
 
+    it('refuse tout sans clé secrète quand il est obligatoire (production)', function () {
+        $verifier = new TurnstileVerifier(app(Factory::class), null, required: true);
+
+        expect($verifier->verify('un-jeton', '127.0.0.1'))->toBeFalse();
+    });
+
     it('vérifie le jeton auprès de Cloudflare', function () {
         Http::fake(['challenges.cloudflare.com/*' => Http::sequence()->push(['success' => true])->push(['success' => false])]);
         $verifier = new TurnstileVerifier(app(Factory::class), 'secret');

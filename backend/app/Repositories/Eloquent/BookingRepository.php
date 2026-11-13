@@ -27,6 +27,18 @@ class BookingRepository implements BookingRepositoryInterface
         return $booking;
     }
 
+    public function transitionFromPending(Booking $booking, array $attributes): bool
+    {
+        $changed = Booking::query()
+            ->whereKey($booking->getKey())
+            ->where('status', BookingStatus::Pending)
+            ->update($attributes) === 1;
+
+        $booking->refresh();
+
+        return $changed;
+    }
+
     public function findByReference(string $reference): ?Booking
     {
         return Booking::query()->where('reference', $reference)->first();

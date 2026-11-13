@@ -31,6 +31,12 @@ class DatesUnavailableException extends RuntimeException
         return new self(__('booking.dates_unavailable'), 0, $e);
     }
 
+    /** Nuits prises ou battement de ménage non respecté, constaté sous le verrou du logement. */
+    public static function taken(): self
+    {
+        return new self(__('booking.dates_unavailable'));
+    }
+
     public function render(): JsonResponse
     {
         return response()->json([

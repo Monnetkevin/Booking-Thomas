@@ -23,19 +23,29 @@ use Illuminate\Validation\ValidationException;
  * Création : défi anti-robot, devis recalculé par le serveur (jamais un montant venu du
  * navigateur), puis dans une transaction la réservation « pending » et le bloc de ses
  * nuits. La contrainte d'exclusion PostgreSQL garantit qu'aucune autre réservation ne
- * prend les mêmes nuits. Sans paiement dans les 30 minutes, la réservation expire et
- * libère les nuits (tâche planifiée chaque minute).
+ * prend les mêmes nuits ; le battement de ménage, qu'elle ne couvre pas, est revérifié
+ * sous un verrou par logement. Sans paiement dans les 40 minutes, la réservation expire
+ * et libère les nuits (tâche planifiée chaque minute).
+ *
+ * Confirmation et expiration ne touchent qu'une réservation encore « pending » en base
+ * (mise à jour conditionnelle) : si le webhook de paiement et la tâche d'expiration
+ * tombent au même instant, une seule des deux l'emporte.
  */
 class BookingService
 {
-    /** Délai pour payer avant que les nuits soient libérées. */
-    public const HOLD_MINUTES = 30;
+    /**
+     * Délai pour payer avant que les nuits soient libérées. Plus long que la session
+     * Stripe Checkout (30 minutes, le minimum accepté par Stripe) : les nuits ne sont
+     * jamais libérées tant que le voyageur peut encore payer.
+     */
+    public const HOLD_MINUTES = 40;
 
     public function __construct(
         private readonly BookingRepositoryInterface $bookings,
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly AvailabilityService $availabilityService,
         private readonly QuoteService $quotes,
+        private readonly StayRules $rules,
         private readonly CancellationTerms $cancellation,
         private readonly BookingReferenceGenerator $references,
         private readonly HumanVerifier $humans,
@@ -58,6 +68,11 @@ class BookingService
 
         try {
             $booking = DB::transaction(function () use ($apartment, $stay, $guest, $locale, $quote): Booking {
+                $this->availability->lockApartment($apartment->id);
+                if (! $this->rules->isFree($apartment, $stay)) {
+                    throw DatesUnavailableException::taken();
+                }
+
                 $booking = $this->bookings->create([
                     'reference' => $this->references->generate(),
                     'apartment_id' => $apartment->id,
@@ -97,22 +112,22 @@ class BookingService
     /**
      * Confirme une réservation en attente : les nuits restent bloquées pour de bon, et le
      * voyageur comme l'hôte reçoivent la confirmation avec le PDF. Appelée par le webhook
-     * de paiement (jalon 9) ; sans effet sur une réservation déjà confirmée, pour qu'un
-     * événement reçu deux fois n'envoie pas deux e-mails.
+     * de paiement (jalon 9) ; sans effet sur une réservation qui n'est plus « pending » en
+     * base (déjà confirmée, ou expirée entre-temps), pour qu'un événement reçu deux fois
+     * n'envoie pas deux e-mails et qu'une réservation expirée ne soit jamais confirmée
+     * sans ses nuits. Le paiement reçu sur une réservation expirée est traité au jalon 9.
      */
     public function confirm(Booking $booking): Booking
     {
-        if ($booking->status !== BookingStatus::Pending) {
-            return $booking;
-        }
-
         DB::transaction(function () use ($booking): void {
-            $this->bookings->update($booking, [
+            $confirmed = $this->bookings->transitionFromPending($booking, [
                 'status' => BookingStatus::Confirmed,
                 'confirmed_at' => now(),
                 'expires_at' => null,
             ]);
-            BookingConfirmed::dispatch($booking);
+            if ($confirmed) {
+                BookingConfirmed::dispatch($booking);
+            }
         });
 
         return $booking;
@@ -139,14 +154,24 @@ class BookingService
     {
         $overdue = $this->bookings->overduePending(now());
 
+        $expired = 0;
+
         foreach ($overdue as $booking) {
-            DB::transaction(function () use ($booking): void {
-                $this->bookings->update($booking, ['status' => BookingStatus::Expired]);
+            $released = DB::transaction(function () use ($booking): bool {
+                // Confirmée entre-temps par le paiement : ses nuits restent bloquées.
+                if (! $this->bookings->transitionFromPending($booking, ['status' => BookingStatus::Expired])) {
+                    return false;
+                }
                 $this->availability->releaseBooking($booking);
+
+                return true;
             });
-            $this->availabilityService->flushApartment($booking->apartment_id);
+            if ($released) {
+                $this->availabilityService->flushApartment($booking->apartment_id);
+                $expired++;
+            }
         }
 
-        return $overdue->count();
+        return $expired;
     }
 }

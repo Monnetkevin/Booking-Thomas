@@ -33,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(HumanVerifier::class, fn ($app) => new TurnstileVerifier(
             $app->make(Http::class),
             config('services.turnstile.secret'),
+            required: $app->isProduction(),
         ));
     }
 

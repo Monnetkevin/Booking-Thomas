@@ -34,5 +34,5 @@ Artisan::command('bookings:confirm {reference}', function (BookingService $booki
     return 0;
 })->purpose('Confirme une réservation en attente sans paiement (tests, en attendant Stripe)');
 
-// Paiement non finalisé dans les 30 minutes : nuits libérées dans la minute qui suit.
+// Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
 Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping();

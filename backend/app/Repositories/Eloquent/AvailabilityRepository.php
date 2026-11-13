@@ -8,9 +8,13 @@ use App\Models\Booking;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class AvailabilityRepository implements AvailabilityRepositoryInterface
 {
+    /** Espace de noms des verrous consultatifs PostgreSQL réservés aux logements. */
+    private const LOCK_NAMESPACE = 4201;
+
     public function hasActiveBlock(int $apartmentId, string $from, string $to): bool
     {
         return $this->query($apartmentId, $from, $to)->exists();
@@ -19,6 +23,11 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
     public function activeBlocks(int $apartmentId, string $from, string $to): Collection
     {
         return $this->query($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
+    }
+
+    public function lockApartment(int $apartmentId): void
+    {
+        DB::select('SELECT pg_advisory_xact_lock(?, ?)', [self::LOCK_NAMESPACE, $apartmentId]);
     }
 
     public function blockForBooking(Booking $booking): AvailabilityBlock

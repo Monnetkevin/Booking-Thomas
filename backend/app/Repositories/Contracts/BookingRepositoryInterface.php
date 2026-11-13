@@ -20,6 +20,15 @@ interface BookingRepositoryInterface
      */
     public function update(Booking $booking, array $attributes): Booking;
 
+    /**
+     * Fait quitter le statut « pending » à une réservation, seulement si elle y est encore
+     * en base (mise à jour conditionnelle atomique). Renvoie false si une autre opération
+     * (confirmation, expiration) est passée avant : le modèle est alors rechargé.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function transitionFromPending(Booking $booking, array $attributes): bool;
+
     public function findByReference(string $reference): ?Booking;
 
     /**
