@@ -1,6 +1,9 @@
 <?php
 
+use App\Jobs\SyncIcalFeed;
+use App\Models\IcalSyncLog;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Services\Apartment\ApartmentService;
 use App\Services\Booking\BookingService;
 use Illuminate\Foundation\Inspiring;
@@ -33,6 +36,18 @@ Artisan::command('bookings:confirm {reference}', function (BookingService $booki
 
     return 0;
 })->purpose('Confirme une réservation en attente sans paiement (tests, en attendant Stripe)');
+
+Artisan::command('ical:sync', function (IcalFeedRepositoryInterface $feeds) {
+    $importable = $feeds->importable();
+    $importable->each(fn ($feed) => SyncIcalFeed::dispatch($feed));
+    $this->info("Synchronisation programmée pour {$importable->count()} calendrier(s).");
+})->purpose('Relit les calendriers des plateformes (Airbnb) de tous les logements');
+
+// Réservations Airbnb bloquées sur le site 15 minutes au plus après leur création.
+Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping();
+
+// Journal des synchronisations conservé 30 jours.
+Schedule::command('model:prune', ['--model' => [IcalSyncLog::class]])->daily();
 
 // Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
 Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping();

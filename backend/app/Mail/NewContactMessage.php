@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\ContactMessage;
+use App\Support\SiteUrl;
 use Illuminate\Mail\Mailables\Address;
 
 /** Prévient l'hôte d'un nouveau message ; « Répondre » écrit directement au visiteur. */
@@ -36,6 +37,6 @@ class NewContactMessage extends TransactionalMail
 
     protected function viewData(): array
     {
-        return ['adminUrl' => rtrim((string) config('booking.frontend_url'), '/').'/admin'];
+        return ['adminUrl' => SiteUrl::to('/admin')];
     }
 }

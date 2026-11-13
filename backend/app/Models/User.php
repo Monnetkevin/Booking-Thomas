@@ -51,6 +51,12 @@ class User extends Authenticatable
         return $this->role === UserRole::Admin;
     }
 
+    /** Administrateur dont le compte est actif : seul autorisé à gérer le site. */
+    public function isActiveAdmin(): bool
+    {
+        return $this->is_active && $this->isAdmin();
+    }
+
     public function isHousekeeping(): bool
     {
         return $this->role === UserRole::Housekeeping;

@@ -1,5 +1,10 @@
 <?php
 
+use App\Enums\BlockType;
+use App\Enums\BookingStatus;
+use App\Models\Apartment;
+use App\Models\AvailabilityBlock;
+use App\Models\Booking;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,4 +38,22 @@ function apartmentPayload(array $overrides = []): array
         'cleaning_fee' => 4500,
         'cancellation_policy' => 'moderate',
     ], $overrides);
+}
+
+/** Réservation directe et le bloc de ses nuits [arrivée, départ[. */
+function directBooking(Apartment $apartment, string $arrival, string $departure, BookingStatus $status = BookingStatus::Confirmed): Booking
+{
+    $factory = Booking::factory()->for($apartment);
+    $booking = ($status === BookingStatus::Pending ? $factory->pending() : $factory)
+        ->create(['status' => $status, 'arrival' => $arrival, 'departure' => $departure]);
+    AvailabilityBlock::factory()->for($apartment)->between($arrival, $departure)
+        ->create(['type' => BlockType::Booking, 'booking_id' => $booking->id]);
+
+    return $booking;
+}
+
+/** Contenu d'un calendrier d'exemple de tests/fixtures/ical. */
+function icalFixture(string $name): string
+{
+    return (string) file_get_contents(__DIR__."/fixtures/ical/$name.ics");
 }

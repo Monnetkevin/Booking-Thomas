@@ -15,12 +15,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Source unique de vérité des nuits occupées, quelle qu'en soit l'origine.
  * Plage [starts_on, ends_on[ ; PostgreSQL refuse deux blocs actifs qui se recouvrent.
  *
+ * @property int $id
+ * @property int $apartment_id
  * @property CarbonImmutable $starts_on
  * @property CarbonImmutable $ends_on
+ * @property BlockType $type
+ * @property int|null $booking_id
+ * @property int|null $ical_feed_id
+ * @property string|null $external_uid
+ * @property string|null $external_url
+ * @property string|null $note
+ * @property bool $is_active
+ * @property bool $has_conflict
  */
 #[Fillable([
     'apartment_id', 'starts_on', 'ends_on', 'type', 'booking_id', 'ical_feed_id',
-    'external_uid', 'note', 'is_active', 'has_conflict',
+    'external_uid', 'external_url', 'note', 'is_active', 'has_conflict',
 ])]
 class AvailabilityBlock extends Model
 {

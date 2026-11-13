@@ -2,6 +2,8 @@
 
 namespace App\Mail\Support;
 
+use App\Support\SiteUrl;
+
 /**
  * Liens du site public dans la langue de l'e-mail (les pages anglaises sont sous /en).
  */
@@ -22,7 +24,7 @@ final class MailLinks
     /** Chemin du site public (« /contact ») → URL complète dans la langue voulue. */
     public static function to(string $path, string $locale): string
     {
-        $base = rtrim((string) config('booking.frontend_url'), '/');
+        $base = SiteUrl::base();
         $prefix = $locale === 'en' ? '/en' : '';
         $path = '/'.ltrim($path, '/');
 

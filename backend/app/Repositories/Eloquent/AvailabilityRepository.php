@@ -46,6 +46,54 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
     }
 
+    public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection
+    {
+        return $this->query($apartmentId, $from, $to)
+            ->when($exceptBlockId !== null, fn (Builder $query) => $query->whereKeyNot($exceptBlockId))
+            ->with('booking')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function conflictsOverlapping(int $apartmentId, string $from, string $to): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('has_conflict', true)
+            ->overlapping($from, $to)
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('ends_on', '>', $from)
+            ->where(fn (Builder $query) => $query->whereNull('ical_feed_id')->orWhere('ical_feed_id', '!=', $exceptFeedId))
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function feedBlocks(int $feedId): Collection
+    {
+        return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->get();
+    }
+
+    public function createBlock(array $attributes): AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->create($attributes);
+    }
+
+    public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock
+    {
+        $block->update($attributes);
+
+        return $block;
+    }
+
     /**
      * @return Builder<AvailabilityBlock>
      */
