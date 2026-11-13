@@ -43,4 +43,12 @@ return [
         'host_reply' => 'Répondez directement à cet e-mail pour écrire à :name.',
         'host_reason' => 'Réservation directe confirmée sur le site.',
     ],
+    'ical_conflict' => [
+        'subject' => 'Conflit de dates : :apartment, :dates',
+        'title' => 'Deux réservations sur les mêmes nuits',
+        'intro' => ':provider vient de transmettre un séjour au :apartment (:dates) qui recouvre une réservation faite sur le site :',
+        'action' => 'Les deux réservations sont enregistrées. Annulez l’une des deux sans attendre, sur le site ou sur :provider.',
+        'open_provider' => 'Voir la réservation sur :provider',
+        'reason' => 'Alerte envoyée par la synchronisation des calendriers.',
+    ],
 ];

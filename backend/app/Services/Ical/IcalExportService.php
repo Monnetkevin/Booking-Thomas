@@ -6,6 +6,7 @@ use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
+use App\Support\SiteUrl;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Spatie\IcalendarGenerator\Components\Calendar;
@@ -32,7 +33,7 @@ class IcalExportService
     public function calendar(IcalFeed $feed): string
     {
         $today = CarbonImmutable::instance(Date::today());
-        $host = (string) parse_url((string) config('booking.frontend_url'), PHP_URL_HOST) ?: 'localhost';
+        $host = SiteUrl::host();
 
         $events = $this->availability->exportable($feed->apartment_id, $feed->id, $today->toDateString())
             ->map(fn (AvailabilityBlock $block) => Event::create('Réservé')

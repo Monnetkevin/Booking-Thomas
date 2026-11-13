@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin;
 
 use App\Models\IcalFeed;
+use App\Support\SiteUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,7 +26,7 @@ class IcalFeedResource extends JsonResource
             'provider_label' => $this->provider->label(),
             'import_url' => $this->import_url,
             // URL à coller chez la plateforme (« Importer le calendrier ») ; le token seul n'est jamais exposé.
-            'export_url' => rtrim((string) config('booking.frontend_url'), '/')."/ical/{$this->export_token}.ics",
+            'export_url' => SiteUrl::to("/ical/{$this->export_token}.ics"),
             'is_active' => $this->is_active,
             'last_synced_at' => $this->last_synced_at?->toIso8601String(),
             'last_status' => $this->last_status?->value,

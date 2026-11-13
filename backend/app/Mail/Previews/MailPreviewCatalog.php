@@ -2,15 +2,21 @@
 
 namespace App\Mail\Previews;
 
+use App\Enums\BlockType;
 use App\Enums\BookingStatus;
+use App\Enums\IcalProvider;
 use App\Mail\BookingConfirmedGuest;
 use App\Mail\BookingConfirmedHost;
+use App\Mail\IcalConflictAlert;
 use App\Mail\NewContactMessage;
 use App\Mail\TransactionalMail;
 use App\Models\Apartment;
+use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\ContactMessage;
+use App\Models\IcalFeed;
 use Closure;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 /**
  * Modèles d'e-mails affichés par l'aperçu local (/dev/mails), avec des données d'exemple
@@ -35,6 +41,13 @@ class MailPreviewCatalog
             'booking-host' => [
                 'label' => 'Nouvelle réservation (hôte)',
                 'build' => fn (string $locale): TransactionalMail => new BookingConfirmedHost($this->sampleBooking($locale)),
+            ],
+            'ical-conflict' => [
+                'label' => 'Conflit de dates avec Airbnb (hôte)',
+                'build' => fn (string $locale): TransactionalMail => new IcalConflictAlert(
+                    $this->sampleAirbnbBlock(),
+                    new EloquentCollection([$this->sampleBooking('fr')]),
+                ),
             ],
         ];
     }
@@ -73,6 +86,20 @@ class MailPreviewCatalog
         $booking->setRelation('apartment', $apartment);
 
         return $booking;
+    }
+
+    /** Séjour Airbnb d'exemple, sur les nuits de la réservation d'exemple. */
+    public function sampleAirbnbBlock(): AvailabilityBlock
+    {
+        $booking = $this->sampleBooking('fr');
+        $block = new AvailabilityBlock([
+            'starts_on' => '2026-12-19', 'ends_on' => '2026-12-22', 'type' => BlockType::Ical,
+            'external_url' => 'https://www.airbnb.com/hosting/reservations/details/HMEXEMPLE1',
+        ]);
+        $block->setRelation('apartment', $booking->apartment);
+        $block->setRelation('icalFeed', new IcalFeed(['provider' => IcalProvider::Airbnb]));
+
+        return $block;
     }
 
     private function sampleContact(): ContactMessage

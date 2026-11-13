@@ -38,6 +38,13 @@ interface AvailabilityRepositoryInterface
     public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection;
 
     /**
+     * Blocs actifs en conflit qui touchent [from, to[, du plus ancien au plus récent.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function conflictsOverlapping(int $apartmentId, string $from, string $to): Collection;
+
+    /**
      * Nuits occupées à publier pour une plateforme : blocs actifs du logement qui ne sont
      * pas terminés au jour $from, sauf ceux importés de son propre calendrier (pas de
      * boucle : la plateforme les connaît déjà).

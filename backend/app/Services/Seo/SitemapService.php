@@ -4,6 +4,7 @@ namespace App\Services\Seo;
 
 use App\Models\Apartment;
 use App\Services\Catalog\PublicCatalogService;
+use App\Support\SiteUrl;
 
 /**
  * Plan du site : pages publiques et fiches publiées, chacune en français et en anglais
@@ -42,7 +43,7 @@ class SitemapService
 
     public function baseUrl(): string
     {
-        return rtrim((string) config('booking.frontend_url'), '/');
+        return SiteUrl::base();
     }
 
     /**

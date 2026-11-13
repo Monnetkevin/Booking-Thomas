@@ -55,6 +55,17 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->get();
     }
 
+    public function conflictsOverlapping(int $apartmentId, string $from, string $to): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('has_conflict', true)
+            ->overlapping($from, $to)
+            ->orderBy('id')
+            ->get();
+    }
+
     public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection
     {
         return AvailabilityBlock::query()
