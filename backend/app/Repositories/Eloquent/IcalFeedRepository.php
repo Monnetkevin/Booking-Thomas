@@ -19,6 +19,11 @@ class IcalFeedRepository implements IcalFeedRepositoryInterface
         return IcalFeed::query()->with('apartment')->orderBy('apartment_id')->orderBy('provider')->get();
     }
 
+    public function findByExportToken(string $token): ?IcalFeed
+    {
+        return IcalFeed::query()->where('export_token', $token)->first();
+    }
+
     public function exists(int $apartmentId, IcalProvider $provider): bool
     {
         return IcalFeed::query()->where('apartment_id', $apartmentId)->where('provider', $provider)->exists();

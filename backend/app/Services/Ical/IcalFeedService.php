@@ -43,7 +43,7 @@ class IcalFeedService
             'apartment_id' => $apartment->id,
             'provider' => $provider,
             'import_url' => $importUrl,
-            'export_token' => Str::random(self::TOKEN_LENGTH),
+            'export_token' => $this->newToken(),
             'is_active' => true,
         ]);
         $this->syncSoon($feed);
@@ -68,6 +68,20 @@ class IcalFeedService
         $this->syncSoon($feed);
 
         return $feed;
+    }
+
+    /**
+     * Nouveau token d'export : l'ancienne URL cesse aussitôt de fonctionner (fuite, changement
+     * d'annonce). L'URL est à recopier chez la plateforme.
+     */
+    public function regenerateExportToken(IcalFeed $feed): IcalFeed
+    {
+        return $this->feeds->update($feed, ['export_token' => $this->newToken()]);
+    }
+
+    private function newToken(): string
+    {
+        return Str::random(self::TOKEN_LENGTH);
     }
 
     private function syncSoon(IcalFeed $feed): void

@@ -38,6 +38,15 @@ interface AvailabilityRepositoryInterface
     public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection;
 
     /**
+     * Nuits occupées à publier pour une plateforme : blocs actifs du logement qui ne sont
+     * pas terminés au jour $from, sauf ceux importés de son propre calendrier (pas de
+     * boucle : la plateforme les connaît déjà).
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection;
+
+    /**
      * Tous les blocs importés d'un flux iCal, actifs ou non.
      *
      * @return Collection<int, AvailabilityBlock>

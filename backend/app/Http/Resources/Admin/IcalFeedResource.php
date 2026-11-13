@@ -24,6 +24,8 @@ class IcalFeedResource extends JsonResource
             'provider' => $this->provider->value,
             'provider_label' => $this->provider->label(),
             'import_url' => $this->import_url,
+            // URL à coller chez la plateforme (« Importer le calendrier ») ; le token seul n'est jamais exposé.
+            'export_url' => rtrim((string) config('booking.frontend_url'), '/')."/ical/{$this->export_token}.ics",
             'is_active' => $this->is_active,
             'last_synced_at' => $this->last_synced_at?->toIso8601String(),
             'last_status' => $this->last_status?->value,

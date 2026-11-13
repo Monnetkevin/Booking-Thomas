@@ -86,4 +86,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('ical-feeds', [IcalFeedController::class, 'index']);
     Route::post('apartments/{apartment:id}/ical-feeds', [IcalFeedController::class, 'store']);
     Route::patch('ical-feeds/{icalFeed}', [IcalFeedController::class, 'update']);
+    Route::post('ical-feeds/{icalFeed}/export-token', [IcalFeedController::class, 'regenerateExportToken']);
 });

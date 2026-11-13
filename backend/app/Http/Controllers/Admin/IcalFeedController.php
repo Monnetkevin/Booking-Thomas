@@ -39,4 +39,11 @@ class IcalFeedController extends Controller
 
         return new IcalFeedResource($this->feeds->update($icalFeed, $request->feedData()));
     }
+
+    public function regenerateExportToken(IcalFeed $icalFeed): IcalFeedResource
+    {
+        Gate::authorize('update', $icalFeed);
+
+        return new IcalFeedResource($this->feeds->regenerateExportToken($icalFeed));
+    }
 }

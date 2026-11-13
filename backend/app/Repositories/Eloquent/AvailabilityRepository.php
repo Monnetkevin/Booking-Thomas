@@ -55,6 +55,17 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->get();
     }
 
+    public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('ends_on', '>', $from)
+            ->where(fn (Builder $query) => $query->whereNull('ical_feed_id')->orWhere('ical_feed_id', '!=', $exceptFeedId))
+            ->orderBy('starts_on')
+            ->get();
+    }
+
     public function feedBlocks(int $feedId): Collection
     {
         return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->get();

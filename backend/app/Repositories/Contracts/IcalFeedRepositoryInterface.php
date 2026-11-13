@@ -22,6 +22,9 @@ interface IcalFeedRepositoryInterface
      */
     public function all(): Collection;
 
+    /** Flux dont l'URL d'export porte ce token. */
+    public function findByExportToken(string $token): ?IcalFeed;
+
     public function exists(int $apartmentId, IcalProvider $provider): bool;
 
     /**
