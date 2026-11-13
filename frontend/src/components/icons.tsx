@@ -203,3 +203,23 @@ export function DownloadIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function SyncIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M20 11a8 8 0 0 0-14.3-4.9L4 8" />
+      <path d="M4 4v4h4" />
+      <path d="M4 13a8 8 0 0 0 14.3 4.9L20 16" />
+      <path d="M20 20v-4h-4" />
+    </Icon>
+  )
+}
+
+export function CopyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon width={18} height={18} {...props}>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+    </Icon>
+  )
+}

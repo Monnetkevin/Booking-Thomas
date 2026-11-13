@@ -148,7 +148,9 @@
     "previous": "Précédent",
     "next": "Suivant",
     "chooseDate": "Choisir",
-    "calendarFor": "Calendrier : {{label}}"
+    "calendarFor": "Calendrier : {{label}}",
+    "copy": "Copier",
+    "copied": "Copié"
   },
   "admin": {
     "title": "Administration",
@@ -156,7 +158,8 @@
       "label": "Navigation admin",
       "dashboard": "Tableau de bord",
       "apartments": "Appartements",
-      "rates": "Tarifs"
+      "rates": "Tarifs",
+      "sync": "Synchronisation"
     },
     "login": {
       "title": "Connexion",
@@ -384,6 +387,79 @@
         "children": "Enfants",
         "submit": "Calculer",
         "noRate": "Pas de prix : certaines nuits n'ont pas de tarif."
+      }
+    },
+    "sync": {
+      "title": "Synchronisation des calendriers",
+      "subtitle": "Calendriers Airbnb lus toutes les 15 minutes",
+      "howTitle": "Mise en place, une fois par logement",
+      "howImport": "Dans Airbnb (Calendrier › Disponibilités › Associer des calendriers › Exporter le calendrier), copiez le lien et collez-le dans « URL d’import ».",
+      "howExport": "Copiez « URL d’export » et collez-la dans Airbnb (Importer le calendrier). Airbnb la relit à son rythme, souvent toutes les quelques heures.",
+      "noApartment": "Créez d’abord un logement.",
+      "health": {
+        "not_configured": "Non configuré",
+        "export_only": "Export seul",
+        "disabled": "Import arrêté",
+        "pending": "Première lecture en cours",
+        "failing": "En erreur",
+        "ok": "À jour"
+      },
+      "lastSync": "Dernière lecture : {{date}}",
+      "lastSuccess": "Dernier import réussi : {{date}}",
+      "neverSucceeded": "Aucun import réussi pour l’instant.",
+      "failures_one": "Échec de la dernière lecture : {{error}}",
+      "failures_other": "{{count}} échecs consécutifs : {{error}} Les nuits déjà connues restent bloquées.",
+      "import": {
+        "title": "Airbnb → site (import)",
+        "label": "URL d’import (calendrier exporté par Airbnb)",
+        "placeholder": "https://www.airbnb.fr/calendar/ical/…",
+        "hint": "Laissez vide pour ne rien importer : le site publie quand même son calendrier.",
+        "save": "Enregistrer l’URL",
+        "saved": "URL enregistrée, lecture lancée.",
+        "active": "Lire ce calendrier toutes les 15 minutes",
+        "inactiveHint": "Import arrêté : les nuits déjà importées restent bloquées."
+      },
+      "export": {
+        "title": "Site → Airbnb (export)",
+        "label": "URL d’export (à coller dans Airbnb)",
+        "missing": "Cliquez sur « Enregistrer l’URL » (même sans URL d’import) pour obtenir l’URL d’export du site.",
+        "regenerate": "Changer l’URL d’export",
+        "confirmTitle": "Changer l’URL d’export ?",
+        "confirm": "L’ancienne URL cessera aussitôt de fonctionner : il faudra coller la nouvelle dans Airbnb, sinon Airbnb ne verra plus les réservations du site.",
+        "confirmAction": "Changer l’URL"
+      },
+      "syncNow": "Synchroniser maintenant",
+      "result": {
+        "success": "Calendrier lu.",
+        "unchanged": "Calendrier inchangé depuis la dernière lecture.",
+        "failed": "Lecture impossible : {{error}}",
+        "nothing": "Aucun changement."
+      },
+      "changes": {
+        "created_one": "{{count}} séjour ajouté",
+        "created_other": "{{count}} séjours ajoutés",
+        "updated_one": "{{count}} séjour déplacé",
+        "updated_other": "{{count}} séjours déplacés",
+        "removed_one": "{{count}} séjour libéré",
+        "removed_other": "{{count}} séjours libérés",
+        "conflicts_one": "{{count}} conflit de dates",
+        "conflicts_other": "{{count}} conflits de dates"
+      },
+      "log": {
+        "show": "Voir le journal",
+        "hide": "Masquer le journal",
+        "title": "Journal · 20 dernières lectures",
+        "empty": "Aucune lecture pour l’instant.",
+        "date": "Date",
+        "trigger": "Origine",
+        "result": "Résultat",
+        "scheduled": "Automatique",
+        "manual": "Manuelle",
+        "status": {
+          "success": "Lu",
+          "unchanged": "Inchangé",
+          "failed": "Erreur"
+        }
       }
     }
   },
