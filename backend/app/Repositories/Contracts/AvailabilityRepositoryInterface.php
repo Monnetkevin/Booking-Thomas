@@ -85,7 +85,8 @@ interface AvailabilityRepositoryInterface
 
     /**
      * Blocs actifs qui commencent ou finissent ce jour-là, avec logement et réservation,
-     * pour le récapitulatif du ménage.
+     * pour le récapitulatif du ménage : logements existants, réservations confirmées
+     * (pas celles en attente de paiement).
      *
      * @return Collection<int, AvailabilityBlock>
      */

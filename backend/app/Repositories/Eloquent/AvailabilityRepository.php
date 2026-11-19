@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Enums\BlockType;
+use App\Enums\BookingStatus;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
@@ -107,6 +108,7 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->where('is_active', true)
             ->whereIn('type', [BlockType::Booking->value, BlockType::Ical->value])
             ->whereKeyNot($exceptBlockId)
+            ->where(fn (Builder $query) => $this->realStay($query))
             ->where(fn (Builder $query) => $query->whereDate('ends_on', $startsOn)->orWhereDate('starts_on', $endsOn))
             ->exists();
     }
@@ -116,10 +118,25 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return AvailabilityBlock::query()
             ->where('is_active', true)
             ->where(fn (Builder $query) => $query->whereDate('starts_on', $date)->orWhereDate('ends_on', $date))
+            ->whereHas('apartment', fn (Builder $query) => $query->whereNull('deleted_at'))
+            ->where(fn (Builder $query) => $this->realStay($query))
             ->with(['apartment', 'booking'])
             ->orderBy('apartment_id')
             ->orderBy('starts_on')
             ->get();
+    }
+
+    /**
+     * Séjour qui aura vraiment lieu : pas une réservation encore en attente de paiement
+     * (nuits tenues 40 minutes), qui peut expirer d'ici là.
+     *
+     * @param  Builder<AvailabilityBlock>  $query
+     */
+    private function realStay(Builder $query): void
+    {
+        $query->whereNull('booking_id')->orWhereHas('booking', fn (Builder $booking) => $booking->whereIn('status', [
+            BookingStatus::Confirmed->value, BookingStatus::Completed->value,
+        ]));
     }
 
     /**

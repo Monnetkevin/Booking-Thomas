@@ -140,6 +140,19 @@ describe('récapitulatif du lendemain', function () {
         Notification::assertNotSentTo($off, DailySummaryNotification::class);
     });
 
+    it('ignore les réservations en attente de paiement et les logements supprimés', function () {
+        // Réservation commencée mais pas payée, et logement supprimé qui garde un séjour importé.
+        directBooking(Apartment::factory()->create(), '2026-11-20', '2026-11-22', BookingStatus::Pending);
+        $deleted = Apartment::factory()->create();
+        AvailabilityBlock::factory()->for($deleted)->between('2026-11-20', '2026-11-24')->create(['type' => BlockType::Ical]);
+        $deleted->delete();
+        Date::setTestNow('2026-11-19 18:00:00');
+
+        $this->artisan('notifications:housekeeping-summary')->assertSuccessful();
+
+        Notification::assertSentTo($this->cleaner, DailySummaryNotification::class, fn (DailySummaryNotification $summary) => count($summary->movements) === 3);
+    });
+
     it('n’envoie rien s’il n’y a aucun mouvement demain', function () {
         Date::setTestNow('2026-11-24 18:00:00');
 
