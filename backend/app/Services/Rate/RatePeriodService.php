@@ -2,9 +2,11 @@
 
 namespace App\Services\Rate;
 
+use App\Enums\AuditAction;
 use App\Models\Apartment;
 use App\Models\RatePeriod;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
+use App\Services\Audit\AuditLogger;
 use App\Services\Catalog\CatalogCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
@@ -21,6 +23,7 @@ class RatePeriodService
     public function __construct(
         private readonly RatePeriodRepositoryInterface $periods,
         private readonly CatalogCache $catalog,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -40,7 +43,10 @@ class RatePeriodService
     {
         $this->ensureNoOverlap($apartment->id, $data['starts_on'], $data['ends_on']);
 
-        return $this->guarded(fn () => $this->periods->create($apartment, $data));
+        $period = $this->guarded(fn () => $this->periods->create($apartment, $data));
+        $this->audit->record(AuditAction::RatePeriodCreated, $period, after: $this->auditValues($period));
+
+        return $period;
     }
 
     /**
@@ -52,12 +58,18 @@ class RatePeriodService
     {
         $this->ensureNoOverlap($period->apartment_id, $data['starts_on'], $data['ends_on'], $period->id);
 
-        return $this->guarded(fn () => $this->periods->update($period, $data));
+        $before = $this->auditValues($period);
+        $period = $this->guarded(fn () => $this->periods->update($period, $data));
+        $this->audit->record(AuditAction::RatePeriodUpdated, $period, $before, $this->auditValues($period));
+
+        return $period;
     }
 
     public function delete(RatePeriod $period): void
     {
+        $before = $this->auditValues($period);
         $this->periods->delete($period);
+        $this->audit->record(AuditAction::RatePeriodDeleted, $period, before: $before);
         $this->catalog->flush();
     }
 
@@ -104,5 +116,23 @@ class RatePeriodService
             'from' => $period->starts_on->translatedFormat('j F Y'),
             'to' => $period->ends_on->translatedFormat('j F Y'),
         ]);
+    }
+
+    /**
+     * Ce que le journal retient d'une période : logement, dates et prix.
+     *
+     * @return array<string, mixed>
+     */
+    private function auditValues(RatePeriod $period): array
+    {
+        return [
+            'apartment_id' => $period->apartment_id,
+            'label' => $period->label,
+            'starts_on' => $period->starts_on->toDateString(),
+            'ends_on' => $period->ends_on->toDateString(),
+            'nightly_price' => $period->nightly_price,
+            'min_stay' => $period->min_stay,
+            'weekend_supplement' => $period->weekend_supplement,
+        ];
     }
 }

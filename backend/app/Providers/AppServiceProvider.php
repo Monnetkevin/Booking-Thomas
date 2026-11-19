@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Http\Support\RequestAuditActor;
+use App\Services\Audit\AuditActor;
 use App\Services\Geocoding\FallbackGeocoder;
 use App\Services\Geocoding\Geocoder;
 use App\Services\Geocoding\GeoplateformeGeocoder;
@@ -30,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
                 (string) config('services.geocoding.user_agent'),
             ),
         ));
+        // Auteur des actions journalisées : lu dans la requête HTTP, jamais par les services eux-mêmes.
+        $this->app->bind(AuditActor::class, RequestAuditActor::class);
         $this->app->bind(HumanVerifier::class, fn ($app) => new TurnstileVerifier(
             $app->make(Http::class),
             config('services.turnstile.secret'),

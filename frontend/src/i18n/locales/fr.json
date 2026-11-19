@@ -161,7 +161,8 @@
       "rates": "Tarifs",
       "sync": "Synchronisation",
       "notifications": "Notifications",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "audit": "Journal"
     },
     "login": {
       "title": "Connexion",
@@ -553,6 +554,30 @@
       "submit": "Enregistrer mon mot de passe",
       "done": "Mot de passe enregistré. Vous pouvez vous connecter.",
       "missingLink": "Ce lien est incomplet. Ouvrez le lien reçu par e-mail, ou demandez-en un nouveau à l’administrateur."
+    },
+    "audit": {
+      "title": "Journal des actions",
+      "subtitle": "Actions sensibles du back-office, conservées un an : qui, quoi, quand et ce qui a changé.",
+      "filter": "Action",
+      "allActions": "Toutes les actions",
+      "empty": "Aucune action enregistrée.",
+      "system": "Système",
+      "pages": "Pages du journal",
+      "actions": {
+        "booking.created": "Réservation saisie à la main",
+        "booking.updated": "Réservation modifiée",
+        "booking.cancelled": "Réservation annulée",
+        "block.created": "Dates bloquées",
+        "block.deleted": "Blocage retiré",
+        "apartment.deleted": "Logement supprimé",
+        "rate_period.created": "Tarif créé",
+        "rate_period.updated": "Tarif modifié",
+        "rate_period.deleted": "Tarif supprimé",
+        "settings.updated": "Réglages modifiés",
+        "user.invited": "Compte invité",
+        "user.updated": "Compte modifié",
+        "user.password_link_sent": "Lien de mot de passe envoyé"
+      }
     }
   },
   "pricing": {

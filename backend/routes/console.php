@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\SyncIcalFeed;
+use App\Models\AuditLog;
 use App\Models\IcalSyncLog;
 use App\Models\Notification;
 use App\Repositories\Contracts\BookingRepositoryInterface;
@@ -54,8 +55,8 @@ Artisan::command('notifications:housekeeping-summary', function (HousekeepingNot
 // Réservations Airbnb bloquées sur le site 15 minutes au plus après leur création.
 Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping();
 
-// Journal des synchronisations conservé 30 jours, notifications lues 90 jours.
-Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification::class]])->daily();
+// Journal des synchronisations conservé 30 jours, notifications lues 90 jours, journal d'audit un an.
+Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification::class, AuditLog::class]])->daily();
 
 // Récapitulatif du ménage : chaque heure pile, aux comptes dont c'est l'heure choisie.
 Schedule::command('notifications:housekeeping-summary')->hourly();

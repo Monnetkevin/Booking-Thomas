@@ -3,11 +3,13 @@
 namespace App\Services\Apartment;
 
 use App\Enums\ApartmentStatus;
+use App\Enums\AuditAction;
 use App\Exceptions\Apartment\ApartmentHasUpcomingStaysException;
 use App\Exceptions\Apartment\ApartmentNotPublishableException;
 use App\Jobs\GeocodeApartment;
 use App\Models\Apartment;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
+use App\Services\Audit\AuditLogger;
 use App\Services\Catalog\CatalogCache;
 use App\Services\Geocoding\Geocoder;
 use Illuminate\Database\Eloquent\Collection;
@@ -26,6 +28,7 @@ class ApartmentService
         private readonly ApartmentRepositoryInterface $apartments,
         private readonly Geocoder $geocoder,
         private readonly CatalogCache $catalog,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -175,6 +178,7 @@ class ApartmentService
         }
 
         $this->apartments->delete($apartment);
+        $this->audit->record(AuditAction::ApartmentDeleted, $apartment, before: ['name' => $apartment->getTranslation('name', 'fr'), 'slug' => $apartment->slug]);
         $this->catalog->flush();
     }
 

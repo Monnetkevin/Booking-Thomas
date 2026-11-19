@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Repositories\Contracts\AmenityRepositoryInterface;
 use App\Repositories\Contracts\ApartmentPhotoRepositoryInterface;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
@@ -16,6 +17,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\AmenityRepository;
 use App\Repositories\Eloquent\ApartmentPhotoRepository;
 use App\Repositories\Eloquent\ApartmentRepository;
+use App\Repositories\Eloquent\AuditLogRepository;
 use App\Repositories\Eloquent\AvailabilityRepository;
 use App\Repositories\Eloquent\BookingRepository;
 use App\Repositories\Eloquent\ContactMessageRepository;
@@ -47,6 +49,7 @@ class RepositoryServiceProvider extends ServiceProvider
         IcalFeedRepositoryInterface::class => IcalFeedRepository::class,
         SettingRepositoryInterface::class => SettingRepository::class,
         NotificationRepositoryInterface::class => NotificationRepository::class,
+        AuditLogRepositoryInterface::class => AuditLogRepository::class,
     ];
 
     public function register(): void
