@@ -270,3 +270,12 @@ export function SettingsIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function GridIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 10h18M3 15h18M9 4v16" />
+    </Icon>
+  )
+}

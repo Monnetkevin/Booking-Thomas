@@ -106,6 +106,17 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return $block;
     }
 
+    public function planningBlocks(string $from, string $to): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->overlapping($from, $to)
+            ->with(['booking', 'icalFeed'])
+            ->orderBy('apartment_id')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
     public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool
     {
         return AvailabilityBlock::query()

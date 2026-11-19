@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BellIcon, BuildingIcon, CalendarIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
+import { BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
 
 export interface AdminNavItem {
   to: string
@@ -11,6 +11,7 @@ export interface AdminNavItem {
     | 'admin.nav.rates'
     | 'admin.nav.sync'
     | 'admin.nav.bookings'
+    | 'admin.nav.planning'
     | 'admin.nav.notifications'
     | 'admin.nav.users'
     | 'admin.nav.audit'
@@ -27,6 +28,7 @@ export interface AdminNavItem {
  */
 export const adminNavigation: AdminNavItem[] = [
   { to: '/admin', labelKey: 'admin.nav.dashboard', icon: <HomeIcon />, roles: ['admin'], end: true },
+  { to: '/admin/planning', labelKey: 'admin.nav.planning', icon: <GridIcon />, roles: ['admin'] },
   { to: '/admin/reservations', labelKey: 'admin.nav.bookings', icon: <CalendarIcon />, roles: ['admin'] },
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: ['admin'] },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'] },

@@ -28,6 +28,13 @@ interface ApartmentRepositoryInterface
 
     public function idForSlug(string $slug): ?int;
 
+    /**
+     * Logements non supprimés, dans l'ordre du site, sans relations (planning, statistiques).
+     *
+     * @return Collection<int, Apartment>
+     */
+    public function allOrdered(): Collection;
+
     /** Logement par son id, supprimé compris (historique, notifications). */
     public function findWithTrashed(int $id): ?Apartment;
 

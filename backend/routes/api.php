@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\PlanningController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -127,6 +128,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('bookings/{booking}/cancel', [AdminBookingController::class, 'cancel']);
     Route::post('bookings/{booking}/resend-confirmation', [AdminBookingController::class, 'resendConfirmation'])->middleware('throttle:6,1');
     Route::get('bookings/{booking}/pdf', [AdminBookingController::class, 'pdf']);
+
+    // Planning multi-logements
+    Route::get('planning', PlanningController::class);
 
     // Fermetures manuelles (travaux, usage personnel)
     Route::post('apartments/{apartment:id}/blocks', [BlockController::class, 'store']);

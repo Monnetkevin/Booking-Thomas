@@ -11,7 +11,8 @@
     "audit": "Journal",
     "messages": "Messages",
     "settings": "Réglages",
-    "bookings": "Réservations"
+    "bookings": "Réservations",
+    "planning": "Planning"
   },
   "login": {
     "title": "Connexion",
@@ -598,6 +599,28 @@
       "required": "Champ obligatoire.",
       "invalidNumber": "Nombre attendu.",
       "invalidAmount": "Montant invalide."
+    }
+  },
+  "planning": {
+    "title": "Planning",
+    "subtitle": "Tous les logements, nuit par nuit. Cliquez une réservation pour l’ouvrir, une case libre pour fermer des dates.",
+    "apartment": "Logement",
+    "previous": "Période précédente",
+    "next": "Période suivante",
+    "today": "Aujourd’hui",
+    "span": "Durée affichée",
+    "days_one": "{{count}} jour",
+    "days_other": "{{count}} jours",
+    "noApartment": "Aucun logement pour le moment.",
+    "legend": "Légende",
+    "closeFrom": "{{apartment}} : fermer à partir du {{day}}",
+    "conflict": "Conflit de dates",
+    "kinds": {
+      "direct": "Réservation du site",
+      "manualBooking": "Saisie à la main",
+      "pending": "Paiement en cours",
+      "ical": "Séjour importé (Airbnb)",
+      "closed": "Fermé"
     }
   }
 }

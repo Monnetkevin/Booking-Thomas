@@ -44,6 +44,11 @@ class ApartmentRepository implements ApartmentRepositoryInterface
             ->first();
     }
 
+    public function allOrdered(): Collection
+    {
+        return Apartment::query()->orderBy('position')->orderBy('id')->get();
+    }
+
     public function findWithTrashed(int $id): ?Apartment
     {
         return Apartment::withTrashed()->find($id);

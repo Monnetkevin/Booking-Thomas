@@ -93,4 +93,12 @@ interface AvailabilityRepositoryInterface
      * @return Collection<int, AvailabilityBlock>
      */
     public function movementsOn(string $date): Collection;
+
+    /**
+     * Blocs actifs de tous les logements qui touchent [from, to[, avec réservation et
+     * calendrier, pour le planning.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function planningBlocks(string $from, string $to): Collection;
 }

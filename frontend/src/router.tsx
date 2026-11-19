@@ -80,6 +80,10 @@ export const router = createBrowserRouter([
             }),
           },
           {
+            path: 'planning',
+            lazy: async () => ({ Component: (await import('@/admin/planning/pages/PlanningPage')).PlanningPage }),
+          },
+          {
             path: 'reservations',
             lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingsPage')).BookingsPage }),
           },
