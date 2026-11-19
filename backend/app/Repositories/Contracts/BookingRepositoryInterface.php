@@ -61,4 +61,11 @@ interface BookingRepositoryInterface
 
     /** Encaissé sur la période : paiements réussis moins remboursements réussis, en centimes. */
     public function netPaymentsBetween(CarbonInterface $from, CarbonInterface $to): int;
+
+    /**
+     * Réservations vendues (confirmées ou terminées) qui arrivent dans [from, to[.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function soldArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
 }

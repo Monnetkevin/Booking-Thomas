@@ -12,7 +12,8 @@
     "messages": "Messages",
     "settings": "Réglages",
     "bookings": "Réservations",
-    "planning": "Planning"
+    "planning": "Planning",
+    "statistics": "Statistiques"
   },
   "login": {
     "title": "Connexion",
@@ -644,5 +645,36 @@
       "ical": "Séjour importé (Airbnb)",
       "closed": "Fermé"
     }
+  },
+  "statistics": {
+    "title": "Statistiques",
+    "subtitle": "12 derniers mois, du {{from}} au {{to}} (exclu).",
+    "export": "Exporter en CSV",
+    "revenue": "Revenus directs",
+    "revenueDetail": "Réservations du site et saisies à la main, hors taxe de séjour, au mois d’arrivée.",
+    "nights": "Nuits vendues",
+    "occupancy": "Occupation",
+    "averagePrice": "Prix moyen d’une nuit",
+    "averagePriceDetail": "Hébergement seul, réservations directes.",
+    "averageStay": "Durée moyenne d’un séjour",
+    "averageStayDetail": "Séjours directs et Airbnb.",
+    "nightsValue": "{{value}} nuits",
+    "chartTitle": "Nuits vendues par mois",
+    "chartHint": "Survolez une colonne pour le détail ; le tableau dessous donne toutes les valeurs.",
+    "legend": "Légende",
+    "direct": "En direct",
+    "platform": "Airbnb",
+    "barLabel": "{{month}} : {{direct}} nuits en direct, {{platform}} sur Airbnb",
+    "directNights_one": "{{count}} nuit en direct",
+    "directNights_other": "{{count}} nuits en direct",
+    "platformNights_one": "{{count}} nuit sur Airbnb",
+    "platformNights_other": "{{count}} nuits sur Airbnb",
+    "monthsTable": "Nuits, revenus et occupation par mois",
+    "month": "Mois",
+    "revenueShort": "Revenus directs",
+    "occupancyShort": "Occupation",
+    "byApartment": "Par logement",
+    "platformAmounts": "Les montants Airbnb ne sont pas connus : le calendrier iCal ne transmet que les dates.",
+    "rating": "Note moyenne"
   }
 }

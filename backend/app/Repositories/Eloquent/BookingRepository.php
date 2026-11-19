@@ -112,4 +112,13 @@ class BookingRepository implements BookingRepositoryInterface
             ->selectRaw("coalesce(sum(case when type = 'refund' then -amount else amount end), 0) as net")
             ->value('net');
     }
+
+    public function soldArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection
+    {
+        return Booking::query()
+            ->whereIn('status', [BookingStatus::Confirmed, BookingStatus::Completed])
+            ->where('arrival', '>=', $from->toDateString())
+            ->where('arrival', '<', $to->toDateString())
+            ->get();
+    }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PlanningController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\SessionController;
@@ -132,6 +133,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Tableau de bord
     Route::get('dashboard', DashboardController::class);
+
+    // Statistiques sur 12 mois glissants
+    Route::get('statistics', [StatisticsController::class, 'show']);
+    Route::get('statistics.csv', [StatisticsController::class, 'csv']);
 
     // Planning multi-logements
     Route::get('planning', PlanningController::class);
