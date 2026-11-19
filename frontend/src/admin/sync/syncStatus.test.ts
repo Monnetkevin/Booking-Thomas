@@ -15,6 +15,7 @@ const feed: IcalFeed = {
   last_status: 'success',
   last_error: null,
   consecutive_failures: 0,
+  empty_calendar_refused: false,
 }
 
 const log: IcalSyncLog = {
@@ -26,6 +27,7 @@ const log: IcalSyncLog = {
   updated: 0,
   removed: 1,
   conflicts: 0,
+  unreadable: 0,
   error: null,
   duration_ms: 120,
   synced_at: '2026-11-13T10:00:00+01:00',
@@ -48,5 +50,6 @@ describe('état d’un calendrier', () => {
       { change: 'removed', count: 1 },
     ])
     expect(syncChanges({ ...log, created: 0, removed: 0 })).toEqual([])
+    expect(syncChanges({ ...log, created: 0, removed: 0, unreadable: 1 })).toEqual([{ change: 'unreadable', count: 1 }])
   })
 })

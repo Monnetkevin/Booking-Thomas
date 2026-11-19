@@ -29,10 +29,10 @@ export const healthTone: Record<FeedHealth, BadgeTone> = {
   ok: 'success',
 }
 
-export type SyncChange = 'created' | 'updated' | 'removed' | 'conflicts'
+export type SyncChange = 'created' | 'updated' | 'removed' | 'conflicts' | 'unreadable'
 
-/** Changements d'une lecture, dans l'ordre d'affichage, sans les compteurs à zéro. */
+/** Changements et anomalies d'une lecture, dans l'ordre d'affichage, sans les compteurs à zéro. */
 export function syncChanges(log: IcalSyncLog): Array<{ change: SyncChange; count: number }> {
-  const changes: SyncChange[] = ['created', 'updated', 'removed', 'conflicts']
+  const changes: SyncChange[] = ['created', 'updated', 'removed', 'conflicts', 'unreadable']
   return changes.map((change) => ({ change, count: log[change] })).filter(({ count }) => count > 0)
 }

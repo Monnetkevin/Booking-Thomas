@@ -9,6 +9,7 @@ return [
         'invalid' => 'Le fichier reçu n’est pas un calendrier iCal valide.',
         'suspicious_empty' => 'Le calendrier reçu est vide alors que des nuits étaient bloquées : il est ignoré par précaution.',
         'no_import_url' => 'Aucune URL d’import n’est renseignée pour ce calendrier.',
+        'inactive' => 'Ce calendrier est désactivé : réactivez-le pour le synchroniser.',
         'already_exists' => 'Ce logement a déjà un calendrier :provider.',
         'import_url_host' => 'Cette adresse n’est pas un calendrier :provider.',
     ],

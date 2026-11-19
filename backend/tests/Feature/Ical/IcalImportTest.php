@@ -7,6 +7,7 @@ use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Models\RatePeriod;
+use App\Models\User;
 use App\Services\Ical\IcalImportService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
@@ -153,6 +154,51 @@ describe('un flux en panne ou vide ne libère aucune nuit', function () {
             ->and(feedNights($this->feed))->toBe($this->before);
     });
 
+    it('événement devenu illisible : ses nuits restent bloquées, le reste du flux est appliqué', function () {
+        // Séjour du 3 déc. illisible, séjour du 21 nov. déplacé au 22.
+        $corrupted = str_replace('DTSTART;VALUE=DATE:20261203', 'DTSTART;VALUE=DATE:2026-12-03T', str_replace(
+            ['DTSTART;VALUE=DATE:20261121', 'DTEND;VALUE=DATE:20261125'],
+            ['DTSTART;VALUE=DATE:20261122', 'DTEND;VALUE=DATE:20261126'],
+            icalFixture('airbnb'),
+        ));
+        airbnbServes($corrupted, '"v2"');
+
+        $result = ($this->sync)();
+
+        expect($result)->status->toBe(IcalSyncStatus::Success)->removed_count->toBe(0)->updated_count->toBe(1)->unreadable_count->toBe(1)
+            ->and(array_values(feedNights($this->feed)))->toBe([
+                ['2026-11-22', '2026-11-26', true],
+                ['2026-12-03', '2026-12-05', true],
+            ]);
+    });
+
+    it('flux dont tous les événements sont illisibles : ni libéré, ni pris pour un calendrier vide', function () {
+        $corrupted = str_replace('DTSTART;VALUE=DATE:2026', 'DTSTART;VALUE=DATE:illisible-2026', icalFixture('airbnb'));
+        airbnbServes($corrupted, '"v2"');
+
+        $result = ($this->sync)();
+
+        // Le séjour passé, illisible lui aussi, ne tenait aucune nuit à venir : il n'est pas compté.
+        expect($result)->status->toBe(IcalSyncStatus::Success)->removed_count->toBe(0)->unreadable_count->toBe(2)
+            ->and(feedNights($this->feed))->toBe($this->before)
+            ->and($this->feed->fresh()->empty_calendar_refused)->toBeFalse();
+    });
+
+    it('flux vide hormis un événement factice sans date : refusé comme un calendrier vide', function () {
+        airbnbServes(str_replace(
+            'END:VCALENDAR',
+            "BEGIN:VEVENT\r\nUID:factice@airbnb.com\r\nSUMMARY:Reserved\r\nEND:VEVENT\r\nEND:VCALENDAR",
+            icalFixture('airbnb-empty'),
+        ), '"v2"');
+
+        $result = ($this->sync)();
+
+        expect($result->status)->toBe(IcalSyncStatus::Failed)
+            ->and($result->unreadable_count)->toBe(0)
+            ->and(feedNights($this->feed))->toBe($this->before)
+            ->and($this->feed->fresh()->empty_calendar_refused)->toBeTrue();
+    });
+
     it('erreur du serveur, après 3 tentatives espacées', function () {
         airbnbServes('', '', 503);
 
@@ -172,6 +218,98 @@ describe('un flux en panne ou vide ne libère aucune nuit', function () {
         expect(($this->sync)()->status)->toBe(IcalSyncStatus::Failed)
             ->and(feedNights($this->feed))->toBe($this->before);
     });
+});
+
+it('libère les nuits d’un calendrier vide seulement quand l’hôte le confirme', function () {
+    airbnbServes(icalFixture('airbnb'));
+    ($this->sync)();
+    airbnbServes(icalFixture('airbnb-empty'), '"v2"');
+    ($this->sync)();
+    expect($this->feed->fresh()->empty_calendar_refused)->toBeTrue();
+    $this->actingAs(User::factory()->create());
+
+    // Sans confirmation, « Synchroniser maintenant » refuse toujours le calendrier vide.
+    $this->postJson("/api/admin/ical-feeds/{$this->feed->id}/sync")->assertJsonPath('data.status', 'failed');
+    $this->getJson('/api/admin/ical-feeds')->assertJsonPath('data.0.empty_calendar_refused', true);
+    expect(array_column(feedNights($this->feed), 2))->toBe([true, true]);
+
+    $this->postJson("/api/admin/ical-feeds/{$this->feed->id}/sync", ['accept_empty' => true])
+        ->assertJsonPath('data.status', 'success')
+        ->assertJsonPath('data.removed', 2);
+
+    expect(array_column(feedNights($this->feed), 2))->toBe([false, false])
+        ->and($this->feed->fresh())->consecutive_failures->toBe(0)->empty_calendar_refused->toBeFalse();
+    $this->getJson('/api/admin/ical-feeds')->assertJsonPath('data.0.empty_calendar_refused', false);
+});
+
+it('garde le refus du calendrier vide en attente pendant une autre panne', function () {
+    airbnbServes(icalFixture('airbnb'));
+    ($this->sync)();
+    airbnbServes(icalFixture('airbnb-empty'), '"v2"');
+    ($this->sync)();
+
+    airbnbServes('', '', 503);
+    ($this->sync)();
+
+    expect($this->feed->fresh())->empty_calendar_refused->toBeTrue()->last_error->toContain('503');
+});
+
+it('ne libère pas les nuits d’un calendrier désactivé, même si l’hôte confirme qu’il est vide', function () {
+    airbnbServes(icalFixture('airbnb'));
+    ($this->sync)();
+    airbnbServes(icalFixture('airbnb-empty'), '"v2"');
+    ($this->sync)();
+    $this->feed->update(['is_active' => false]);
+    $this->actingAs(User::factory()->create());
+
+    $this->getJson('/api/admin/ical-feeds')->assertJsonPath('data.0.empty_calendar_refused', false);
+    $this->postJson("/api/admin/ical-feeds/{$this->feed->id}/sync", ['accept_empty' => true])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'ical_feed_inactive');
+
+    expect(array_column(feedNights($this->feed), 2))->toBe([true, true]);
+});
+
+it('ne relit jamais un calendrier désactivé, même sur demande : aucune nuit n’est libérée', function () {
+    airbnbServes(icalFixture('airbnb'));
+    ($this->sync)();
+    $this->feed->update(['is_active' => false]);
+    airbnbServes(icalFixture('airbnb-modified'), '"v2"');
+    $this->actingAs(User::factory()->create());
+
+    $this->postJson("/api/admin/ical-feeds/{$this->feed->id}/sync")
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'ical_feed_inactive');
+
+    expect(array_column(feedNights($this->feed), 2))->toBe([true, true])
+        ->and($this->feed->fresh()->content_hash)->toBe(hash('sha256', icalFixture('airbnb')));
+});
+
+it('ignore une confirmation de calendrier vide quand aucun refus n’est en attente', function () {
+    airbnbServes(icalFixture('airbnb'));
+    ($this->sync)();
+    expect($this->feed->fresh()->empty_calendar_refused)->toBeFalse();
+    // Confirmation périmée (onglet resté ouvert) alors que la plateforme renvoie un flux vide.
+    airbnbServes(icalFixture('airbnb-empty'), '"v2"');
+    $this->actingAs(User::factory()->create());
+
+    $this->postJson("/api/admin/ical-feeds/{$this->feed->id}/sync", ['accept_empty' => true])
+        ->assertJsonPath('data.status', 'failed');
+
+    expect(array_column(feedNights($this->feed), 2))->toBe([true, true])
+        ->and($this->feed->fresh()->empty_calendar_refused)->toBeTrue();
+});
+
+it('ne libère rien si l’hôte confirme un calendrier vide qui ne l’est pas', function () {
+    airbnbServes(icalFixture('airbnb'));
+    ($this->sync)();
+    airbnbServes(icalFixture('airbnb-modified'), '"v2"');
+    $this->actingAs(User::factory()->create());
+
+    $this->postJson("/api/admin/ical-feeds/{$this->feed->id}/sync", ['accept_empty' => true])
+        ->assertJsonPath('data.removed', 1);
+
+    expect(array_column(feedNights($this->feed), 2))->toBe([true, false]);
 });
 
 it('remet le compteur d’échecs à zéro après une lecture réussie', function () {

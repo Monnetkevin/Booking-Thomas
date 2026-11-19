@@ -35,7 +35,10 @@ export function useSaveIcalFeed(apartmentId: number, service: SyncService = sync
 
 export function useSyncNow(service: SyncService = syncService) {
   const refresh = useRefresh()
-  return useMutation({ mutationFn: (feedId: number) => service.syncNow(feedId), onSuccess: refresh })
+  return useMutation({
+    mutationFn: ({ feedId, acceptEmpty = false }: { feedId: number; acceptEmpty?: boolean }) => service.syncNow(feedId, acceptEmpty),
+    onSuccess: refresh,
+  })
 }
 
 export function useRegenerateExportToken(service: SyncService = syncService) {

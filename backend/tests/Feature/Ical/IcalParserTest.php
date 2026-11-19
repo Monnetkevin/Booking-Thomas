@@ -16,7 +16,7 @@ function parsed(string $content): array
 {
     return array_map(
         fn ($event) => [$event->uid, $event->startsOn->toDateString(), $event->endsOn->toDateString()],
-        app(IcalParser::class)->parse($content),
+        app(IcalParser::class)->parse($content)->events,
     );
 }
 
@@ -44,6 +44,17 @@ it('ignore les événements annulés ou sans identifiant', function () {
         "UID:f\r\nSTATUS:CANCELLED\r\nDTSTART;VALUE=DATE:20261121\r\nDTEND;VALUE=DATE:20261122",
         "DTSTART;VALUE=DATE:20261121\r\nDTEND;VALUE=DATE:20261122",
     )))->toBe([]);
+});
+
+it('signale à part un événement présent mais aux dates illisibles', function () {
+    $calendar = app(IcalParser::class)->parse(calendarWith(
+        "UID:g\r\nDTSTART;VALUE=DATE:20261121\r\nDTEND;VALUE=DATE:20261125",
+        "UID:h\r\nDTSTART;VALUE=DATE:2026-12-03T\r\nDTEND;VALUE=DATE:20261205",
+        "UID:i\r\nSUMMARY:Reserved",
+    ));
+
+    expect(array_map(fn ($event) => $event->uid, $calendar->events))->toBe(['g'])
+        ->and($calendar->unreadableUids)->toBe(['h', 'i']);
 });
 
 it('refuse un fichier qui n’est pas un calendrier', function (string $content) {

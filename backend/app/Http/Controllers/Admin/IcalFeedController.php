@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Ical\StoreIcalFeedRequest;
+use App\Http\Requests\Admin\Ical\SyncIcalFeedRequest;
 use App\Http\Requests\Admin\Ical\UpdateIcalFeedRequest;
 use App\Http\Resources\Admin\IcalFeedResource;
 use App\Http\Resources\Admin\IcalSyncLogResource;
@@ -42,11 +43,11 @@ class IcalFeedController extends Controller
     }
 
     /** « Synchroniser maintenant » : lecture immédiate, bilan renvoyé à l'hôte. */
-    public function sync(IcalFeed $icalFeed): IcalSyncLogResource
+    public function sync(SyncIcalFeedRequest $request, IcalFeed $icalFeed): IcalSyncLogResource
     {
         Gate::authorize('update', $icalFeed);
 
-        return new IcalSyncLogResource($this->feeds->syncNow($icalFeed));
+        return new IcalSyncLogResource($this->feeds->syncNow($icalFeed, $request->acceptsEmpty()));
     }
 
     public function logs(IcalFeed $icalFeed): AnonymousResourceCollection

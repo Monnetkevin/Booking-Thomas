@@ -2,9 +2,9 @@
 
 namespace App\Services\Ical;
 
-use App\Enums\IcalSyncStatus;
 use App\Enums\IcalSyncTrigger;
 use App\Events\IcalFeedFailing;
+use App\Exceptions\Ical\EmptyCalendarRefusedException;
 use App\Exceptions\Ical\IcalFeedNotImportableException;
 use App\Exceptions\Ical\IcalSyncException;
 use App\Models\IcalFeed;
@@ -30,16 +30,19 @@ class IcalImportService
     ) {}
 
     /**
+     * @param  bool  $acceptEmpty  l'hôte confirme qu'un calendrier vide est normal (dernier
+     *                             séjour annulé chez la plateforme) : ses nuits sont libérées
+     *
      * @throws IcalFeedNotImportableException flux sans URL d'import
      */
-    public function sync(IcalFeed $feed, IcalSyncTrigger $trigger = IcalSyncTrigger::Scheduled): IcalSyncLog
+    public function sync(IcalFeed $feed, IcalSyncTrigger $trigger = IcalSyncTrigger::Scheduled, bool $acceptEmpty = false): IcalSyncLog
     {
         if (blank($feed->import_url)) {
             throw new IcalFeedNotImportableException;
         }
 
         $startedAt = hrtime(true);
-        [$result, $attributes] = $this->read($feed, $trigger);
+        [$result, $attributes] = $this->read($feed, $trigger, $acceptEmpty);
 
         return $this->record($feed, $trigger, $result, $attributes, $startedAt);
     }
@@ -47,7 +50,7 @@ class IcalImportService
     /**
      * @return array{0: SyncResult, 1: array<string, mixed>} bilan, et ce qu'il faut retenir du flux lu
      */
-    private function read(IcalFeed $feed, IcalSyncTrigger $trigger): array
+    private function read(IcalFeed $feed, IcalSyncTrigger $trigger, bool $acceptEmpty): array
     {
         try {
             $fetched = $this->fetcher->fetch((string) $feed->import_url, $feed->etag, $trigger->timeoutSeconds(), $trigger->attempts());
@@ -60,11 +63,12 @@ class IcalImportService
                 return [SyncResult::unchanged(), ['etag' => $fetched->etag]];
             }
 
-            $result = $this->merger->merge($feed, $this->parser->parse($fetched->content));
+            $calendar = $this->parser->parse($fetched->content);
+            $result = $this->merger->merge($feed, $calendar->events, $calendar->unreadableUids, $acceptEmpty);
 
             return [$result, ['etag' => $fetched->etag, 'content_hash' => $hash]];
         } catch (IcalSyncException $e) {
-            return [SyncResult::failed($e->getMessage()), []];
+            return [SyncResult::failed($e->getMessage(), $e instanceof EmptyCalendarRefusedException), []];
         }
     }
 
@@ -74,6 +78,7 @@ class IcalImportService
     private function record(IcalFeed $feed, IcalSyncTrigger $trigger, SyncResult $result, array $attributes, int $startedAt): IcalSyncLog
     {
         $failures = $result->failedSync() ? $feed->consecutive_failures + 1 : 0;
+        $emptyRefusal = $result->emptyRefusal();
 
         $log = $this->feeds->recordSync($feed, [
             ...$attributes,
@@ -81,7 +86,8 @@ class IcalImportService
             'last_status' => $result->status,
             'last_error' => $result->error,
             'consecutive_failures' => $failures,
-            ...($result->status === IcalSyncStatus::Failed ? [] : ['last_succeeded_at' => now()]),
+            ...($result->failedSync() ? [] : ['last_succeeded_at' => now()]),
+            ...($emptyRefusal === null ? [] : ['empty_calendar_refused' => $emptyRefusal]),
         ], [
             'trigger' => $trigger,
             'status' => $result->status,
@@ -89,6 +95,7 @@ class IcalImportService
             'updated_count' => $result->updated,
             'removed_count' => $result->removed,
             'conflict_count' => $result->conflicts,
+            'unreadable_count' => $result->unreadable,
             'error' => $result->error,
             'duration_ms' => intdiv(hrtime(true) - $startedAt, 1_000_000),
         ]);

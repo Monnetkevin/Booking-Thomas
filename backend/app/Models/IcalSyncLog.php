@@ -23,13 +23,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $updated_count
  * @property int $removed_count
  * @property int $conflict_count
+ * @property int $unreadable_count événements présents mais aux dates illisibles
  * @property string|null $error
  * @property int $duration_ms
  * @property Carbon $created_at
  */
 #[Fillable([
     'ical_feed_id', 'trigger', 'status', 'created_count', 'updated_count', 'removed_count',
-    'conflict_count', 'error', 'duration_ms',
+    'conflict_count', 'unreadable_count', 'error', 'duration_ms',
 ])]
 class IcalSyncLog extends Model
 {

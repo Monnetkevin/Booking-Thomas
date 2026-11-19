@@ -33,6 +33,9 @@ class IcalFeedResource extends JsonResource
             'last_status' => $this->last_status?->value,
             'last_error' => $this->last_error,
             'consecutive_failures' => $this->consecutive_failures,
+            // Calendrier vide refusé : l'hôte peut confirmer qu'il est bien vide chez la plateforme
+            // (jamais sur un calendrier désactivé, dont les nuits restent bloquées).
+            'empty_calendar_refused' => $this->empty_calendar_refused && $this->is_active,
         ];
     }
 }

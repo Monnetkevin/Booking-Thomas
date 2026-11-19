@@ -6,7 +6,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Échec d'une synchronisation (flux injoignable, fichier invalide, flux vide suspect).
+ * Échec d'une synchronisation (flux injoignable, fichier invalide, flux vide suspect :
+ * voir EmptyCalendarRefusedException).
  * Jamais renvoyée telle quelle : le message est enregistré sur le flux et les nuits déjà
  * connues sont conservées.
  */
@@ -30,10 +31,5 @@ class IcalSyncException extends RuntimeException
     public static function invalid(?Throwable $previous = null): self
     {
         return new self(__('ical.errors.invalid', [], 'fr'), 0, $previous);
-    }
-
-    public static function suspiciouslyEmpty(): self
-    {
-        return new self(__('ical.errors.suspicious_empty', [], 'fr'));
     }
 }

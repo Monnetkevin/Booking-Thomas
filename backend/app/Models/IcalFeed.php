@@ -29,11 +29,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property IcalSyncStatus|null $last_status
  * @property string|null $last_error
  * @property int $consecutive_failures
+ * @property bool $empty_calendar_refused calendrier vide refusé, en attente de la confirmation de l'hôte
  * @property bool $is_active
  */
 #[Fillable([
     'apartment_id', 'provider', 'import_url', 'export_token', 'etag', 'content_hash',
-    'last_synced_at', 'last_succeeded_at', 'last_status', 'last_error', 'consecutive_failures', 'is_active',
+    'last_synced_at', 'last_succeeded_at', 'last_status', 'last_error', 'consecutive_failures',
+    'empty_calendar_refused', 'is_active',
 ])]
 #[Hidden(['import_url', 'export_token'])]
 class IcalFeed extends Model
@@ -52,6 +54,7 @@ class IcalFeed extends Model
             'last_status' => IcalSyncStatus::class,
             'last_synced_at' => 'datetime',
             'last_succeeded_at' => 'datetime',
+            'empty_calendar_refused' => 'boolean',
             'is_active' => 'boolean',
         ];
     }

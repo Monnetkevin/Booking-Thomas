@@ -18,16 +18,16 @@ use Throwable;
 /**
  * Lit les événements d'un flux iCal (sabre/vobject). Les plateformes publient des
  * journées entières : DTSTART = arrivée, DTEND = départ (exclu). Un horaire éventuel est
- * ramené à la date locale. Les événements annulés ou sans UID sont ignorés.
+ * ramené à la date locale. Les événements annulés ou sans UID sont ignorés ; ceux dont
+ * les dates sont illisibles sont signalés à part, pour que leurs nuits déjà connues ne
+ * soient pas prises pour une annulation.
  */
 class IcalParser
 {
     /**
-     * @return list<ImportedEvent> un événement par UID
-     *
      * @throws IcalSyncException fichier qui n'est pas un calendrier
      */
-    public function parse(string $content): array
+    public function parse(string $content): ParsedCalendar
     {
         if (! str_contains($content, 'BEGIN:VCALENDAR')) {
             throw IcalSyncException::invalid();
@@ -42,29 +42,41 @@ class IcalParser
             throw IcalSyncException::invalid();
         }
 
-        $events = [];
+        $events = $unreadable = [];
         foreach ($calendar->select('VEVENT') as $component) {
             if (! $component instanceof VEvent) {
                 continue;
             }
             // Accès explicite aux propriétés (celles de sabre/vobject sont magiques).
-            $event = $this->event(fn (string $name): mixed => $component->select($name)[0] ?? null);
-            if ($event !== null) {
-                $events[$event->uid] = $event;
+            $property = fn (string $name): mixed => $component->select($name)[0] ?? null;
+
+            $uid = mb_substr(trim((string) $property('UID')), 0, 255);
+            if ($uid === '' || strtoupper(trim((string) $property('STATUS'))) === 'CANCELLED') {
+                continue;
+            }
+
+            $event = $this->event($uid, $property);
+            if ($event === null) {
+                $unreadable[$uid] = true;
+            } else {
+                $events[$uid] = $event;
             }
         }
 
-        return array_values($events);
+        return new ParsedCalendar(
+            array_values($events),
+            array_map(strval(...), array_keys(array_diff_key($unreadable, $events))),
+        );
     }
 
     /**
      * @param  Closure(string): mixed  $property  propriété de l'événement par nom (Property ou null)
+     * @return ImportedEvent|null null si ses dates sont absentes ou illisibles
      */
-    private function event(Closure $property): ?ImportedEvent
+    private function event(string $uid, Closure $property): ?ImportedEvent
     {
-        $uid = trim((string) $property('UID'));
         $start = $property('DTSTART');
-        if ($uid === '' || ! $start instanceof DateTimeProperty || strtoupper(trim((string) $property('STATUS'))) === 'CANCELLED') {
+        if (! $start instanceof DateTimeProperty) {
             return null;
         }
 
@@ -72,11 +84,11 @@ class IcalParser
             $startsOn = $this->localDate($start->getDateTime($this->timezone()));
             $endsOn = $this->endDate($property, $startsOn);
         } catch (Throwable) {
-            return null; // date illisible : l'événement est ignoré, pas tout le flux
+            return null;
         }
 
         return new ImportedEvent(
-            uid: mb_substr($uid, 0, 255),
+            uid: $uid,
             startsOn: $startsOn,
             // Une journée au moins : un événement sans durée bloque la nuit de son début.
             endsOn: $endsOn->gt($startsOn) ? $endsOn : $startsOn->addDay(),

@@ -27,7 +27,7 @@ function exportedStays(TestResponse $response): array
 {
     return array_map(
         fn ($event) => [$event->startsOn->toDateString(), $event->endsOn->toDateString()],
-        app(IcalParser::class)->parse((string) $response->getContent()),
+        app(IcalParser::class)->parse((string) $response->getContent())->events,
     );
 }
 

@@ -24,12 +24,14 @@ describe('service des calendriers', () => {
 
     await service.update(7, { is_active: false })
     await service.syncNow(7)
+    await service.syncNow(7, true)
     await service.logs(7)
     await service.regenerateExportToken(7)
 
     expect(vi.mocked(client.request).mock.calls).toEqual([
       ['/admin/ical-feeds/7', { method: 'PATCH', body: { is_active: false } }],
       ['/admin/ical-feeds/7/sync', { method: 'POST' }],
+      ['/admin/ical-feeds/7/sync', { method: 'POST', body: { accept_empty: true } }],
       ['/admin/ical-feeds/7/logs'],
       ['/admin/ical-feeds/7/export-token', { method: 'POST' }],
     ])

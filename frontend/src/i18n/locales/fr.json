@@ -429,6 +429,13 @@
         "confirmAction": "Changer l’URL"
       },
       "syncNow": "Synchroniser maintenant",
+      "acceptEmpty": {
+        "hint": "Si ce calendrier est bien vide chez {{provider}}, confirmez-le pour libérer ses nuits.",
+        "action": "Le calendrier est bien vide : libérer les nuits",
+        "confirmTitle": "Libérer les nuits importées ?",
+        "confirm": "Le site a reçu un calendrier {{provider}} vide et l’a ignoré par précaution. Confirmez seulement si vous n’avez plus aucune réservation ni nuit bloquée à venir sur {{provider}} : toutes les nuits importées de ce calendrier redeviendront réservables sur le site.",
+        "confirmAction": "Libérer les nuits"
+      },
       "result": {
         "success": "Calendrier lu.",
         "unchanged": "Calendrier inchangé depuis la dernière lecture.",
@@ -443,7 +450,9 @@
         "removed_one": "{{count}} séjour libéré",
         "removed_other": "{{count}} séjours libérés",
         "conflicts_one": "{{count}} conflit de dates",
-        "conflicts_other": "{{count}} conflits de dates"
+        "conflicts_other": "{{count}} conflits de dates",
+        "unreadable_one": "{{count}} événement aux dates illisibles, laissé tel quel",
+        "unreadable_other": "{{count}} événements aux dates illisibles, laissés tels quels"
       },
       "log": {
         "show": "Voir le journal",

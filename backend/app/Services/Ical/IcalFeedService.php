@@ -5,6 +5,7 @@ namespace App\Services\Ical;
 use App\Enums\IcalProvider;
 use App\Enums\IcalSyncTrigger;
 use App\Exceptions\Ical\IcalFeedAlreadyExistsException;
+use App\Exceptions\Ical\IcalFeedInactiveException;
 use App\Exceptions\Ical\IcalFeedNotImportableException;
 use App\Jobs\SyncIcalFeed;
 use App\Models\Apartment;
@@ -70,7 +71,10 @@ class IcalFeedService
     {
         if (array_key_exists('import_url', $data) && $data['import_url'] !== $feed->import_url) {
             // Autre calendrier : rien de l'ancien (ETag, contenu, erreurs) ne vaut plus.
-            $data += ['etag' => null, 'content_hash' => null, 'last_status' => null, 'last_error' => null, 'consecutive_failures' => 0];
+            $data += [
+                'etag' => null, 'content_hash' => null, 'last_status' => null, 'last_error' => null,
+                'consecutive_failures' => 0, 'empty_calendar_refused' => false,
+            ];
         }
 
         $this->feeds->update($feed, $data);
@@ -80,11 +84,22 @@ class IcalFeedService
     }
 
     /**
+     * Un calendrier désactivé n'est jamais relu : ses nuits restent bloquées telles quelles.
+     *
+     * @param  bool  $acceptEmpty  l'hôte confirme que le calendrier est vide chez la plateforme ;
+     *                             pris en compte seulement si un calendrier vide vient d'être refusé
+     *                             (pas sur une confirmation périmée ou envoyée sans refus)
+     *
+     * @throws IcalFeedInactiveException
      * @throws IcalFeedNotImportableException
      */
-    public function syncNow(IcalFeed $feed): IcalSyncLog
+    public function syncNow(IcalFeed $feed, bool $acceptEmpty = false): IcalSyncLog
     {
-        return $this->imports->sync($feed, IcalSyncTrigger::Manual);
+        if (! $feed->is_active) {
+            throw new IcalFeedInactiveException;
+        }
+
+        return $this->imports->sync($feed, IcalSyncTrigger::Manual, $acceptEmpty && $feed->empty_calendar_refused);
     }
 
     /**

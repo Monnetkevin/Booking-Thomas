@@ -20,6 +20,8 @@ export interface IcalFeed {
   last_status: IcalSyncStatus | null
   last_error: string | null
   consecutive_failures: number
+  /** Dernière lecture refusée car le calendrier était vide : l'hôte peut confirmer qu'il l'est vraiment. */
+  empty_calendar_refused: boolean
 }
 
 export interface IcalSyncLog {
@@ -27,11 +29,12 @@ export interface IcalSyncLog {
   feed_id: number
   trigger: 'scheduled' | 'manual'
   status: IcalSyncStatus
-  /** Séjours ajoutés, déplacés, libérés ; conflits en cours. */
+  /** Séjours ajoutés, déplacés, libérés ; conflits en cours ; événements aux dates illisibles (laissés tels quels). */
   created: number
   updated: number
   removed: number
   conflicts: number
+  unreadable: number
   error: string | null
   duration_ms: number
   synced_at: string

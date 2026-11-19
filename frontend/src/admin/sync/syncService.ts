@@ -5,7 +5,8 @@ export interface SyncService {
   list(): Promise<IcalFeed[]>
   create(apartmentId: number, provider: IcalProvider, importUrl: string | null): Promise<IcalFeed>
   update(feedId: number, input: IcalFeedInput): Promise<IcalFeed>
-  syncNow(feedId: number): Promise<IcalSyncLog>
+  /** acceptEmpty : l'hôte confirme que le calendrier est vide chez la plateforme (nuits libérées). */
+  syncNow(feedId: number, acceptEmpty?: boolean): Promise<IcalSyncLog>
   logs(feedId: number): Promise<IcalSyncLog[]>
   regenerateExportToken(feedId: number): Promise<IcalFeed>
 }
@@ -19,7 +20,13 @@ export function createSyncService(client: HttpClient): SyncService {
     create: (apartmentId, provider, importUrl) =>
       unwrap(client.request(`/admin/apartments/${apartmentId}/ical-feeds`, { method: 'POST', body: { provider, import_url: importUrl } })),
     update: (feedId, input) => unwrap(client.request(`/admin/ical-feeds/${feedId}`, { method: 'PATCH', body: input })),
-    syncNow: (feedId) => unwrap(client.request(`/admin/ical-feeds/${feedId}/sync`, { method: 'POST' })),
+    syncNow: (feedId, acceptEmpty = false) =>
+      unwrap(
+        client.request(`/admin/ical-feeds/${feedId}/sync`, {
+          method: 'POST',
+          ...(acceptEmpty ? { body: { accept_empty: true } } : {}),
+        }),
+      ),
     logs: (feedId) => unwrap(client.request(`/admin/ical-feeds/${feedId}/logs`)),
     regenerateExportToken: (feedId) => unwrap(client.request(`/admin/ical-feeds/${feedId}/export-token`, { method: 'POST' })),
   }

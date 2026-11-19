@@ -27,6 +27,7 @@ class IcalSyncLogResource extends JsonResource
             'updated' => $this->updated_count,
             'removed' => $this->removed_count,
             'conflicts' => $this->conflict_count,
+            'unreadable' => $this->unreadable_count,
             'error' => $this->error,
             'duration_ms' => $this->duration_ms,
             'synced_at' => $this->created_at->toIso8601String(),

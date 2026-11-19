@@ -5,7 +5,7 @@ namespace App\Services\Ical;
 use App\Enums\BlockType;
 use App\Enums\IcalSyncStatus;
 use App\Events\IcalConflictDetected;
-use App\Exceptions\Ical\IcalSyncException;
+use App\Exceptions\Ical\EmptyCalendarRefusedException;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\IcalFeed;
@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
  * Applique le contenu d'un flux aux blocs du logement, sous le verrou du logement :
  * UID nouveau → bloc créé ; dates modifiées → bloc déplacé ; UID disparu → bloc désactivé
  * (annulation chez la plateforme). Les séjours terminés ne sont plus touchés.
- * Un flux soudain vide alors que des nuits étaient bloquées est refusé : il ne libère rien.
+ * Un flux soudain vide alors que des nuits étaient bloquées est refusé : il ne libère rien,
+ * sauf si l'hôte confirme que le calendrier est bien vide chez la plateforme. Un événement
+ * présent mais illisible garde ses nuits telles qu'elles étaient (s'il en tenait).
  *
  * Recouvrements (spec « Autres recouvrements ») : une réservation directe en attente de
  * paiement est expirée ; une réservation directe confirmée laisse le bloc en conflit et
@@ -40,25 +42,31 @@ class IcalCalendarMerger
 
     /**
      * @param  list<ImportedEvent>  $events
+     * @param  list<string>  $unreadableUids  événements présents dont les dates sont illisibles
+     * @param  bool  $acceptEmpty  l'hôte confirme qu'un flux vide est normal
      *
-     * @throws IcalSyncException flux vide suspect
+     * @throws EmptyCalendarRefusedException flux vide suspect
      */
-    public function merge(IcalFeed $feed, array $events): SyncResult
+    public function merge(IcalFeed $feed, array $events, array $unreadableUids = [], bool $acceptEmpty = false): SyncResult
     {
         $today = CarbonImmutable::instance(Date::today());
         $upcoming = array_values(array_filter($events, fn (ImportedEvent $event) => $event->endsOn->gt($today)));
 
-        $result = DB::transaction(function () use ($feed, $upcoming, $today): SyncResult {
+        $result = DB::transaction(function () use ($feed, $upcoming, $today, $unreadableUids, $acceptEmpty): SyncResult {
             $this->availability->lockApartment($feed->apartment_id);
 
             $blocks = $this->availability->feedBlocks($feed->id)->keyBy('external_uid');
             $current = $blocks->filter(fn (AvailabilityBlock $block) => $block->is_active && $block->ends_on->gt($today));
-            if ($upcoming === [] && $current->isNotEmpty()) {
-                throw IcalSyncException::suspiciouslyEmpty();
+            // Seuls comptent les illisibles qui tiennent des nuits : un événement factice sans
+            // date (incident de la plateforme) ne doit pas faire passer un flux vide pour lisible.
+            $kept = array_values(array_filter($unreadableUids, fn (string $uid) => $current->has($uid)));
+            if ($upcoming === [] && $kept === [] && $current->isNotEmpty() && ! $acceptEmpty) {
+                throw new EmptyCalendarRefusedException;
             }
 
             // Annulations d'abord : leurs nuits peuvent accueillir un séjour déplacé.
-            $seen = array_flip(array_map(fn (ImportedEvent $event) => $event->uid, $upcoming));
+            // Un événement illisible n'a pas disparu : son bloc reste tel quel.
+            $seen = array_flip([...array_map(fn (ImportedEvent $event) => $event->uid, $upcoming), ...$kept]);
             $removed = 0;
             foreach ($current as $uid => $block) {
                 if (! isset($seen[$uid])) {
@@ -82,7 +90,7 @@ class IcalCalendarMerger
                 fn (AvailabilityBlock $block) => $block->is_active && $block->has_conflict && $block->ends_on->gt($today),
             )->count();
 
-            return new SyncResult(IcalSyncStatus::Success, $created, $updated, $removed, $conflicts);
+            return new SyncResult(IcalSyncStatus::Success, $created, $updated, $removed, $conflicts, unreadable: count($kept));
         });
 
         if ($result->hasChanges()) {
