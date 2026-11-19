@@ -22,6 +22,13 @@ return [
         'expires' => 'Ce lien est valable 24 heures. Passé ce délai, demandez-en un nouveau à l’administrateur.',
         'reason' => 'Vous recevez cet e-mail car un compte du back-office est à votre nom.',
     ],
+    'booking_cancelled' => [
+        'subject' => 'Réservation annulée (:reference)',
+        'title' => 'Votre réservation est annulée',
+        'intro' => 'Bonjour :name, votre réservation :reference a été annulée.',
+        'refund' => 'Si un remboursement vous est dû selon les conditions d’annulation, il vous sera versé sur le moyen de paiement utilisé.',
+        'questions' => 'Une question ? Répondez simplement à cet e-mail.',
+    ],
     'contact' => [
         'subject' => 'Nouveau message de :name',
         'title' => 'Nouveau message',

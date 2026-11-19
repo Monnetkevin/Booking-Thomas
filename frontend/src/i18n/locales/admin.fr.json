@@ -10,7 +10,8 @@
     "users": "Utilisateurs",
     "audit": "Journal",
     "messages": "Messages",
-    "settings": "Réglages"
+    "settings": "Réglages",
+    "bookings": "Réservations"
   },
   "login": {
     "title": "Connexion",
@@ -505,5 +506,72 @@
     "remove": "Retirer la fermeture",
     "removeTitle": "Retirer cette fermeture ?",
     "removeConfirm": "Les nuits redeviennent réservables sur le site."
+  },
+  "bookings": {
+    "title": "Réservations",
+    "subtitle": "Réservations du site et saisies à la main. Les séjours Airbnb sont dans le planning.",
+    "create": "Saisir une réservation",
+    "search": "Rechercher (nom, e-mail, référence)",
+    "status": "Statut",
+    "allStatuses": "Tous les statuts",
+    "apartment": "Logement",
+    "allApartments": "Tous les logements",
+    "source": "Origine",
+    "allSources": "Toutes les origines",
+    "sources": {
+      "direct": "Site",
+      "manual": "Saisie à la main"
+    },
+    "statuses": {
+      "pending": "Paiement en cours",
+      "confirmed": "Confirmée",
+      "completed": "Terminée",
+      "cancelled": "Annulée",
+      "expired": "Expirée"
+    },
+    "empty": "Aucune réservation pour ces filtres.",
+    "pages": "Pages des réservations",
+    "nightsGuests": "{{nights}} nuit(s), {{guests}} voyageur(s)",
+    "notFound": "Cette réservation n’existe pas.",
+    "pdf": "Confirmation PDF",
+    "resend": "Renvoyer la confirmation",
+    "resent": "Confirmation renvoyée à {{email}}.",
+    "cancel": "Annuler la réservation",
+    "stay": "Séjour",
+    "guests": "Voyageurs",
+    "adultsChildren": "{{adults}} adulte(s), {{children}} enfant(s)",
+    "nights": "Nuits",
+    "confirmedAt": "Confirmée le",
+    "cancelledAt": "Annulée le",
+    "price": "Prix et paiements",
+    "total": "Total",
+    "payments": "Paiements",
+    "noPayment": "Aucun paiement enregistré.",
+    "paymentTypes": {
+      "payment": "Paiement",
+      "refund": "Remboursement"
+    },
+    "paymentStatuses": {
+      "pending": "en attente",
+      "succeeded": "réussi",
+      "failed": "échoué"
+    },
+    "policy": "Conditions « {{policy}} » :",
+    "tier": "{{percent}} % jusqu’à {{days}} j avant",
+    "guest": "Voyageur",
+    "guestName": "Nom",
+    "guestEmail": "E-mail",
+    "guestPhone": "Téléphone",
+    "housekeepingNotes": "Notes de ménage",
+    "housekeepingNotesHint": "Visibles par le ménage (lit bébé, arrivée tardive…).",
+    "cancelTitle": "Annuler la réservation {{reference}} ?",
+    "cancelText": "Les nuits redeviennent réservables et le ménage est prévenu. L’annulation est définitive.",
+    "refundProposed": "Remboursement proposé : {{amount}}",
+    "refundRule": "{{days}} jour(s) avant l’arrivée : {{percent}} % de l’hébergement, ménage et taxe de séjour rendus en entier.",
+    "refundStarted": "Séjour commencé : rien n’est dû selon les conditions.",
+    "refundPaid": "Encaissé : {{amount}}.",
+    "refundOffline": "Le remboursement en ligne arrive avec le paiement Stripe ; en attendant, remboursez le voyageur hors ligne.",
+    "notifyGuest": "Prévenir le voyageur par e-mail",
+    "cancelConfirm": "Annuler la réservation"
   }
 }

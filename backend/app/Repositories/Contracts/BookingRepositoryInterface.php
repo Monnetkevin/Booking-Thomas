@@ -3,7 +3,9 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Booking;
+use App\Services\Booking\BookingFilters;
 use Carbon\CarbonInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 interface BookingRepositoryInterface
@@ -37,4 +39,20 @@ interface BookingRepositoryInterface
      * @return Collection<int, Booking>
      */
     public function overduePending(CarbonInterface $now): Collection;
+
+    /**
+     * Réservations du back-office, arrivées les plus proches d'abord, avec leur logement.
+     *
+     * @return LengthAwarePaginator<int, Booking>
+     */
+    public function paginateForAdmin(BookingFilters $filters, int $perPage): LengthAwarePaginator;
+
+    /** Charge ce qu'affiche la fiche d'une réservation (logement, paiements). */
+    public function loadDetails(Booking $booking): Booking;
+
+    /**
+     * Fait passer une réservation de confirmée à annulée, seulement si elle l'est encore en
+     * base (mise à jour conditionnelle) ; false si une autre opération est passée avant.
+     */
+    public function cancelIfConfirmed(Booking $booking): bool;
 }

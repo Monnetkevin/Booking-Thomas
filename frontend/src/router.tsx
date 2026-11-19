@@ -80,6 +80,14 @@ export const router = createBrowserRouter([
             }),
           },
           {
+            path: 'reservations',
+            lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingsPage')).BookingsPage }),
+          },
+          {
+            path: 'reservations/:reference',
+            lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingDetailPage')).BookingDetailPage }),
+          },
+          {
             path: 'messages',
             lazy: async () => ({ Component: (await import('@/admin/messages/pages/MessagesPage')).MessagesPage }),
           },
