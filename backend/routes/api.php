@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\ApartmentPhotoController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Public\ApartmentController as PublicApartmentController;
 use App\Http\Controllers\Public\AvailabilityController;
@@ -46,6 +48,8 @@ Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:q
 */
 Route::prefix('auth')->group(function () {
     Route::post('login', [SessionController::class, 'store'])->middleware('throttle:10,1');
+    // Mot de passe choisi depuis le lien d'invitation ou de réinitialisation.
+    Route::post('password', [PasswordController::class, 'update'])->middleware('throttle:5,1');
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('me', [SessionController::class, 'show'])->middleware('role:admin,housekeeping');
         Route::post('logout', [SessionController::class, 'destroy']);
@@ -90,4 +94,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('ical-feeds/{icalFeed}/logs', [IcalFeedController::class, 'logs']);
     // Lecture immédiate : 6 par minute, pour ne pas solliciter la plateforme à l'excès.
     Route::post('ical-feeds/{icalFeed}/sync', [IcalFeedController::class, 'sync'])->middleware('throttle:6,1');
+
+    // Comptes du back-office : invitation du ménage, activation, lien de mot de passe
+    Route::get('users', [UserController::class, 'index']);
+    Route::post('users', [UserController::class, 'store'])->middleware('throttle:10,1');
+    Route::patch('users/{user}', [UserController::class, 'update'])->whereNumber('user');
+    Route::post('users/{user}/password-reset', [UserController::class, 'sendPasswordReset'])->whereNumber('user')->middleware('throttle:6,1');
 });

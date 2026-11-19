@@ -5,6 +5,7 @@ namespace App\Mail\Previews;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
 use App\Enums\IcalProvider;
+use App\Mail\AccountPasswordLink;
 use App\Mail\BookingConfirmedGuest;
 use App\Mail\BookingConfirmedHost;
 use App\Mail\IcalConflictAlert;
@@ -16,6 +17,7 @@ use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\ContactMessage;
 use App\Models\IcalFeed;
+use App\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -52,6 +54,14 @@ class MailPreviewCatalog
                 'build' => fn (string $locale): TransactionalMail => new IcalConflictAlert(
                     $this->sampleAirbnbBlock(),
                     new EloquentCollection([$this->sampleBooking('fr')]),
+                ),
+            ],
+            'account-invite' => [
+                'label' => 'Invitation d’un compte ménage',
+                'build' => fn (string $locale): TransactionalMail => new AccountPasswordLink(
+                    new User(['name' => 'Alice', 'email' => 'alice@example.com']),
+                    'jeton-exemple',
+                    invitation: true,
                 ),
             ],
         ];

@@ -159,7 +159,8 @@
       "dashboard": "Tableau de bord",
       "apartments": "Appartements",
       "rates": "Tarifs",
-      "sync": "Synchronisation"
+      "sync": "Synchronisation",
+      "users": "Utilisateurs"
     },
     "login": {
       "title": "Connexion",
@@ -470,6 +471,39 @@
           "failed": "Erreur"
         }
       }
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "subtitle": "Votre compte et les comptes ménage, limités au planning et à leurs notifications.",
+      "listTitle": "Comptes",
+      "roles": {
+        "admin": "Administrateur",
+        "housekeeping": "Ménage"
+      },
+      "inactive": "Désactivé",
+      "you": "(vous)",
+      "activate": "Réactiver",
+      "deactivate": "Désactiver",
+      "deactivateTitle": "Désactiver le compte de {{name}} ?",
+      "deactivateConfirm": "Le compte perd aussitôt l’accès au back-office et ne reçoit plus de notifications. Vous pourrez le réactiver.",
+      "sendReset": "Envoyer un lien de mot de passe",
+      "resetSent": "Lien envoyé à {{email}}, valable 24 heures.",
+      "inviteTitle": "Inviter un compte ménage",
+      "inviteHint": "La personne reçoit un e-mail pour choisir son mot de passe (lien valable 24 heures). Elle ne verra ni noms, ni coordonnées, ni montants.",
+      "name": "Nom",
+      "email": "Adresse e-mail",
+      "invite": "Envoyer l’invitation",
+      "invited": "Invitation envoyée à {{email}}."
+    },
+    "password": {
+      "title": "Choisir mon mot de passe",
+      "intro": "Compte : {{email}}",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "rules": "12 caractères au moins, avec des lettres et des chiffres.",
+      "submit": "Enregistrer mon mot de passe",
+      "done": "Mot de passe enregistré. Vous pouvez vous connecter.",
+      "missingLink": "Ce lien est incomplet. Ouvrez le lien reçu par e-mail, ou demandez-en un nouveau à l’administrateur."
     }
   },
   "pricing": {

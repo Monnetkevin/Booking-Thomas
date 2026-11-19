@@ -1,12 +1,14 @@
 import { ApiError } from '@/lib/api'
 import { http, type HttpClient } from '@/lib/http'
-import type { AuthUser, LoginInput } from './types'
+import type { AuthUser, LoginInput, ResetPasswordInput } from './types'
 
 export interface AuthService {
   /** Utilisateur connecté, ou null s'il n'y a pas de session. */
   currentUser(): Promise<AuthUser | null>
   login(input: LoginInput): Promise<AuthUser>
   logout(): Promise<void>
+  /** Mot de passe choisi depuis le lien d'invitation ou de réinitialisation reçu par e-mail. */
+  resetPassword(input: ResetPasswordInput): Promise<void>
 }
 
 /** Appels d'API de l'authentification, sans React ni cache. */
@@ -25,6 +27,9 @@ export function createAuthService(client: HttpClient): AuthService {
     },
     async logout() {
       await client.request<void>('/auth/logout', { method: 'POST' })
+    },
+    async resetPassword(input) {
+      await client.request<void>('/auth/password', { method: 'POST', body: input })
     },
   }
 }

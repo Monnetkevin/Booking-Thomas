@@ -7,6 +7,17 @@ return [
         'contact' => 'Nous contacter',
         'legal' => 'Mentions légales',
     ],
+    'account' => [
+        'invite_subject' => 'Votre accès au planning de ménage',
+        'invite_title' => 'Bienvenue',
+        'invite_intro' => 'Bonjour :name, un compte vient d’être créé pour vous sur le back-office du site. Choisissez votre mot de passe pour vous connecter.',
+        'reset_subject' => 'Choisir un nouveau mot de passe',
+        'reset_title' => 'Nouveau mot de passe',
+        'reset_intro' => 'Bonjour :name, l’administrateur du site vous envoie un lien pour choisir un nouveau mot de passe.',
+        'choose_password' => 'Choisir mon mot de passe',
+        'expires' => 'Ce lien est valable 24 heures. Passé ce délai, demandez-en un nouveau à l’administrateur.',
+        'reason' => 'Vous recevez cet e-mail car un compte du back-office est à votre nom.',
+    ],
     'contact' => [
         'subject' => 'Nouveau message de :name',
         'title' => 'Nouveau message',

@@ -12,3 +12,10 @@ export interface LoginInput {
   password: string
   remember: boolean
 }
+
+export interface ResetPasswordInput {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}
