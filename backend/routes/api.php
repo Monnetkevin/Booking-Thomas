@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlanningController;
@@ -128,6 +129,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('bookings/{booking}/cancel', [AdminBookingController::class, 'cancel']);
     Route::post('bookings/{booking}/resend-confirmation', [AdminBookingController::class, 'resendConfirmation'])->middleware('throttle:6,1');
     Route::get('bookings/{booking}/pdf', [AdminBookingController::class, 'pdf']);
+
+    // Tableau de bord
+    Route::get('dashboard', DashboardController::class);
 
     // Planning multi-logements
     Route::get('planning', PlanningController::class);

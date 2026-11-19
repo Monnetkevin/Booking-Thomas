@@ -106,6 +106,17 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return $block;
     }
 
+    public function upcomingConflicts(string $today): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->where('has_conflict', true)
+            ->where('ends_on', '>', $today)
+            ->with('apartment:id,name')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
     public function planningBlocks(string $from, string $to): Collection
     {
         return AvailabilityBlock::query()

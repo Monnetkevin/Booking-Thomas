@@ -101,4 +101,11 @@ interface AvailabilityRepositoryInterface
      * @return Collection<int, AvailabilityBlock>
      */
     public function planningBlocks(string $from, string $to): Collection;
+
+    /**
+     * Séjours importés en conflit qui ne sont pas terminés, avec leur logement.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function upcomingConflicts(string $today): Collection;
 }

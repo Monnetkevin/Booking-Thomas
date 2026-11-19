@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Models\Booking;
+use App\Models\Payment;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Booking\BookingFilters;
 use Carbon\CarbonInterface;
@@ -100,5 +101,15 @@ class BookingRepository implements BookingRepositoryInterface
     public function recordOfflinePayment(Booking $booking, int $amount): void
     {
         $booking->payments()->create(['type' => PaymentType::Payment, 'amount' => $amount, 'status' => PaymentStatus::Succeeded]);
+    }
+
+    public function netPaymentsBetween(CarbonInterface $from, CarbonInterface $to): int
+    {
+        return (int) Payment::query()
+            ->where('status', PaymentStatus::Succeeded)
+            ->where('created_at', '>=', $from)
+            ->where('created_at', '<', $to)
+            ->selectRaw("coalesce(sum(case when type = 'refund' then -amount else amount end), 0) as net")
+            ->value('net');
     }
 }

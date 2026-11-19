@@ -58,4 +58,7 @@ interface BookingRepositoryInterface
 
     /** Règlement reçu hors ligne (espèces, virement) : paiement réussi, sans Stripe. */
     public function recordOfflinePayment(Booking $booking, int $amount): void;
+
+    /** Encaissé sur la période : paiements réussis moins remboursements réussis, en centimes. */
+    public function netPaymentsBetween(CarbonInterface $from, CarbonInterface $to): int;
 }
