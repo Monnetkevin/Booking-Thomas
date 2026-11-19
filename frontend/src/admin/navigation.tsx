@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BellIcon, BuildingIcon, HomeIcon, ListIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
+import { BellIcon, BuildingIcon, HomeIcon, ListIcon, MailIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
 
 export interface AdminNavItem {
   to: string
@@ -13,6 +13,7 @@ export interface AdminNavItem {
     | 'admin.nav.notifications'
     | 'admin.nav.users'
     | 'admin.nav.audit'
+    | 'admin.nav.messages'
   icon: ReactNode
   roles: Role[]
   end?: boolean
@@ -27,6 +28,7 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: ['admin'] },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'] },
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: ['admin'] },
+  { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: ['admin'] },
   { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['admin', 'housekeeping'] },
   { to: '/admin/utilisateurs', labelKey: 'admin.nav.users', icon: <UsersIcon />, roles: ['admin'] },
   { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: ['admin'] },

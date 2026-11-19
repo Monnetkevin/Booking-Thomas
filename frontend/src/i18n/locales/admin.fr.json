@@ -8,7 +8,8 @@
     "sync": "Synchronisation",
     "notifications": "Notifications",
     "users": "Utilisateurs",
-    "audit": "Journal"
+    "audit": "Journal",
+    "messages": "Messages"
   },
   "login": {
     "title": "Connexion",
@@ -429,5 +430,21 @@
     "title": "Page introuvable",
     "text": "Cette page du back-office n’existe pas, ou plus.",
     "back": "Revenir au tableau de bord"
+  },
+  "messages": {
+    "title": "Messages",
+    "subtitle": "Messages reçus par le formulaire de contact du site.",
+    "filter": "Filtrer les messages",
+    "unread": "Non lus ({{count}})",
+    "all": "Tous",
+    "empty": "Aucun message pour le moment.",
+    "emptyUnread": "Aucun message non lu.",
+    "new": "Nouveau",
+    "reply": "Répondre par e-mail",
+    "replySubject": "Re : {{apartment}}",
+    "yourMessage": "votre message",
+    "markRead": "Marquer comme lu",
+    "markUnread": "Marquer comme non lu",
+    "pages": "Pages des messages"
   }
 }

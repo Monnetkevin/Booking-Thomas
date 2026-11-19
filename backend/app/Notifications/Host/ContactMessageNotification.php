@@ -38,6 +38,6 @@ class ContactMessageNotification extends BackOfficeNotification
 
     public function link(): string
     {
-        return '/admin';
+        return '/admin/messages';
     }
 }
