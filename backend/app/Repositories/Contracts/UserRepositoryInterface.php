@@ -24,7 +24,8 @@ interface UserRepositoryInterface
      */
     public function activeByRole(UserRole $role): Collection;
 
-    public function countActiveAdmins(): int;
+    /** Nombre d'administrateurs actifs, lignes verrouillées jusqu'à la fin de la transaction. */
+    public function countActiveAdminsForUpdate(): int;
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -35,4 +36,7 @@ interface UserRepositoryInterface
      * @param  array<string, mixed>  $attributes
      */
     public function update(User $user, array $attributes): User;
+
+    /** Nouveau mot de passe et nouveau jeton « se souvenir de moi » (les anciens cookies ne valent plus). */
+    public function updatePassword(User $user, string $password): User;
 }

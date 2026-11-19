@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, type FormEvent } from 'react'
+import { useEffect, useLayoutEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { useResetPassword } from '@/admin/auth/useAuth'
@@ -14,15 +14,19 @@ import { ApiError } from '@/lib/api'
 /** Choix du mot de passe depuis le lien d'invitation ou de réinitialisation (valable 24 h). */
 export function SetPasswordPage() {
   const { t } = useTranslation()
-  const [params] = useSearchParams()
-  const token = params.get('token') ?? ''
-  const email = params.get('email') ?? ''
+  const [params, setParams] = useSearchParams()
+  // Lus une fois puis retirés de l'adresse : le lien (valable 24 h) ne reste pas dans l'historique.
+  const [token] = useState(() => params.get('token') ?? '')
+  const [email] = useState(() => params.get('email') ?? '')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const reset = useResetPassword()
   const errors = reset.error instanceof ApiError ? reset.error.fieldErrors : {}
 
   useLayoutEffect(() => applyLocale('fr'), [])
+  useEffect(() => {
+    if (params.has('token') || params.has('email')) setParams({}, { replace: true })
+  }, [params, setParams])
 
   const submit = (event: FormEvent) => {
     event.preventDefault()

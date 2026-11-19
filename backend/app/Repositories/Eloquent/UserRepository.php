@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -24,9 +25,10 @@ class UserRepository implements UserRepositoryInterface
         return User::query()->where('role', $role->value)->where('is_active', true)->get();
     }
 
-    public function countActiveAdmins(): int
+    public function countActiveAdminsForUpdate(): int
     {
-        return User::query()->where('role', UserRole::Admin->value)->where('is_active', true)->count();
+        // PostgreSQL refuse FOR UPDATE avec un agrégat : on verrouille les lignes, puis on compte.
+        return count(User::query()->where('role', UserRole::Admin->value)->where('is_active', true)->lockForUpdate()->pluck('id')->all());
     }
 
     public function create(array $attributes): User
@@ -37,6 +39,13 @@ class UserRepository implements UserRepositoryInterface
     public function update(User $user, array $attributes): User
     {
         $user->update($attributes);
+
+        return $user;
+    }
+
+    public function updatePassword(User $user, string $password): User
+    {
+        $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
 
         return $user;
     }

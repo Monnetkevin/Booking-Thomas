@@ -63,7 +63,7 @@ class UserService
                 if ($actor->is($user)) {
                     throw AccountLockoutException::self();
                 }
-                if ($user->isAdmin() && $this->users->countActiveAdmins() <= 1) {
+                if ($user->isAdmin() && $this->users->countActiveAdminsForUpdate() <= 1) {
                     throw AccountLockoutException::lastAdmin();
                 }
             }
@@ -89,7 +89,9 @@ class UserService
             throw ValidationException::withMessages(['token' => __('users.password.invalid_link', [], 'fr')]);
         }
 
-        $this->users->update($user, ['password' => $password]);
+        // Nouveau mot de passe : les sessions ouvertes sont fermées à leur prochaine requête
+        // (AuthenticateSession de Sanctum) et les cookies « se souvenir de moi » ne valent plus.
+        $this->users->updatePassword($user, $password);
         $this->broker()->deleteToken($user);
     }
 

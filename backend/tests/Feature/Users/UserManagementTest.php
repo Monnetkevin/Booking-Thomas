@@ -3,6 +3,7 @@
 use App\Mail\AccountPasswordLink;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 
 beforeEach(function () {
     // Requêtes de la SPA : session par cookie (Sanctum).
@@ -111,4 +112,28 @@ it('réserve la gestion des comptes aux administrateurs', function () {
     $this->actingAs($cleaner)->getJson('/api/admin/users')->assertForbidden();
     $this->actingAs($cleaner)->postJson('/api/admin/users', ['name' => 'X', 'email' => 'x@example.com'])->assertForbidden();
     $this->actingAs($cleaner)->patchJson("/api/admin/users/{$this->admin->id}", ['is_active' => false])->assertForbidden();
+});
+
+it('ne se laisse pas contourner par un « 0 » à la place de false', function () {
+    $this->actingAs($this->admin)->patchJson("/api/admin/users/{$this->admin->id}", ['is_active' => 0])
+        ->assertUnprocessable()->assertJsonPath('code', 'cannot_deactivate_self');
+    $this->actingAs($this->admin)->patchJson("/api/admin/users/{$this->admin->id}", ['is_active' => '0'])
+        ->assertJsonPath('code', 'cannot_deactivate_self');
+
+    expect($this->admin->fresh()->is_active)->toBeTrue();
+});
+
+it('ferme les sessions ouvertes et les cookies « se souvenir de moi » au changement de mot de passe', function () {
+    $cleaner = User::factory()->housekeeping()->create(['email' => 'alice@example.com', 'password' => 'Ancien-2026-mdp', 'remember_token' => 'ancien']);
+    $this->postJson('/api/auth/login', ['email' => 'alice@example.com', 'password' => 'Ancien-2026-mdp'])->assertOk();
+    $this->getJson('/api/auth/me')->assertOk();
+    $token = Password::broker()->createToken($cleaner);
+
+    $this->postJson('/api/auth/password', ['email' => 'alice@example.com', 'token' => $token, 'password' => 'Nouveau-2026-mdp', 'password_confirmation' => 'Nouveau-2026-mdp'])
+        ->assertNoContent();
+
+    // Requête suivante du navigateur : le compte est relu depuis la session (comme en production).
+    app('auth')->forgetGuards();
+    $this->getJson('/api/auth/me')->assertUnauthorized();
+    expect($cleaner->fresh()->remember_token)->not->toBe('ancien');
 });
