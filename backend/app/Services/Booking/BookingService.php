@@ -114,10 +114,10 @@ class BookingService
     /**
      * Confirme une réservation en attente : les nuits restent bloquées pour de bon, et le
      * voyageur comme l'hôte reçoivent la confirmation avec le PDF. Appelée par le webhook
-     * de paiement (jalon 9) ; sans effet sur une réservation qui n'est plus « pending » en
+     * de paiement (jalon 10) ; sans effet sur une réservation qui n'est plus « pending » en
      * base (déjà confirmée, ou expirée entre-temps), pour qu'un événement reçu deux fois
      * n'envoie pas deux e-mails et qu'une réservation expirée ne soit jamais confirmée
-     * sans ses nuits. Le paiement reçu sur une réservation expirée est traité au jalon 9.
+     * sans ses nuits. Le paiement reçu sur une réservation expirée est traité au jalon 10.
      */
     public function confirm(Booking $booking): Booking
     {
@@ -164,7 +164,7 @@ class BookingService
      * ou nuits prises entre-temps chez une plateforme. Les conflits que ces nuits
      * portaient sont levés. Renvoie false si elle n'était plus en attente (confirmée
      * entre-temps par le paiement : ses nuits restent bloquées).
-     * Jalon 9 : ferme aussi la session Stripe Checkout encore ouverte.
+     * Jalon 10 : ferme aussi la session Stripe Checkout encore ouverte.
      */
     public function expire(Booking $booking): bool
     {
