@@ -505,6 +505,20 @@
         "contact_message": "Nouveau message de contact",
         "stay_changed": "Séjour ajouté, annulé ou déplacé",
         "daily_summary": "Récapitulatif du lendemain"
+      },
+      "preferences": {
+        "link": "Préférences",
+        "title": "Préférences de notification",
+        "subtitle": "Toutes vos notifications restent visibles ici ; choisissez celles que vous recevez aussi par e-mail.",
+        "emailTitle": "Recevoir par e-mail",
+        "emailHint": "Les notifications urgentes partent par e-mail à l’adresse de votre compte.",
+        "forced": "Toujours envoyé par e-mail : deux voyageurs sont attendus sur les mêmes nuits.",
+        "elsewhere": "Déjà reçu par e-mail, avec tout son contenu, aux adresses du réglage « e-mails de notification ».",
+        "summaryTitle": "Récapitulatif du lendemain",
+        "summaryHint": "Chaque jour, les départs et arrivées du lendemain par logement. Rien n’est envoyé s’il n’y en a pas.",
+        "summaryEnabled": "Recevoir le récapitulatif",
+        "summaryHour": "Heure d’envoi",
+        "hour": "{{hour}} h"
       }
     },
     "users": {

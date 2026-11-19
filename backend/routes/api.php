@@ -65,6 +65,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])-
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
     Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification');
+    Route::get('me/notification-preferences', [NotificationController::class, 'preferences']);
+    Route::put('me/notification-preferences', [NotificationController::class, 'updatePreferences']);
 });
 
 /*

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
+import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Card } from '@/components/ui/Card'
 import { FilterChips } from '@/components/ui/FilterChips'
 import { Spinner } from '@/components/ui/Spinner'
@@ -38,6 +40,9 @@ export function NotificationsPage() {
             <Button variant="secondary" onClick={() => markAllRead.mutate()} disabled={!unread.data} loading={markAllRead.isPending}>
               {t('admin.notifications.markAllRead')}
             </Button>
+            <Link to="/admin/notifications/preferences" className={buttonClasses('ghost')}>
+              {t('admin.notifications.preferences.link')}
+            </Link>
           </>
         }
       />
