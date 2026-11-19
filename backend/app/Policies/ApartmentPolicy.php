@@ -12,41 +12,36 @@ class ApartmentPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $this->isActiveAdmin($user);
+        return $user->isActiveAdmin();
     }
 
     public function view(User $user, Apartment $apartment): bool
     {
-        return $this->isActiveAdmin($user);
+        return $user->isActiveAdmin();
     }
 
     public function create(User $user): bool
     {
-        return $this->isActiveAdmin($user);
+        return $user->isActiveAdmin();
     }
 
     public function update(User $user, Apartment $apartment): bool
     {
-        return $this->isActiveAdmin($user);
+        return $user->isActiveAdmin();
     }
 
     public function publish(User $user, Apartment $apartment): bool
     {
-        return $this->isActiveAdmin($user);
+        return $user->isActiveAdmin();
     }
 
     public function reorder(User $user): bool
     {
-        return $this->isActiveAdmin($user);
+        return $user->isActiveAdmin();
     }
 
     public function delete(User $user, Apartment $apartment): bool
     {
-        return $this->isActiveAdmin($user);
-    }
-
-    private function isActiveAdmin(User $user): bool
-    {
-        return $user->is_active && $user->isAdmin();
+        return $user->isActiveAdmin();
     }
 }

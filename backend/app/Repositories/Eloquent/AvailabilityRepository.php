@@ -17,12 +17,12 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
 
     public function hasActiveBlock(int $apartmentId, string $from, string $to): bool
     {
-        return $this->query($apartmentId, $from, $to)->exists();
+        return $this->occupying($apartmentId, $from, $to)->exists();
     }
 
     public function activeBlocks(int $apartmentId, string $from, string $to): Collection
     {
-        return $this->query($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
+        return $this->occupying($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
     }
 
     public function lockApartment(int $apartmentId): void
@@ -46,15 +46,66 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
     }
 
-    /**
-     * @return Builder<AvailabilityBlock>
-     */
-    private function query(int $apartmentId, string $from, string $to): Builder
+    public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection
+    {
+        return $this->occupying($apartmentId, $from, $to)
+            ->where('has_conflict', false)
+            ->when($exceptBlockId !== null, fn (Builder $query) => $query->whereKeyNot($exceptBlockId))
+            ->with('booking')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function conflictsOverlapping(int $apartmentId, string $from, string $to): Collection
     {
         return AvailabilityBlock::query()
             ->where('apartment_id', $apartmentId)
             ->where('is_active', true)
-            ->where('has_conflict', false)
+            ->where('has_conflict', true)
+            ->overlapping($from, $to)
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('ends_on', '>', $from)
+            ->where(fn (Builder $query) => $query->whereNull('ical_feed_id')->orWhere('ical_feed_id', '!=', $exceptFeedId))
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function feedBlocks(int $feedId): Collection
+    {
+        return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->get();
+    }
+
+    public function createBlock(array $attributes): AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->create($attributes);
+    }
+
+    public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock
+    {
+        $block->update($attributes);
+
+        return $block;
+    }
+
+    /**
+     * Blocs actifs qui touchent [from, to[, en conflit ou non : un séjour importé en
+     * conflit occupe bel et bien ses nuits, y compris celles qu'il est seul à tenir.
+     *
+     * @return Builder<AvailabilityBlock>
+     */
+    private function occupying(int $apartmentId, string $from, string $to): Builder
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
             ->overlapping($from, $to);
     }
 }

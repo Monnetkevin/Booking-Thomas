@@ -19,6 +19,7 @@ export default defineConfig({
       '/sanctum': { target: apiTarget, changeOrigin: false },
       '/sitemap.xml': { target: apiTarget, changeOrigin: false },
       '/robots.txt': { target: apiTarget, changeOrigin: false },
+      '/ical': { target: apiTarget, changeOrigin: false },
     },
   },
 })

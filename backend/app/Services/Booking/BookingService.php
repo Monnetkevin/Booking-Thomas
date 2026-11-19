@@ -12,6 +12,7 @@ use App\Models\Booking;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Availability\AvailabilityService;
+use App\Services\Availability\BlockConflictService;
 use App\Services\Security\HumanVerifier;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,7 @@ class BookingService
         private readonly BookingRepositoryInterface $bookings,
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly AvailabilityService $availabilityService,
+        private readonly BlockConflictService $conflicts,
         private readonly QuoteService $quotes,
         private readonly StayRules $rules,
         private readonly CancellationTerms $cancellation,
@@ -152,26 +154,34 @@ class BookingService
      */
     public function expireOverdue(): int
     {
-        $overdue = $this->bookings->overduePending(now());
+        return $this->bookings->overduePending(now())
+            ->filter(fn (Booking $booking) => $this->expire($booking))
+            ->count();
+    }
 
-        $expired = 0;
-
-        foreach ($overdue as $booking) {
-            $released = DB::transaction(function () use ($booking): bool {
-                // Confirmée entre-temps par le paiement : ses nuits restent bloquées.
-                if (! $this->bookings->transitionFromPending($booking, ['status' => BookingStatus::Expired])) {
-                    return false;
-                }
-                $this->availability->releaseBooking($booking);
-
-                return true;
-            });
-            if ($released) {
-                $this->availabilityService->flushApartment($booking->apartment_id);
-                $expired++;
+    /**
+     * Expire une réservation en attente et libère ses nuits : délai de paiement dépassé,
+     * ou nuits prises entre-temps chez une plateforme. Les conflits que ces nuits
+     * portaient sont levés. Renvoie false si elle n'était plus en attente (confirmée
+     * entre-temps par le paiement : ses nuits restent bloquées).
+     * Jalon 9 : ferme aussi la session Stripe Checkout encore ouverte.
+     */
+    public function expire(Booking $booking): bool
+    {
+        $released = DB::transaction(function () use ($booking): bool {
+            if (! $this->bookings->transitionFromPending($booking, ['status' => BookingStatus::Expired])) {
+                return false;
             }
+            $this->availability->releaseBooking($booking);
+            $this->conflicts->release($booking->apartment_id, $booking->arrival, $booking->departure);
+
+            return true;
+        });
+
+        if ($released) {
+            $this->availabilityService->flushApartment($booking->apartment_id);
         }
 
-        return $expired;
+        return $released;
     }
 }

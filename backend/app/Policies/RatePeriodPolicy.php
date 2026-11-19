@@ -10,11 +10,11 @@ class RatePeriodPolicy
 {
     public function update(User $user, RatePeriod $period): bool
     {
-        return $user->is_active && $user->isAdmin();
+        return $user->isActiveAdmin();
     }
 
     public function delete(User $user, RatePeriod $period): bool
     {
-        return $user->is_active && $user->isAdmin();
+        return $user->isActiveAdmin();
     }
 }

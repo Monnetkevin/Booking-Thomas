@@ -6,9 +6,8 @@ use App\Mail\NewContactMessage;
 use App\Models\ContactMessage;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
-use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Services\Notifications\HostNotifier;
 use App\Services\Security\HumanVerifier;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -20,7 +19,7 @@ class ContactService
     public function __construct(
         private readonly ContactMessageRepositoryInterface $messages,
         private readonly ApartmentRepositoryInterface $apartments,
-        private readonly SettingRepositoryInterface $settings,
+        private readonly HostNotifier $host,
         private readonly HumanVerifier $humans,
     ) {}
 
@@ -44,10 +43,7 @@ class ContactService
         unset($data['website'], $data['apartment']);
         $message = $this->messages->create([...$data, 'apartment_id' => $apartmentId, 'locale' => $locale]);
 
-        $recipients = array_filter((array) $this->settings->get('notifications.admin_emails', []));
-        if ($recipients !== []) {
-            Mail::to($recipients)->queue(new NewContactMessage($message));
-        }
+        $this->host->notify(new NewContactMessage($message));
 
         return $message;
     }

@@ -8,6 +8,7 @@ use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
+use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Repositories\Eloquent\ApartmentRepository;
 use App\Repositories\Eloquent\AvailabilityRepository;
 use App\Repositories\Eloquent\BookingRepository;
 use App\Repositories\Eloquent\ContactMessageRepository;
+use App\Repositories\Eloquent\IcalFeedRepository;
 use App\Repositories\Eloquent\RatePeriodRepository;
 use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Eloquent\UserRepository;
@@ -40,6 +42,7 @@ class RepositoryServiceProvider extends ServiceProvider
         RatePeriodRepositoryInterface::class => RatePeriodRepository::class,
         AvailabilityRepositoryInterface::class => AvailabilityRepository::class,
         ContactMessageRepositoryInterface::class => ContactMessageRepository::class,
+        IcalFeedRepositoryInterface::class => IcalFeedRepository::class,
         SettingRepositoryInterface::class => SettingRepository::class,
     ];
 

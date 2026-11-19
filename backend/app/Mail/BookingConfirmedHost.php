@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Mail\Concerns\DescribesBooking;
 use App\Models\Booking;
+use App\Support\SiteUrl;
 use Illuminate\Mail\Mailables\Address;
 
 /** Nouvelle réservation confirmée, pour l'hôte (en français) ; « Répondre » écrit au voyageur. */
@@ -50,7 +51,7 @@ class BookingConfirmedHost extends TransactionalMail
                 'country' => $this->booking->guest_country,
                 'message' => $this->booking->guest_message,
             ],
-            'adminUrl' => rtrim((string) config('booking.frontend_url'), '/').'/admin',
+            'adminUrl' => SiteUrl::to('/admin'),
         ];
     }
 }

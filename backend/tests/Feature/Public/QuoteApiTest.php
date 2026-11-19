@@ -86,13 +86,18 @@ it('accepte une arrivée le jour d’un départ, sauf battement de ménage', fun
     expect(violationCodes(quote()))->toBe(['unavailable']);
 });
 
-it('ignore les blocs désactivés et les conflits iCal signalés', function () {
+it('ignore les blocs désactivés', function () {
     AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['is_active' => false]);
+
+    quote()->assertOk();
+});
+
+it('refuse les nuits d’un séjour importé en conflit : elles sont occupées', function () {
     AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create([
         'type' => BlockType::Ical, 'has_conflict' => true,
     ]);
 
-    quote()->assertOk();
+    expect(violationCodes(quote()))->toBe(['unavailable']);
 });
 
 it('répond 404 pour un logement non publié', function () {

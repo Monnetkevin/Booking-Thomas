@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface AvailabilityRepositoryInterface
 {
-    /** Un bloc actif (hors conflit signalé) touche-t-il une nuit de [from, to[ ? */
+    /**
+     * Un bloc actif touche-t-il une nuit de [from, to[ ? Les blocs en conflit comptent :
+     * leurs nuits sont occupées, même celles qu'ils sont seuls à tenir.
+     */
     public function hasActiveBlock(int $apartmentId, string $from, string $to): bool;
 
     /**
-     * Blocs actifs qui touchent [from, to[, pour le calendrier.
+     * Blocs actifs (en conflit ou non) qui touchent [from, to[, pour le calendrier.
      *
      * @return Collection<int, AvailabilityBlock>
      */
@@ -29,4 +32,45 @@ interface AvailabilityRepositoryInterface
 
     /** Libère les nuits d'une réservation (expirée ou annulée). */
     public function releaseBooking(Booking $booking): void;
+
+    /**
+     * Blocs actifs hors conflit qui touchent [from, to[, avec leur réservation éventuelle :
+     * ceux contre lesquels un nouveau bloc serait en conflit (contrainte d'exclusion).
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection;
+
+    /**
+     * Blocs actifs en conflit qui touchent [from, to[, du plus ancien au plus récent.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function conflictsOverlapping(int $apartmentId, string $from, string $to): Collection;
+
+    /**
+     * Nuits occupées à publier pour une plateforme : blocs actifs du logement qui ne sont
+     * pas terminés au jour $from, sauf ceux importés de son propre calendrier (pas de
+     * boucle : la plateforme les connaît déjà).
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection;
+
+    /**
+     * Tous les blocs importés d'un flux iCal, actifs ou non.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function feedBlocks(int $feedId): Collection;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function createBlock(array $attributes): AvailabilityBlock;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock;
 }

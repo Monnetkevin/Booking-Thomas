@@ -43,4 +43,21 @@ return [
         'host_reply' => 'Répondez directement à cet e-mail pour écrire à :name.',
         'host_reason' => 'Réservation directe confirmée sur le site.',
     ],
+    'ical_conflict' => [
+        'subject' => 'Conflit de dates : :apartment, :dates',
+        'title' => 'Deux réservations sur les mêmes nuits',
+        'intro' => ':provider vient de transmettre un séjour au :apartment (:dates) qui recouvre une réservation faite sur le site :',
+        'action' => 'Les deux réservations sont enregistrées. Annulez l’une des deux sans attendre, sur le site ou sur :provider.',
+        'open_provider' => 'Voir la réservation sur :provider',
+        'reason' => 'Alerte envoyée par la synchronisation des calendriers.',
+    ],
+    'ical_failing' => [
+        'subject' => 'Calendrier :provider en erreur : :apartment',
+        'title' => 'Calendrier illisible',
+        'intro' => 'Le calendrier :provider du :apartment n’a pas pu être lu :failures fois de suite :',
+        'last_success' => 'Dernière lecture réussie : :date. Les nuits connues à ce moment restent bloquées, mais les nouvelles réservations :provider n’arrivent plus sur le site.',
+        'never' => 'Ce calendrier n’a encore jamais été lu : aucune réservation de la plateforme n’est bloquée sur le site.',
+        'action' => 'Vérifiez l’URL d’import (copiée depuis :provider) puis lancez une synchronisation depuis le back-office.',
+        'open_admin' => 'Ouvrir la synchronisation',
+    ],
 ];

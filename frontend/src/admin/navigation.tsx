@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BuildingIcon, HomeIcon, TagIcon } from '@/components/icons'
+import { BuildingIcon, HomeIcon, SyncIcon, TagIcon } from '@/components/icons'
 
 export interface AdminNavItem {
   to: string
   /** Clé de traduction du libellé. */
-  labelKey: 'admin.nav.dashboard' | 'admin.nav.apartments' | 'admin.nav.rates'
+  labelKey: 'admin.nav.dashboard' | 'admin.nav.apartments' | 'admin.nav.rates' | 'admin.nav.sync'
   icon: ReactNode
   roles: Role[]
   end?: boolean
@@ -19,6 +19,7 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin', labelKey: 'admin.nav.dashboard', icon: <HomeIcon />, roles: ['admin'], end: true },
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: ['admin'] },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'] },
+  { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: ['admin'] },
 ]
 
 export function navigationFor(role: Role, items: AdminNavItem[] = adminNavigation): AdminNavItem[] {

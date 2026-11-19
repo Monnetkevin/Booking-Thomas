@@ -60,6 +60,10 @@ export const router = createBrowserRouter([
             path: 'tarifs',
             lazy: async () => ({ Component: (await import('@/admin/rates/pages/RatesPage')).RatesPage }),
           },
+          {
+            path: 'synchronisation',
+            lazy: async () => ({ Component: (await import('@/admin/sync/pages/SyncPage')).SyncPage }),
+          },
         ],
       },
     ],

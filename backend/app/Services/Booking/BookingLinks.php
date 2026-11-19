@@ -4,6 +4,7 @@ namespace App\Services\Booking;
 
 use App\Mail\Support\MailLinks;
 use App\Models\Booking;
+use App\Support\SiteUrl;
 use Illuminate\Support\Facades\URL;
 
 /**
@@ -27,8 +28,7 @@ class BookingLinks
      */
     public function pdfUrl(Booking $booking): string
     {
-        return rtrim((string) config('booking.frontend_url'), '/')
-            ."/api/bookings/{$booking->reference}/pdf?signature=".$this->signature('bookings.pdf', $booking);
+        return SiteUrl::to("/api/bookings/{$booking->reference}/pdf").'?signature='.$this->signature('bookings.pdf', $booking);
     }
 
     /** Signature d'une route de l'API, transmise par la page du site. */

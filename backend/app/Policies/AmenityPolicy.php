@@ -8,6 +8,6 @@ class AmenityPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->is_active && $user->isAdmin();
+        return $user->isActiveAdmin();
     }
 }

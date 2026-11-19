@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, nightsBetween, formatLongDate, fromIso, toIso } from './dates'
+import { formatDate, formatDateTime, nightsBetween, formatLongDate, fromIso, toIso } from './dates'
 
 describe('dates', () => {
   it('affiche une date courte en français, sans décalage de fuseau', () => {
@@ -20,5 +20,9 @@ describe('dates', () => {
   it('écrit une date longue avec le jour de la semaine', () => {
     expect(formatLongDate('2026-11-17')).toBe('mar. 17 nov. 2026')
     expect(formatLongDate('2026-11-17', 'en-GB')).toBe('Tue, 17 Nov 2026')
+  })
+
+  it('écrit un instant avec sa date et son heure', () => {
+    expect(formatDateTime('2026-11-13T10:15:00Z', 'fr-FR')).toMatch(/^13 nov\. 2026( à|,) \d{2}:15$/)
   })
 })
