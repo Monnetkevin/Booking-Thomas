@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { FilterChips } from '@/components/ui/FilterChips'
 import { Spinner } from '@/components/ui/Spinner'
+import { ApiError } from '@/lib/api'
 import { toIso } from '@/lib/dates'
 import { PlanningGrid } from '../components/PlanningGrid'
 import { addDays, planningDays, type BlockKind } from '../planningLayout'
@@ -122,11 +123,19 @@ export function PlanningPage() {
         cancelLabel={t('admin.common.cancel')}
         tone="danger"
         pending={removeBlock.isPending}
-        onCancel={() => setRemoving(null)}
-        onConfirm={() => removing && removeBlock.mutate(removing.id, { onSettled: () => setRemoving(null) })}
+        onCancel={() => {
+          setRemoving(null)
+          removeBlock.reset()
+        }}
+        onConfirm={() => removing && removeBlock.mutate(removing.id, { onSuccess: () => setRemoving(null) })}
       >
         {removing && `${removing.label ?? t('admin.planning.kinds.closed')} · ${removing.starts_on} → ${removing.ends_on}. `}
         {t('admin.blocks.removeConfirm')}
+        {removeBlock.isError && (
+          <span role="alert" className="mt-3 block font-semibold text-danger">
+            {(removeBlock.error instanceof ApiError && removeBlock.error.serverMessage) || t('common.error')}
+          </span>
+        )}
       </ConfirmDialog>
     </>
   )

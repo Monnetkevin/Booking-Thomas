@@ -10,12 +10,14 @@ use App\Exceptions\Booking\StayNotAllowedException;
 use App\Exceptions\DatesUnavailableException;
 use App\Models\Apartment;
 use App\Models\Booking;
+use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Pricing\MissingRateException;
 use App\Services\Pricing\PriceCalculator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -32,6 +34,7 @@ class ManualBookingService
 {
     public function __construct(
         private readonly BookingRepositoryInterface $bookings,
+        private readonly ApartmentRepositoryInterface $apartments,
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly AvailabilityService $availabilityService,
         private readonly PriceCalculator $calculator,
@@ -44,12 +47,18 @@ class ManualBookingService
      * @param  array{name: string, email: string|null, phone: string|null, country: string|null, locale: string, housekeeping_notes: string|null}  $guest
      * @param  int|null  $total  total fixé par l'hôte, en centimes (null : prix calculé)
      *
+     * @throws ModelNotFoundException logement inconnu ou supprimé
      * @throws StayNotAllowedException trop de voyageurs pour le logement
      * @throws ValidationException aucun tarif et aucun total
      * @throws DatesUnavailableException nuits déjà occupées
      */
-    public function create(Apartment $apartment, Stay $stay, array $guest, ?int $total, bool $paid, bool $notifyGuest): Booking
+    public function create(int $apartmentId, Stay $stay, array $guest, ?int $total, bool $paid, bool $notifyGuest): Booking
     {
+        $apartment = $this->apartments->findWithTrashed($apartmentId);
+        if ($apartment === null || $apartment->trashed()) {
+            throw (new ModelNotFoundException)->setModel(Apartment::class, [$apartmentId]);
+        }
+
         if ($stay->guests() > $apartment->capacity) {
             throw new StayNotAllowedException([['code' => 'too_many_guests', 'message' => __('stay.too_many_guests', ['capacity' => $apartment->capacity])]]);
         }

@@ -11,6 +11,7 @@ use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -71,11 +72,19 @@ class ManualBlockService
         }
 
         $before = $this->auditValues($block);
-        DB::transaction(function () use ($block): void {
+        $deleted = DB::transaction(function () use ($block): bool {
             $this->availability->lockApartment($block->apartment_id);
-            $this->availability->deleteBlock($block);
+            // Sous le verrou : une seconde demande simultanée ne trouve plus le bloc.
+            if (! $this->availability->deleteBlock($block)) {
+                return false;
+            }
             $this->conflicts->release($block->apartment_id, $block->starts_on, $block->ends_on);
+
+            return true;
         });
+        if (! $deleted) {
+            throw (new ModelNotFoundException)->setModel(AvailabilityBlock::class, [$block->id]);
+        }
 
         $this->availabilityService->flushApartment($block->apartment_id);
         $this->audit->record(AuditAction::BlockDeleted, $block, before: $before);

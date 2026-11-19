@@ -28,7 +28,8 @@ export interface RefundProposal {
 
 /** Fiche complète d'une réservation. */
 export interface BookingDetail extends BookingListItem {
-  guest_email: string
+  /** Absent pour certaines réservations saisies à la main. */
+  guest_email: string | null
   guest_phone: string | null
   guest_country: string | null
   guest_message: string | null
@@ -82,7 +83,7 @@ export interface ManualBookingInput {
 
 export interface GuestInput {
   guest_name?: string
-  guest_email?: string
+  guest_email?: string | null
   guest_phone?: string | null
   guest_country?: string | null
   housekeeping_notes?: string | null

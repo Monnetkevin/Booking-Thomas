@@ -50,7 +50,8 @@ class UserService
             'is_active' => true,
         ]);
         $this->sendPasswordLink($user, invitation: true);
-        $this->audit->record(AuditAction::UserInvited, $user, after: ['name' => $user->name, 'email' => $user->email, 'role' => $user->role->value]);
+        // Ni nom ni e-mail dans le journal (conservé un an) : le compte visé suffit.
+        $this->audit->record(AuditAction::UserInvited, $user, after: ['role' => $user->role->value]);
 
         return $user;
     }

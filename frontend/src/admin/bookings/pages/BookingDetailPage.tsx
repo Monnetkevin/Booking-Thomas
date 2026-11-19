@@ -52,9 +52,11 @@ export function BookingDetailPage() {
                   <DownloadIcon />
                   {t('admin.bookings.pdf')}
                 </a>
-                <Button variant="secondary" loading={resend.isPending} onClick={() => resend.mutate()}>
-                  {t('admin.bookings.resend')}
-                </Button>
+                {data.guest_email && (
+                  <Button variant="secondary" loading={resend.isPending} onClick={() => resend.mutate()}>
+                    {t('admin.bookings.resend')}
+                  </Button>
+                )}
               </>
             )}
             {data.refund_proposal && (
@@ -65,7 +67,16 @@ export function BookingDetailPage() {
           </>
         }
       />
-      {resend.isSuccess && <div className="mb-4"><Alert tone="success">{t('admin.bookings.resent', { email: data.guest_email })}</Alert></div>}
+      {resend.isSuccess && (
+        <div className="mb-4">
+          <Alert tone="success">{t('admin.bookings.resent', { email: data.guest_email ?? '' })}</Alert>
+        </div>
+      )}
+      {resend.isError && (
+        <div className="mb-4">
+          <Alert tone="danger">{(resend.error instanceof ApiError && resend.error.serverMessage) || t('common.error')}</Alert>
+        </div>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Section title={t('admin.bookings.stay')}>

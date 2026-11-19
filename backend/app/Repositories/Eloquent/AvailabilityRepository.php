@@ -94,9 +94,9 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return AvailabilityBlock::query()->create($attributes);
     }
 
-    public function deleteBlock(AvailabilityBlock $block): void
+    public function deleteBlock(AvailabilityBlock $block): bool
     {
-        $block->delete();
+        return AvailabilityBlock::query()->whereKey($block->id)->delete() === 1;
     }
 
     public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock

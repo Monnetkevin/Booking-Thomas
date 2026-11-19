@@ -12,7 +12,7 @@ export function GuestForm({ booking }: { booking: BookingDetail }) {
   const { t } = useTranslation()
   const [values, setValues] = useState({
     guest_name: booking.guest_name,
-    guest_email: booking.guest_email,
+    guest_email: booking.guest_email ?? '',
     guest_phone: booking.guest_phone ?? '',
     housekeeping_notes: booking.housekeeping_notes ?? '',
   })
@@ -22,7 +22,12 @@ export function GuestForm({ booking }: { booking: BookingDetail }) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    update.mutate({ ...values, guest_phone: values.guest_phone || null, housekeeping_notes: values.housekeeping_notes || null })
+    update.mutate({
+      ...values,
+      guest_email: values.guest_email || null,
+      guest_phone: values.guest_phone || null,
+      housekeeping_notes: values.housekeeping_notes || null,
+    })
   }
 
   return (

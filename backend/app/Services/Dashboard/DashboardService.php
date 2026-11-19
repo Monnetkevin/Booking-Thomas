@@ -54,9 +54,10 @@ class DashboardService
     private function movements(CarbonImmutable $today): array
     {
         $end = $today->addDays(self::MOVEMENT_DAYS);
-        $blocks = $this->availability->planningBlocks($today->subDay()->toDateString(), $end->toDateString())
-            ->filter(fn (AvailabilityBlock $block) => in_array($this->nights->kind($block), ['direct', 'platform'], true));
         $apartments = $this->apartments->allOrdered()->keyBy('id');
+        $blocks = $this->availability->planningBlocks($today->subDay()->toDateString(), $end->toDateString())
+            ->whereIn('apartment_id', $apartments->keys()->all())
+            ->filter(fn (AvailabilityBlock $block) => in_array($this->nights->kind($block), ['direct', 'platform'], true));
 
         $days = [];
         for ($day = $today; $day->lt($end); $day = $day->addDay()) {
@@ -83,10 +84,12 @@ class DashboardService
     {
         $from = $today->startOfMonth();
         $to = $from->addMonth();
-        $nights = $this->nights->count($this->availability->planningBlocks($from->toDateString(), $to->toDateString()), $from, $to);
+        $apartments = $this->apartments->allOrdered();
+        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $apartments->modelKeys());
+        $nights = $this->nights->count($blocks, $from, $to);
 
         return [
-            'occupancy' => $this->nights->occupancy($nights, $this->apartments->allOrdered()->count(), (int) $from->diffInDays($to)),
+            'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $from->diffInDays($to)),
             'nights' => $nights,
             'revenue' => $this->bookings->netPaymentsBetween($from, $to),
         ];

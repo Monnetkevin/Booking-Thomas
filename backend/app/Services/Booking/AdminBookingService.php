@@ -106,7 +106,7 @@ class AdminBookingService
         if (! $this->cancellable($booking)) {
             throw new BookingNotCancellableException;
         }
-        $proposal = $this->refunds->propose($booking->loadMissing('payments'), CarbonImmutable::instance(Date::today()));
+        $proposal = $this->refunds->propose($this->bookings->loadDetails($booking), CarbonImmutable::instance(Date::today()));
 
         $cancelled = DB::transaction(function () use ($booking): bool {
             $this->availability->lockApartment($booking->apartment_id);

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin\Bookings;
 use App\Services\Booking\Stay;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * Réservation saisie par l'hôte : logement, séjour, voyageur (e-mail facultatif), total
@@ -34,8 +35,8 @@ class StoreManualBookingRequest extends FormRequest
     {
         return [
             'apartment_id' => ['required', 'integer', Rule::exists('apartments', 'id')->whereNull('deleted_at')],
-            'arrival' => ['required', 'date_format:Y-m-d'],
-            'departure' => ['required', 'date_format:Y-m-d', 'after:arrival', 'before_or_equal:'.$this->maxDeparture()],
+            'arrival' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'departure' => ['required', 'date_format:Y-m-d', 'after:arrival'],
             'adults' => ['required', 'integer', 'between:1,30'],
             'children' => ['sometimes', 'integer', 'between:0,30'],
             'guest_name' => ['required', 'string', 'max:120'],
@@ -50,13 +51,22 @@ class StoreManualBookingRequest extends FormRequest
         ];
     }
 
-    private function maxDeparture(): string
+    /**
+     * 90 nuits au plus, vérifié une fois les dates valides (jamais d'analyse d'une date
+     * impossible avant la validation).
+     *
+     * @return list<callable(Validator): void>
+     */
+    public function after(): array
     {
-        $arrival = (string) $this->input('arrival');
-
-        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $arrival) === 1
-            ? Stay::fromStrings($arrival, $arrival, 1)->arrival->addDays(self::MAX_NIGHTS)->toDateString()
-            : '2100-01-01';
+        return [function (Validator $validator): void {
+            if ($validator->errors()->has('arrival') || $validator->errors()->has('departure')) {
+                return;
+            }
+            if ($this->stay()->nights() > self::MAX_NIGHTS) {
+                $validator->errors()->add('departure', __('validation.max.numeric', ['attribute' => 'nuits', 'max' => self::MAX_NIGHTS]));
+            }
+        }];
     }
 
     public function stay(): Stay

@@ -89,6 +89,12 @@ it('refuse des nuits occupées et trop de voyageurs', function () {
         ->assertUnprocessable()->assertJsonPath('code', 'stay_not_allowed');
 });
 
+it('refuse une date impossible, une arrivée passée ou plus de 90 nuits, sans erreur serveur', function () {
+    $this->postJson('/api/admin/bookings', manualBooking(['arrival' => '2026-13-01']))->assertJsonValidationErrors('arrival');
+    $this->postJson('/api/admin/bookings', manualBooking(['arrival' => '2026-11-19', 'departure' => '2026-11-21']))->assertJsonValidationErrors('arrival');
+    $this->postJson('/api/admin/bookings', manualBooking(['departure' => '2027-03-01']))->assertJsonValidationErrors('departure');
+});
+
 it('valide la saisie et réserve la création à l’administrateur', function () {
     $this->postJson('/api/admin/bookings', manualBooking(['departure' => '2026-11-20', 'guest_email' => 'x', 'apartment_id' => 999999]))
         ->assertJsonValidationErrors(['departure', 'guest_email', 'apartment_id']);

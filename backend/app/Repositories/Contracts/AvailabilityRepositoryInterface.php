@@ -77,7 +77,8 @@ interface AvailabilityRepositoryInterface
      */
     public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock;
 
-    public function deleteBlock(AvailabilityBlock $block): void;
+    /** Supprime le bloc ; renvoie false s'il n'existait déjà plus. */
+    public function deleteBlock(AvailabilityBlock $block): bool;
 
     /**
      * Un autre séjour (réservation ou plateforme) actif du logement part le jour d'arrivée

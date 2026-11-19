@@ -10,7 +10,6 @@ use App\Http\Requests\Admin\Bookings\UpdateBookingRequest;
 use App\Http\Resources\Admin\AdminBookingListResource;
 use App\Http\Resources\Admin\AdminBookingResource;
 use App\Models\Booking;
-use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Services\Booking\AdminBookingService;
 use App\Services\Booking\BookingConfirmationPdf;
 use App\Services\Booking\BookingService;
@@ -28,7 +27,6 @@ class BookingController extends Controller
         private readonly BookingService $lifecycle,
         private readonly BookingConfirmationPdf $pdf,
         private readonly ManualBookingService $manual,
-        private readonly ApartmentRepositoryInterface $apartments,
     ) {}
 
     public function index(ListBookingsRequest $request): AnonymousResourceCollection
@@ -43,11 +41,8 @@ class BookingController extends Controller
     {
         Gate::authorize('create', Booking::class);
 
-        $apartment = $this->apartments->findWithTrashed($request->integer('apartment_id'));
-        abort_if($apartment === null, 404);
-
         $booking = $this->manual->create(
-            $apartment,
+            $request->integer('apartment_id'),
             $request->stay(),
             $request->guest(),
             $request->total(),

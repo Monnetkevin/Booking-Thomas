@@ -34,6 +34,6 @@ class ContactMessageRepository implements ContactMessageRepositoryInterface
             $message->forceFill(['read_at' => $read ? now() : null])->save();
         }
 
-        return $message;
+        return $message->load('apartment:id,name');
     }
 }

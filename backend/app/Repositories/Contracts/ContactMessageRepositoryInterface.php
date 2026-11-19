@@ -21,5 +21,6 @@ interface ContactMessageRepositoryInterface
 
     public function unreadCount(): int;
 
+    /** Marque le message lu ou non lu ; renvoyé avec son logement. */
     public function setRead(ContactMessage $message, bool $read): ContactMessage;
 }

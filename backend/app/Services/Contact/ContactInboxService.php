@@ -28,6 +28,6 @@ class ContactInboxService
 
     public function setRead(ContactMessage $message, bool $read): ContactMessage
     {
-        return $this->messages->setRead($message, $read)->load('apartment:id,name');
+        return $this->messages->setRead($message, $read);
     }
 }

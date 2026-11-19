@@ -7,6 +7,8 @@ use App\Models\AuditLog;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Models\User;
+use App\Services\Availability\ManualBlockService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Date;
 
 beforeEach(function () {
@@ -52,6 +54,17 @@ it('retire une fermeture, libère ses nuits et lève le conflit qu’elle portai
     expect(AvailabilityBlock::find($block->id))->toBeNull()
         ->and($airbnb->fresh()->has_conflict)->toBeFalse()
         ->and(AuditLog::sole()->action)->toBe(AuditAction::BlockDeleted);
+});
+
+it('ne retire une fermeture qu’une fois, même demandée deux fois', function () {
+    $block = AvailabilityBlock::factory()->for($this->apartment)->between('2026-12-01', '2026-12-05')->create(['type' => BlockType::Manual]);
+    $stale = AvailabilityBlock::find($block->id);
+    $service = app(ManualBlockService::class);
+
+    $service->delete($block);
+
+    expect(fn () => $service->delete($stale))->toThrow(ModelNotFoundException::class)
+        ->and(AuditLog::query()->where('action', 'block.deleted')->count())->toBe(1);
 });
 
 it('ne retire ni une réservation ni un séjour importé', function () {

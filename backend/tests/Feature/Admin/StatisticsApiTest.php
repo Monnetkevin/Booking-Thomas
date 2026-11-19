@@ -54,6 +54,19 @@ it('donne les chiffres des 12 derniers mois, par mois et par logement', function
     expect($response->json('data.totals.average_stay'))->toEqual(4.7);
 });
 
+it('ne compte pas les logements supprimés, ni au numérateur ni au dénominateur', function () {
+    soldBooking($this->cocon, '2026-10-10', '2026-10-14', 40000);
+    $deleted = Apartment::factory()->create();
+    soldBooking($deleted, '2026-10-01', '2026-10-31', 90000);
+    $deleted->delete();
+
+    $this->getJson('/api/admin/statistics')
+        ->assertJsonPath('data.months.10.nights_direct', 4)
+        ->assertJsonPath('data.months.10.occupancy', 6.5)
+        ->assertJsonPath('data.totals.revenue', 44000)
+        ->assertJsonCount(2, 'data.apartments');
+});
+
 it('exporte un CSV lisible par un tableur, sans formule exécutable', function () {
     soldBooking($this->cocon, '2026-10-10', '2026-10-14', 40000);
 
@@ -64,8 +77,14 @@ it('exporte un CSV lisible par un tableur, sans formule exécutable', function (
     $csv = $response->getContent();
     expect($csv)->toStartWith("\u{FEFF}Mois;Nuits en direct")
         ->toContain('2026-10;4;0;440,00;6,5')
-        ->toContain("Le Cocon;4;0;440,00;")
+        ->toContain('Le Cocon;4;0;440,00;')
         ->toContain('"\'=Le Nid; ""chic""";0;0;0,00;0,0');
+
+    // Montant négatif (séjour offert, taxe gardée) : un nombre ; nom commençant par une tabulation : neutralisé.
+    $this->nid->update(['name' => ['fr' => "\tCalc", 'en' => 'Nest']]);
+    soldBooking($this->nid, '2026-09-10', '2026-09-12', 0);
+    $this->nid->bookings()->update(['total_amount' => 0]);
+    expect($this->get('/api/admin/statistics.csv')->getContent())->toContain('2026-09;2;0;-5,00;')->toContain("'\tCalc;2;0;-5,00;");
 });
 
 it('réserve les statistiques à l’administrateur', function () {

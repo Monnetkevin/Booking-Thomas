@@ -40,8 +40,11 @@ class StatisticsService
         $to = $today->startOfMonth()->addMonth();
         $from = $to->subMonths(self::MONTHS);
         $apartments = $this->apartments->allOrdered();
-        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString());
-        $sold = $this->bookings->soldArrivingBetween($from, $to);
+        // Seuls les logements existants comptent : sinon les nuits d'un logement supprimé
+        // gonfleraient l'occupation sans compter parmi les nuits disponibles.
+        $ids = $apartments->modelKeys();
+        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
+        $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
 
         $months = [];
         for ($month = $from; $month->lt($to); $month = $month->addMonth()) {
@@ -109,17 +112,20 @@ class StatisticsService
         return "\u{FEFF}".implode("\r\n", array_map(fn (array $row) => implode(';', array_map($this->cell(...), $row)), $rows))."\r\n";
     }
 
-    /** Cellule CSV échappée ; une formule (=, +, -, @) est neutralisée pour le tableur. */
+    /**
+     * Cellule CSV échappée. Un texte (nom de logement) qui commence par =, +, -, @, une
+     * tabulation ou un retour chariot est neutralisé pour le tableur ; un nombre (montant
+     * négatif compris) reste un nombre.
+     */
     private function cell(mixed $value): string
     {
         $text = (string) $value;
-        if ($text !== '' && in_array($text[0], ['=', '+', '-', '@'], true)) {
+        $isNumber = is_int($value) || preg_match('/^-?\d+(,\d+)?$/', $text) === 1;
+        if (! $isNumber && $text !== '' && in_array($text[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
             $text = "'".$text;
         }
 
-        return str_contains($text, ';') || str_contains($text, '"') || str_contains($text, "\n")
-            ? '"'.str_replace('"', '""', $text).'"'
-            : $text;
+        return strpbrk($text, ";\"\n\r") !== false ? '"'.str_replace('"', '""', $text).'"' : $text;
     }
 
     /**
