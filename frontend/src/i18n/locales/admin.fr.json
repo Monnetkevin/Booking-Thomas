@@ -9,7 +9,8 @@
     "notifications": "Notifications",
     "users": "Utilisateurs",
     "audit": "Journal",
-    "messages": "Messages"
+    "messages": "Messages",
+    "settings": "Réglages"
   },
   "login": {
     "title": "Connexion",
@@ -446,5 +447,50 @@
     "markRead": "Marquer comme lu",
     "markUnread": "Marquer comme non lu",
     "pages": "Pages des messages"
+  },
+  "settings": {
+    "title": "Réglages",
+    "subtitle": "Règles de réservation, taxe de séjour, conditions d’annulation et e-mails de l’hôte. Chaque modification est inscrite au journal.",
+    "bookingTitle": "Réservations sur le site",
+    "bookingHint": "Les réservations saisies à la main ne sont pas concernées.",
+    "minNotice": "Préavis avant l’arrivée",
+    "horizon": "Réservable jusqu’à",
+    "daysSuffix": "jours",
+    "monthsSuffix": "mois",
+    "taxTitle": "Taxe de séjour",
+    "taxHint": "Selon la délibération de la commune. Les mineurs en sont exonérés.",
+    "taxMode": "Calcul",
+    "taxModes": {
+      "per_adult_night": "Montant fixe par adulte et par nuit",
+      "percentage": "Pourcentage du prix de la nuit"
+    },
+    "taxAmount": "Montant par adulte et par nuit",
+    "taxPercentage": "Pourcentage",
+    "taxCap": "Plafond par adulte et par nuit",
+    "taxCapHint": "Laisser vide s’il n’y a pas de plafond.",
+    "cancellationTitle": "Conditions d’annulation",
+    "cancellationHint": "Part remboursée selon le nombre de jours avant l’arrivée. Une réservation garde les conditions en vigueur le jour où elle a été faite.",
+    "policies": {
+      "flexible": "Flexible",
+      "moderate": "Modérée",
+      "strict": "Stricte"
+    },
+    "daysBefore": "Jusqu’à … avant l’arrivée",
+    "refundPercent": "Remboursé",
+    "addTier": "Ajouter un palier",
+    "removeTier": "Retirer ce palier",
+    "emailsTitle": "E-mails de notification",
+    "emailsHint": "Adresses qui reçoivent les copies des réservations, les messages de contact et les alertes de calendrier (5 au plus).",
+    "email": "Adresse {{number}}",
+    "addEmail": "Ajouter une adresse",
+    "removeEmail": "Retirer cette adresse",
+    "errors": {
+      "invalidNumber": "Nombre entier attendu.",
+      "invalidAmount": "Montant invalide.",
+      "invalidPercent": "Pourcentage de 0 à 100 attendu.",
+      "duplicateDay": "Deux paliers ne peuvent pas tomber le même jour.",
+      "noEmail": "Indiquez au moins une adresse.",
+      "fix": "Corrigez les champs signalés avant d’enregistrer."
+    }
   }
 }

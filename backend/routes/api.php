@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\SessionController;
@@ -115,6 +116,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('users', [UserController::class, 'store'])->middleware('throttle:10,1');
     Route::patch('users/{user}', [UserController::class, 'update'])->whereNumber('user');
     Route::post('users/{user}/password-reset', [UserController::class, 'sendPasswordReset'])->whereNumber('user')->middleware('throttle:6,1');
+
+    // Réglages de l'hôte
+    Route::get('settings', [SettingsController::class, 'show']);
+    Route::put('settings', [SettingsController::class, 'update']);
 
     // Messages du formulaire de contact
     Route::get('messages', [ContactMessageController::class, 'index']);
