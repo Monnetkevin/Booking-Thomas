@@ -2,6 +2,7 @@
 
 namespace App\Services\Contact;
 
+use App\Events\ContactMessageReceived;
 use App\Mail\NewContactMessage;
 use App\Models\ContactMessage;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
@@ -11,8 +12,8 @@ use App\Services\Security\HumanVerifier;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Formulaire de contact : défi anti-robot, enregistrement pour le back-office et
- * e-mail à l'hôte.
+ * Formulaire de contact : défi anti-robot, enregistrement pour le back-office,
+ * e-mail à l'hôte et notification dans le back-office.
  */
 class ContactService
 {
@@ -44,6 +45,7 @@ class ContactService
         $message = $this->messages->create([...$data, 'apartment_id' => $apartmentId, 'locale' => $locale]);
 
         $this->host->notify(new NewContactMessage($message));
+        ContactMessageReceived::dispatch($message);
 
         return $message;
     }

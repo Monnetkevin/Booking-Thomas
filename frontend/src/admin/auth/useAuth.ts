@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authService, type AuthService } from './authService'
 import { authKeys } from './keys'
-import type { LoginInput } from './types'
+import type { LoginInput, ResetPasswordInput } from './types'
 
 /** Hooks React Query de la session ; le service est injectable pour les tests. */
 export function useCurrentUser(service: AuthService = authService) {
@@ -32,4 +32,8 @@ export function useLogout(service: AuthService = authService) {
       queryClient.setQueryData(authKeys.me, null)
     },
   })
+}
+
+export function useResetPassword(service: AuthService = authService) {
+  return useMutation({ mutationFn: (input: ResetPasswordInput) => service.resetPassword(input) })
 }

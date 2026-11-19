@@ -36,6 +36,11 @@ export const router = createBrowserRouter([
         lazy: async () => ({ Component: (await import('@/admin/pages/LoginPage')).LoginPage }),
       },
       {
+        // Lien d'invitation ou de réinitialisation reçu par e-mail.
+        path: 'mot-de-passe',
+        lazy: async () => ({ Component: (await import('@/admin/pages/SetPasswordPage')).SetPasswordPage }),
+      },
+      {
         lazy: async () => ({ Component: (await import('@/admin/AdminShell')).AdminShell }),
         children: [
           {
@@ -63,6 +68,20 @@ export const router = createBrowserRouter([
           {
             path: 'synchronisation',
             lazy: async () => ({ Component: (await import('@/admin/sync/pages/SyncPage')).SyncPage }),
+          },
+          {
+            path: 'notifications',
+            lazy: async () => ({ Component: (await import('@/admin/notifications/pages/NotificationsPage')).NotificationsPage }),
+          },
+          {
+            path: 'notifications/preferences',
+            lazy: async () => ({
+              Component: (await import('@/admin/notifications/pages/NotificationPreferencesPage')).NotificationPreferencesPage,
+            }),
+          },
+          {
+            path: 'utilisateurs',
+            lazy: async () => ({ Component: (await import('@/admin/users/pages/UsersPage')).UsersPage }),
           },
         ],
       },

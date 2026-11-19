@@ -40,4 +40,13 @@ describe('service d’authentification', () => {
     await expect(createAuthService(client).login(input)).resolves.toEqual(user)
     expect(client.request).toHaveBeenCalledWith('/auth/login', { method: 'POST', body: input })
   })
+
+  it('envoie le mot de passe choisi depuis le lien reçu par e-mail', async () => {
+    const client = fakeClient(async <T,>() => undefined as T)
+    const input = { token: 'jeton', email: 'alice@example.com', password: 'Menage-2026-ok', password_confirmation: 'Menage-2026-ok' }
+
+    await createAuthService(client).resetPassword(input)
+
+    expect(client.request).toHaveBeenCalledWith('/auth/password', { method: 'POST', body: input })
+  })
 })

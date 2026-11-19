@@ -96,7 +96,8 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
+            // Lien d'invitation d'un compte ménage ou de réinitialisation : valable 24 heures.
+            'expire' => 1440,
             'throttle' => 60,
         ],
     ],

@@ -62,7 +62,8 @@ class IcalFeed extends Model
     /** @return BelongsTo<Apartment, $this> */
     public function apartment(): BelongsTo
     {
-        return $this->belongsTo(Apartment::class);
+        // Logement supprimé compris : ses séjours et calendriers restent lisibles (notifications).
+        return $this->belongsTo(Apartment::class)->withTrashed();
     }
 
     /** @return HasMany<IcalSyncLog, $this> */

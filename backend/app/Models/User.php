@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -15,8 +16,9 @@ use Illuminate\Notifications\Notifiable;
  * @property string $email
  * @property UserRole $role
  * @property bool $is_active
+ * @property array<string, mixed>|null $notification_preferences e-mail par type, récapitulatif du ménage
  */
-#[Fillable(['name', 'email', 'password', 'role', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'is_active', 'notification_preferences'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -33,6 +35,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_active' => 'boolean',
+            'notification_preferences' => 'array',
         ];
     }
 
@@ -60,5 +63,15 @@ class User extends Authenticatable
     public function isHousekeeping(): bool
     {
         return $this->role === UserRole::Housekeeping;
+    }
+
+    /**
+     * Notifications du back-office (modèle propre au site : niveau, regroupement, purge).
+     *
+     * @return MorphMany<Notification, $this>
+     */
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable')->latest();
     }
 }

@@ -5,17 +5,20 @@ namespace App\Mail\Previews;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
 use App\Enums\IcalProvider;
+use App\Mail\AccountPasswordLink;
 use App\Mail\BookingConfirmedGuest;
 use App\Mail\BookingConfirmedHost;
 use App\Mail\IcalConflictAlert;
 use App\Mail\IcalFeedFailingAlert;
 use App\Mail\NewContactMessage;
+use App\Mail\NotificationMail;
 use App\Mail\TransactionalMail;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\ContactMessage;
 use App\Models\IcalFeed;
+use App\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -52,6 +55,32 @@ class MailPreviewCatalog
                 'build' => fn (string $locale): TransactionalMail => new IcalConflictAlert(
                     $this->sampleAirbnbBlock(),
                     new EloquentCollection([$this->sampleBooking('fr')]),
+                ),
+            ],
+            'notification' => [
+                'label' => 'Notification urgente (ménage)',
+                'build' => fn (string $locale): TransactionalMail => new NotificationMail(
+                    'Nouveau séjour : Le Cocon',
+                    'Arrivée ven. 20 nov. 2026, départ lun. 23 nov. 2026. 3 voyageur(s). Départ et arrivée le même jour : ménage entre les deux séjours.',
+                    [],
+                    '/admin/notifications',
+                ),
+            ],
+            'daily-summary' => [
+                'label' => 'Récapitulatif du lendemain (ménage)',
+                'build' => fn (string $locale): TransactionalMail => new NotificationMail(
+                    'Demain, ven. 20 nov. 2026 : 2 mouvement(s)',
+                    'Départs et arrivées de demain, par logement.',
+                    ['Le Cocon : départ avant 10 h', 'Le Cocon : arrivée à partir de 16 h, 3 voyageur(s)'],
+                    '/admin/notifications',
+                ),
+            ],
+            'account-invite' => [
+                'label' => 'Invitation d’un compte ménage',
+                'build' => fn (string $locale): TransactionalMail => new AccountPasswordLink(
+                    new User(['name' => 'Alice', 'email' => 'alice@example.com']),
+                    'jeton-exemple',
+                    invitation: true,
                 ),
             ],
         ];

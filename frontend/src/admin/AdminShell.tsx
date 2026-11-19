@@ -3,7 +3,8 @@ import { loginPath } from '@/admin/auth/redirect'
 import { useCurrentUser, useLogout } from '@/admin/auth/useAuth'
 import { AdminLayout } from '@/admin/AdminLayout'
 import { UserMenu } from '@/admin/components/UserMenu'
-import { navigationFor } from '@/admin/navigation'
+import { canVisit, navigationFor } from '@/admin/navigation'
+import { NotificationBell } from '@/admin/notifications/components/NotificationBell'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner'
 
@@ -21,8 +22,18 @@ export function AdminShell() {
   if (isError) return <ErrorState fullPage onRetry={() => void refetch()} />
   if (!user) return <Navigate to={loginPath(location.pathname + location.search)} replace />
 
+  const navigation = navigationFor(user.role)
+  // Le compte ménage n'a que ses pages (notifications, puis planning) : il y est ramené.
+  if (!canVisit(location.pathname, user.role) && navigation[0]) return <Navigate to={navigation[0].to} replace />
+
   const handleLogout = () =>
     logout.mutate(undefined, { onSettled: () => navigate('/admin/connexion', { replace: true }) })
 
-  return <AdminLayout navigation={navigationFor(user.role)} footer={<UserMenu user={user} onLogout={handleLogout} />} />
+  return (
+    <AdminLayout
+      navigation={navigation}
+      headerActions={<NotificationBell />}
+      footer={<UserMenu user={user} onLogout={handleLogout} />}
+    />
+  )
 }

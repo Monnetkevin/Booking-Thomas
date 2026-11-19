@@ -7,18 +7,24 @@ use App\Models\Apartment;
 use App\Models\IcalFeed;
 use App\Models\IcalSyncLog;
 use App\Models\User;
+use App\Notifications\Channels\InAppChannel;
+use App\Notifications\Host\IcalFeedFailingNotification;
+use App\Notifications\Host\IcalFeedRecoveredNotification;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Ical\IcalImportService;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Sleep;
 
 beforeEach(function () {
     Date::setTestNow('2026-11-13 10:00:00');
     Sleep::fake();
     Mail::fake();
+    Notification::fake();
     app(SettingRepositoryInterface::class)->put('notifications.admin_emails', ['hote@example.com']);
+    $this->host = User::factory()->create(['email' => 'hote@example.com']);
     $this->feed = IcalFeed::factory()->for(Apartment::factory())->create([
         'import_url' => 'https://www.airbnb.fr/calendar/ical/123.ics?s=secret',
     ]);
@@ -56,10 +62,28 @@ it('alerte l’hôte une seule fois, au 3e échec consécutif', function () {
     }
 
     expect($this->feed->fresh()->consecutive_failures)->toBe(5);
-    Mail::assertQueuedCount(1);
-    Mail::assertQueued(IcalFeedFailingAlert::class, fn (IcalFeedFailingAlert $mail) => $mail->hasTo('hote@example.com')
-        && str_contains($mail->render(), '503')
-        && $mail->feed->consecutive_failures === 3);
+    Notification::assertSentToTimes($this->host, IcalFeedFailingNotification::class, 1);
+    Notification::assertSentTo($this->host, IcalFeedFailingNotification::class, function (IcalFeedFailingNotification $notification, array $channels) {
+        $mail = $notification->toMail($this->host);
+        assert($mail instanceof IcalFeedFailingAlert);
+
+        return in_array('mail', $channels, true) && $mail->hasTo('hote@example.com')
+            && str_contains($mail->render(), '503') && $notification->feed->consecutive_failures === 3;
+    });
+});
+
+it('prévient l’hôte quand un calendrier en échec redevient lisible, une fois', function () {
+    Http::fake(['www.airbnb.fr/*' => Http::sequence()
+        ->push('', 503)->push('', 503)->push('', 503)
+        ->push(icalFixture('airbnb'), 200)->push(icalFixture('airbnb'), 200)]);
+    $service = app(IcalImportService::class);
+
+    foreach (range(1, 5) as $attempt) {
+        $service->sync($this->feed->fresh(), IcalSyncTrigger::Manual);
+    }
+
+    Notification::assertSentToTimes($this->host, IcalFeedRecoveredNotification::class, 1);
+    Notification::assertSentTo($this->host, IcalFeedRecoveredNotification::class, fn ($notification, array $channels) => $channels === [InAppChannel::class]);
 });
 
 it('efface le journal au bout de 30 jours', function () {

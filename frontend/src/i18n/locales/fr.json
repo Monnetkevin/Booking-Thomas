@@ -159,7 +159,9 @@
       "dashboard": "Tableau de bord",
       "apartments": "Appartements",
       "rates": "Tarifs",
-      "sync": "Synchronisation"
+      "sync": "Synchronisation",
+      "notifications": "Notifications",
+      "users": "Utilisateurs"
     },
     "login": {
       "title": "Connexion",
@@ -470,6 +472,87 @@
           "failed": "Erreur"
         }
       }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Ce qui demande votre attention. Les urgentes vous sont aussi envoyées par e-mail.",
+      "bell": "Notifications",
+      "bellUnread_one": "Notifications : {{count}} non lue",
+      "bellUnread_other": "Notifications : {{count}} non lues",
+      "urgent": "Urgent",
+      "unreadLabel": "(non lue)",
+      "markAllRead": "Tout marquer comme lu",
+      "seeAll": "Voir toutes les notifications",
+      "empty": "Aucune notification pour le moment.",
+      "emptyUnread": "Aucune notification non lue.",
+      "filter": "Filtrer les notifications",
+      "all": "Toutes",
+      "unread": "Non lues ({{count}})",
+      "pages": "Pages de notifications",
+      "page": "Page {{page}} sur {{total}}",
+      "when": {
+        "now": "À l’instant",
+        "minutes": "Il y a {{count}} min",
+        "hours": "Il y a {{count}} h",
+        "yesterday": "Hier"
+      },
+      "types": {
+        "ical_conflict": "Conflit de dates avec un séjour importé",
+        "ical_feed_failing": "Calendrier en échec",
+        "ical_empty_calendar_refused": "Calendrier vide refusé",
+        "ical_feed_recovered": "Calendrier de nouveau à jour",
+        "booking_confirmed": "Réservation confirmée",
+        "contact_message": "Nouveau message de contact",
+        "stay_changed": "Séjour ajouté, annulé ou déplacé",
+        "daily_summary": "Récapitulatif du lendemain"
+      },
+      "preferences": {
+        "link": "Préférences",
+        "title": "Préférences de notification",
+        "subtitle": "Toutes vos notifications restent visibles ici ; choisissez celles que vous recevez aussi par e-mail.",
+        "emailTitle": "Recevoir par e-mail",
+        "emailHint": "Les notifications urgentes partent par e-mail à l’adresse de votre compte.",
+        "forced": "Toujours envoyé par e-mail : deux voyageurs sont attendus sur les mêmes nuits.",
+        "elsewhere": "Déjà reçu par e-mail, avec tout son contenu, aux adresses du réglage « e-mails de notification ».",
+        "summaryTitle": "Récapitulatif du lendemain",
+        "summaryHint": "Chaque jour, les départs et arrivées du lendemain par logement. Rien n’est envoyé s’il n’y en a pas.",
+        "summaryEnabled": "Recevoir le récapitulatif",
+        "summaryHour": "Heure d’envoi",
+        "hour": "{{hour}} h"
+      }
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "subtitle": "Votre compte et les comptes ménage, limités au planning et à leurs notifications.",
+      "listTitle": "Comptes",
+      "roles": {
+        "admin": "Administrateur",
+        "housekeeping": "Ménage"
+      },
+      "inactive": "Désactivé",
+      "you": "(vous)",
+      "activate": "Réactiver",
+      "deactivate": "Désactiver",
+      "deactivateTitle": "Désactiver le compte de {{name}} ?",
+      "deactivateConfirm": "Le compte perd aussitôt l’accès au back-office et ne reçoit plus de notifications. Vous pourrez le réactiver.",
+      "sendReset": "Envoyer un lien de mot de passe",
+      "resetSent": "Lien envoyé à {{email}}, valable 24 heures.",
+      "inviteTitle": "Inviter un compte ménage",
+      "inviteHint": "La personne reçoit un e-mail pour choisir son mot de passe (lien valable 24 heures). Elle ne verra ni noms, ni coordonnées, ni montants.",
+      "name": "Nom",
+      "email": "Adresse e-mail",
+      "invite": "Envoyer l’invitation",
+      "invited": "Invitation envoyée à {{email}}."
+    },
+    "password": {
+      "title": "Choisir mon mot de passe",
+      "intro": "Compte : {{email}}",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "rules": "12 caractères au moins, avec des lettres et des chiffres.",
+      "submit": "Enregistrer mon mot de passe",
+      "done": "Mot de passe enregistré. Vous pouvez vous connecter.",
+      "missingLink": "Ce lien est incomplet. Ouvrez le lien reçu par e-mail, ou demandez-en un nouveau à l’administrateur."
     }
   },
   "pricing": {
