@@ -117,6 +117,7 @@ it('supprime les notifications lues depuis plus de 90 jours, jamais les non lues
     $this->artisan('model:prune', ['--model' => [Notification::class]])->assertSuccessful();
 
     expect(Notification::count())->toBe(2);
+    $this->artisan('schedule:list')->expectsOutputToContain('notifications:housekeeping-summary');
 });
 
 describe('canaux', function () {

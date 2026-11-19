@@ -46,6 +46,11 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
     }
 
+    public function bookingBlock(Booking $booking): ?AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->where('booking_id', $booking->id)->where('is_active', true)->first();
+    }
+
     public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection
     {
         return $this->occupying($apartmentId, $from, $to)
@@ -93,6 +98,28 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         $block->update($attributes);
 
         return $block;
+    }
+
+    public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->whereIn('type', [BlockType::Booking->value, BlockType::Ical->value])
+            ->whereKeyNot($exceptBlockId)
+            ->where(fn (Builder $query) => $query->whereDate('ends_on', $startsOn)->orWhereDate('starts_on', $endsOn))
+            ->exists();
+    }
+
+    public function movementsOn(string $date): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->where(fn (Builder $query) => $query->whereDate('starts_on', $date)->orWhereDate('ends_on', $date))
+            ->with(['apartment', 'booking'])
+            ->orderBy('apartment_id')
+            ->orderBy('starts_on')
+            ->get();
     }
 
     /**

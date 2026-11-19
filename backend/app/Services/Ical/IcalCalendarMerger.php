@@ -5,6 +5,7 @@ namespace App\Services\Ical;
 use App\Enums\BlockType;
 use App\Enums\IcalSyncStatus;
 use App\Events\IcalConflictDetected;
+use App\Events\StayScheduleChanged;
 use App\Exceptions\Ical\EmptyCalendarRefusedException;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
@@ -14,6 +15,7 @@ use App\Services\Availability\AvailabilityService;
 use App\Services\Availability\BlockConflictService;
 use App\Services\Availability\BlockOverlap;
 use App\Services\Booking\BookingService;
+use App\Services\Housekeeping\StayChange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +31,8 @@ use Illuminate\Support\Facades\DB;
  * Recouvrements (spec « Autres recouvrements ») : une réservation directe en attente de
  * paiement est expirée ; une réservation directe confirmée laisse le bloc en conflit et
  * l'hôte est alerté ; un blocage manuel ou un autre calendrier : conflit, sans alerte.
- * Des nuits libérées lèvent les conflits qu'elles portaient.
+ * Des nuits libérées lèvent les conflits qu'elles portaient. Chaque séjour ajouté, déplacé
+ * ou annulé est signalé au ménage (StayScheduleChanged, après la transaction).
  */
 class IcalCalendarMerger
 {
@@ -112,6 +115,7 @@ class IcalCalendarMerger
             ...$this->details($event),
         ]);
         $this->alertIfDoubleBooked($block, $overlap);
+        StayScheduleChanged::dispatch(StayChange::added($block));
 
         return $block;
     }
@@ -141,6 +145,8 @@ class IcalCalendarMerger
             if ($previous !== null) {
                 $this->conflicts->release($block->apartment_id, ...$previous);
             }
+            // Ménage prévenu : séjour déplacé, ou de nouveau attendu s'il avait été annulé.
+            StayScheduleChanged::dispatch($previous === null ? StayChange::added($block) : StayChange::moved($block, ...$previous));
         }
 
         return $moved;
@@ -151,6 +157,7 @@ class IcalCalendarMerger
     {
         $this->availability->updateBlock($block, ['is_active' => false, 'has_conflict' => false]);
         $this->conflicts->release($block->apartment_id, $block->starts_on, $block->ends_on);
+        StayScheduleChanged::dispatch(StayChange::cancelled($block));
     }
 
     /**

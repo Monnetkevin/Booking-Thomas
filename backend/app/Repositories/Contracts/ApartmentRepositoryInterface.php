@@ -28,6 +28,9 @@ interface ApartmentRepositoryInterface
 
     public function idForSlug(string $slug): ?int;
 
+    /** Logement par son id, supprimé compris (historique, notifications). */
+    public function findWithTrashed(int $id): ?Apartment;
+
     /** Charge tout ce qu'affiche la fiche d'administration. */
     public function loadDetails(Apartment $apartment): Apartment;
 

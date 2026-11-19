@@ -7,6 +7,8 @@ use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Services\Apartment\ApartmentService;
 use App\Services\Booking\BookingService;
+use App\Services\Housekeeping\HousekeepingNotifier;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -44,11 +46,19 @@ Artisan::command('ical:sync', function (IcalFeedRepositoryInterface $feeds) {
     $this->info("Synchronisation programmée pour {$importable->count()} calendrier(s).");
 })->purpose('Relit les calendriers des plateformes (Airbnb) de tous les logements');
 
+Artisan::command('notifications:housekeeping-summary', function (HousekeepingNotifier $housekeeping) {
+    $count = $housekeeping->sendDailySummaries(CarbonImmutable::now());
+    $this->info("Récapitulatif du lendemain envoyé à $count compte(s) ménage.");
+})->purpose('Envoie aux comptes ménage, à leur heure, les départs et arrivées du lendemain');
+
 // Réservations Airbnb bloquées sur le site 15 minutes au plus après leur création.
 Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping();
 
 // Journal des synchronisations conservé 30 jours, notifications lues 90 jours.
 Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification::class]])->daily();
+
+// Récapitulatif du ménage : chaque heure pile, aux comptes dont c'est l'heure choisie.
+Schedule::command('notifications:housekeeping-summary')->hourly();
 
 // Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
 Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping();

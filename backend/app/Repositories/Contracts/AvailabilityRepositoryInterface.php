@@ -33,6 +33,9 @@ interface AvailabilityRepositoryInterface
     /** Libère les nuits d'une réservation (expirée ou annulée). */
     public function releaseBooking(Booking $booking): void;
 
+    /** Bloc actif des nuits d'une réservation, ou null. */
+    public function bookingBlock(Booking $booking): ?AvailabilityBlock;
+
     /**
      * Blocs actifs hors conflit qui touchent [from, to[, avec leur réservation éventuelle :
      * ceux contre lesquels un nouveau bloc serait en conflit (contrainte d'exclusion).
@@ -73,4 +76,18 @@ interface AvailabilityRepositoryInterface
      * @param  array<string, mixed>  $attributes
      */
     public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock;
+
+    /**
+     * Un autre séjour (réservation ou plateforme) actif du logement part le jour d'arrivée
+     * ou arrive le jour de départ : ménage entre deux séjours le même jour.
+     */
+    public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool;
+
+    /**
+     * Blocs actifs qui commencent ou finissent ce jour-là, avec logement et réservation,
+     * pour le récapitulatif du ménage.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function movementsOn(string $date): Collection;
 }

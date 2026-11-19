@@ -44,6 +44,11 @@ class ApartmentRepository implements ApartmentRepositoryInterface
             ->first();
     }
 
+    public function findWithTrashed(int $id): ?Apartment
+    {
+        return Apartment::withTrashed()->find($id);
+    }
+
     public function idForSlug(string $slug): ?int
     {
         $id = Apartment::query()->where('slug', $slug)->value('id');
