@@ -492,5 +492,18 @@
       "noEmail": "Indiquez au moins une adresse.",
       "fix": "Corrigez les champs signalés avant d’enregistrer."
     }
+  },
+  "blocks": {
+    "title": "Fermer des dates",
+    "apartment": "Logement",
+    "startsOn": "Première nuit fermée",
+    "endsOn": "Réouverture le",
+    "note": "Motif",
+    "noteHint": "Travaux, usage personnel… Visible de l’hôte seulement.",
+    "submit": "Fermer ces dates",
+    "conflict": "Ces nuits sont déjà occupées (réservation, séjour importé ou autre fermeture).",
+    "remove": "Retirer la fermeture",
+    "removeTitle": "Retirer cette fermeture ?",
+    "removeConfirm": "Les nuits redeviennent réservables sur le site."
   }
 }

@@ -77,6 +77,8 @@ interface AvailabilityRepositoryInterface
      */
     public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock;
 
+    public function deleteBlock(AvailabilityBlock $block): void;
+
     /**
      * Un autre séjour (réservation ou plateforme) actif du logement part le jour d'arrivée
      * ou arrive le jour de départ : ménage entre deux séjours le même jour.

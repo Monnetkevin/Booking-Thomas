@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\ApartmentController;
 use App\Http\Controllers\Admin\ApartmentPhotoController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -116,6 +117,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('users', [UserController::class, 'store'])->middleware('throttle:10,1');
     Route::patch('users/{user}', [UserController::class, 'update'])->whereNumber('user');
     Route::post('users/{user}/password-reset', [UserController::class, 'sendPasswordReset'])->whereNumber('user')->middleware('throttle:6,1');
+
+    // Fermetures manuelles (travaux, usage personnel)
+    Route::post('apartments/{apartment:id}/blocks', [BlockController::class, 'store']);
+    Route::delete('blocks/{block}', [BlockController::class, 'destroy'])->whereNumber('block');
 
     // Réglages de l'hôte
     Route::get('settings', [SettingsController::class, 'show']);
