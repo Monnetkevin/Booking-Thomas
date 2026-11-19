@@ -7,6 +7,10 @@ return [
         'contact' => 'Nous contacter',
         'legal' => 'Mentions légales',
     ],
+    'notification' => [
+        'open_admin' => 'Ouvrir le back-office',
+        'reason' => 'Notification du back-office. Choisissez ce que vous recevez par e-mail dans vos préférences de notification.',
+    ],
     'account' => [
         'invite_subject' => 'Votre accès au planning de ménage',
         'invite_title' => 'Bienvenue',

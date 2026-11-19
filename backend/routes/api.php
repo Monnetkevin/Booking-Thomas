@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AmenityController;
 use App\Http\Controllers\Admin\ApartmentController;
 use App\Http\Controllers\Admin\ApartmentPhotoController;
 use App\Http\Controllers\Admin\IcalFeedController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Admin\UserController;
@@ -54,6 +55,16 @@ Route::prefix('auth')->group(function () {
         Route::get('me', [SessionController::class, 'show'])->middleware('role:admin,housekeeping');
         Route::post('logout', [SessionController::class, 'destroy']);
     });
+});
+
+/*
+| Back-office, pour les deux rôles : notifications et préférences du compte connecté
+*/
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])->group(function () {
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification');
 });
 
 /*
