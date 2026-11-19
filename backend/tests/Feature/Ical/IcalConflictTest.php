@@ -7,6 +7,8 @@ use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Models\RatePeriod;
+use App\Models\User;
+use App\Notifications\Host\IcalConflictNotification;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Availability\BlockConflictService;
 use App\Services\Booking\Stay;
@@ -16,11 +18,14 @@ use App\Services\Ical\ImportedEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     Date::setTestNow('2026-11-13 10:00:00');
     Mail::fake();
+    Notification::fake();
     app(SettingRepositoryInterface::class)->put('notifications.admin_emails', ['hote@example.com']);
+    $this->host = User::factory()->create(['email' => 'hote@example.com']);
     $this->apartment = Apartment::factory()->create();
     $this->feed = IcalFeed::factory()->for($this->apartment)->create();
 });
@@ -48,10 +53,13 @@ it('alerte l’hôte quand Airbnb recouvre une réservation directe confirmée',
 
     expect(airbnbBlock('HM1')->has_conflict)->toBeTrue()
         ->and($booking->fresh()->status)->toBe(BookingStatus::Confirmed);
-    Mail::assertQueued(IcalConflictAlert::class, function (IcalConflictAlert $mail) use ($booking) {
+    Notification::assertSentTo($this->host, IcalConflictNotification::class, function (IcalConflictNotification $notification, array $channels) use ($booking) {
+        $mail = $notification->toMail($this->host);
+        assert($mail instanceof IcalConflictAlert);
         $html = $mail->render();
 
-        return $mail->hasTo('hote@example.com')
+        return in_array('mail', $channels, true)
+            && $mail->hasTo('hote@example.com')
             && str_contains($html, $booking->reference)
             && str_contains($html, 'https://www.airbnb.com/hosting/reservations/details/HM1')
             && $mail->envelope()->subject === "Conflit de dates : {$this->apartment->getTranslation('name', 'fr')}, sam. 21 nov. 2026 → mer. 25 nov. 2026";
@@ -98,7 +106,7 @@ it('n’alerte pas de nouveau à chaque lecture d’un conflit déjà signalé',
     airbnbNow(['HM1' => ['2026-11-21', '2026-11-25']]);
     airbnbNow(['HM1' => ['2026-11-21', '2026-11-25'], 'HM2' => ['2026-12-10', '2026-12-12']]);
 
-    Mail::assertQueuedCount(1);
+    Notification::assertSentToTimes($this->host, IcalConflictNotification::class, 1);
     expect(airbnbBlock('HM1')->has_conflict)->toBeTrue();
 });
 
@@ -126,7 +134,7 @@ it('lève le conflit quand les nuits de la réservation directe sont libérées 
     $booking = directBooking($this->apartment, '2026-11-23', '2026-11-26');
     airbnbNow(['HM1' => ['2026-11-21', '2026-11-25']]);
 
-    // Annulation par l'hôte (jalon 6) : nuits libérées, puis réévaluation des conflits.
+    // Annulation par l'hôte (jalon 7) : nuits libérées, puis réévaluation des conflits.
     AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
     $resolved = app(BlockConflictService::class)->release($this->apartment->id, $booking->arrival, $booking->departure);
 

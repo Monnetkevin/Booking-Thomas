@@ -3,7 +3,9 @@
 namespace App\Services\Ical;
 
 use App\Enums\IcalSyncTrigger;
+use App\Events\IcalEmptyCalendarRefused;
 use App\Events\IcalFeedFailing;
+use App\Events\IcalFeedRecovered;
 use App\Exceptions\Ical\EmptyCalendarRefusedException;
 use App\Exceptions\Ical\IcalFeedNotImportableException;
 use App\Exceptions\Ical\IcalSyncException;
@@ -79,6 +81,9 @@ class IcalImportService
     {
         $failures = $result->failedSync() ? $feed->consecutive_failures + 1 : 0;
         $emptyRefusal = $result->emptyRefusal();
+        // État d'avant cette lecture : les alertes ne partent qu'au changement d'état.
+        $wasAlerted = $feed->consecutive_failures >= self::FAILURES_BEFORE_ALERT;
+        $wasRefused = $feed->empty_calendar_refused;
 
         $log = $this->feeds->recordSync($feed, [
             ...$attributes,
@@ -100,9 +105,14 @@ class IcalImportService
             'duration_ms' => intdiv(hrtime(true) - $startedAt, 1_000_000),
         ]);
 
-        // Une seule alerte par panne : au 3e échec, pas aux suivants.
+        // Une seule alerte par panne : au 3e échec, pas aux suivants ; puis au retour à la normale.
         if ($failures === self::FAILURES_BEFORE_ALERT) {
             IcalFeedFailing::dispatch($feed);
+        } elseif ($wasAlerted && ! $result->failedSync()) {
+            IcalFeedRecovered::dispatch($feed);
+        }
+        if ($emptyRefusal === true && ! $wasRefused) {
+            IcalEmptyCalendarRefused::dispatch($feed);
         }
 
         return $log;

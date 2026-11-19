@@ -2,9 +2,16 @@
 
 use App\Enums\NotificationLevel;
 use App\Enums\NotificationType;
+use App\Models\AvailabilityBlock;
+use App\Models\IcalFeed;
 use App\Models\Notification;
 use App\Models\User;
+use App\Notifications\Channels\InAppChannel;
+use App\Notifications\Host\IcalConflictNotification;
+use App\Notifications\Host\IcalFeedFailingNotification;
+use App\Notifications\Host\IcalFeedRecoveredNotification;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 
@@ -110,4 +117,23 @@ it('supprime les notifications lues depuis plus de 90 jours, jamais les non lues
     $this->artisan('model:prune', ['--model' => [Notification::class]])->assertSuccessful();
 
     expect(Notification::count())->toBe(2);
+});
+
+describe('canaux', function () {
+    beforeEach(function () {
+        $this->feed = IcalFeed::factory()->create();
+    });
+
+    it('envoie les urgentes aussi par e-mail, les informatives dans le back-office seulement', function () {
+        expect((new IcalFeedFailingNotification($this->feed))->via($this->host))->toBe([InAppChannel::class, 'mail'])
+            ->and((new IcalFeedRecoveredNotification($this->feed))->via($this->host))->toBe([InAppChannel::class]);
+    });
+
+    it('respecte l’e-mail coupé par le compte, sauf pour un conflit de dates', function () {
+        $this->host->update(['notification_preferences' => ['email' => ['ical_feed_failing' => false, 'ical_conflict' => false]]]);
+        $block = AvailabilityBlock::factory()->create();
+
+        expect((new IcalFeedFailingNotification($this->feed))->via($this->host))->toBe([InAppChannel::class])
+            ->and((new IcalConflictNotification($block, new Collection))->via($this->host))->toBe([InAppChannel::class, 'mail']);
+    });
 });
