@@ -7,7 +7,7 @@ use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use Illuminate\Database\Eloquent\Collection;
 
-/** Blocs actifs (hors conflit) qui occupent déjà des nuits demandées par un nouveau bloc. */
+/** Blocs actifs (hors conflit) qui occupent déjà des nuits demandées par un bloc importé. */
 final readonly class BlockOverlap
 {
     /**

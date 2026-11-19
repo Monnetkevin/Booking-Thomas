@@ -6,8 +6,11 @@ use App\Mail\IcalConflictAlert;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
+use App\Models\RatePeriod;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Availability\BlockConflictService;
+use App\Services\Booking\Stay;
+use App\Services\Booking\StayRules;
 use App\Services\Ical\IcalCalendarMerger;
 use App\Services\Ical\ImportedEvent;
 use Carbon\CarbonImmutable;
@@ -53,6 +56,20 @@ it('alerte l’hôte quand Airbnb recouvre une réservation directe confirmée',
             && str_contains($html, 'https://www.airbnb.com/hosting/reservations/details/HM1')
             && $mail->envelope()->subject === "Conflit de dates : {$this->apartment->getTranslation('name', 'fr')}, sam. 21 nov. 2026 → mer. 25 nov. 2026";
     });
+});
+
+it('garde occupées toutes les nuits du séjour Airbnb en conflit, même celles qu’il est seul à tenir', function () {
+    $this->apartment->update(['status' => 'published', 'turnover_days' => 0]);
+    RatePeriod::factory()->for($this->apartment)->create(['starts_on' => '2026-11-01', 'ends_on' => '2026-12-31']);
+    directBooking($this->apartment, '2026-11-23', '2026-11-26');
+
+    airbnbNow(['HM1' => ['2026-11-21', '2026-11-25']]);
+
+    // Les 21 et 22 ne sont tenues que par le bloc en conflit : pas de seconde double réservation.
+    $this->getJson("/api/apartments/{$this->apartment->slug}/availability?from=2026-11-20&to=2026-11-27")
+        ->assertJsonPath('data.unavailable', ['2026-11-21', '2026-11-22', '2026-11-23', '2026-11-24', '2026-11-25']);
+    $stay = new Stay(CarbonImmutable::parse('2026-11-21'), CarbonImmutable::parse('2026-11-23'), 2, 0);
+    expect(app(StayRules::class)->isFree($this->apartment, $stay))->toBeFalse();
 });
 
 it('expire sur-le-champ une réservation directe encore en attente de paiement, sans conflit ni alerte', function () {

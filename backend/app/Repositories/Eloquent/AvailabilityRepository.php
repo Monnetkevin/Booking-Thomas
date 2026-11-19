@@ -17,12 +17,12 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
 
     public function hasActiveBlock(int $apartmentId, string $from, string $to): bool
     {
-        return $this->query($apartmentId, $from, $to)->exists();
+        return $this->occupying($apartmentId, $from, $to)->exists();
     }
 
     public function activeBlocks(int $apartmentId, string $from, string $to): Collection
     {
-        return $this->query($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
+        return $this->occupying($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
     }
 
     public function lockApartment(int $apartmentId): void
@@ -48,7 +48,8 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
 
     public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection
     {
-        return $this->query($apartmentId, $from, $to)
+        return $this->occupying($apartmentId, $from, $to)
+            ->where('has_conflict', false)
             ->when($exceptBlockId !== null, fn (Builder $query) => $query->whereKeyNot($exceptBlockId))
             ->with('booking')
             ->orderBy('starts_on')
@@ -95,14 +96,16 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
     }
 
     /**
+     * Blocs actifs qui touchent [from, to[, en conflit ou non : un séjour importé en
+     * conflit occupe bel et bien ses nuits, y compris celles qu'il est seul à tenir.
+     *
      * @return Builder<AvailabilityBlock>
      */
-    private function query(int $apartmentId, string $from, string $to): Builder
+    private function occupying(int $apartmentId, string $from, string $to): Builder
     {
         return AvailabilityBlock::query()
             ->where('apartment_id', $apartmentId)
             ->where('is_active', true)
-            ->where('has_conflict', false)
             ->overlapping($from, $to);
     }
 }

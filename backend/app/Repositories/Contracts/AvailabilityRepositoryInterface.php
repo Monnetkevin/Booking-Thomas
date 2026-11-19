@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface AvailabilityRepositoryInterface
 {
-    /** Un bloc actif (hors conflit signalé) touche-t-il une nuit de [from, to[ ? */
+    /**
+     * Un bloc actif touche-t-il une nuit de [from, to[ ? Les blocs en conflit comptent :
+     * leurs nuits sont occupées, même celles qu'ils sont seuls à tenir.
+     */
     public function hasActiveBlock(int $apartmentId, string $from, string $to): bool;
 
     /**
-     * Blocs actifs qui touchent [from, to[, pour le calendrier.
+     * Blocs actifs (en conflit ou non) qui touchent [from, to[, pour le calendrier.
      *
      * @return Collection<int, AvailabilityBlock>
      */
@@ -31,7 +34,8 @@ interface AvailabilityRepositoryInterface
     public function releaseBooking(Booking $booking): void;
 
     /**
-     * Blocs actifs hors conflit qui touchent [from, to[, avec leur réservation éventuelle.
+     * Blocs actifs hors conflit qui touchent [from, to[, avec leur réservation éventuelle :
+     * ceux contre lesquels un nouveau bloc serait en conflit (contrainte d'exclusion).
      *
      * @return Collection<int, AvailabilityBlock>
      */
