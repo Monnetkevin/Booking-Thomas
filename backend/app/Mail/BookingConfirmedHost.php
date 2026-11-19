@@ -30,9 +30,9 @@ class BookingConfirmedHost extends TransactionalMail
         ]);
     }
 
-    protected function replyToAddress(): Address
+    protected function replyToAddress(): ?Address
     {
-        return new Address($this->booking->guest_email, $this->booking->guest_name);
+        return $this->booking->guest_email ? new Address($this->booking->guest_email, $this->booking->guest_name) : null;
     }
 
     protected function reason(): string

@@ -63,6 +63,23 @@ export interface BookingListPage {
   meta: { current_page: number; last_page: number; total: number }
 }
 
+export interface ManualBookingInput {
+  apartment_id: number
+  arrival: string
+  departure: string
+  adults: number
+  children: number
+  guest_name: string
+  guest_email: string | null
+  guest_phone: string | null
+  locale: 'fr' | 'en'
+  housekeeping_notes: string | null
+  /** Total fixé par l'hôte, en centimes ; null pour le prix calculé. */
+  total_amount: number | null
+  paid: boolean
+  send_confirmation: boolean
+}
+
 export interface GuestInput {
   guest_name?: string
   guest_email?: string

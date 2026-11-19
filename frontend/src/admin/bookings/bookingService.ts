@@ -1,9 +1,10 @@
 import { http, type HttpClient } from '@/lib/http'
-import type { BookingDetail, BookingFilters, BookingListPage, GuestInput } from './types'
+import type { BookingDetail, BookingFilters, BookingListPage, GuestInput, ManualBookingInput } from './types'
 
 export interface AdminBookingService {
   list(filters: BookingFilters, page: number): Promise<BookingListPage>
   get(reference: string): Promise<BookingDetail>
+  create(input: ManualBookingInput): Promise<BookingDetail>
   update(reference: string, input: GuestInput): Promise<BookingDetail>
   cancel(reference: string, notifyGuest: boolean): Promise<BookingDetail>
   resendConfirmation(reference: string): Promise<void>
@@ -28,6 +29,7 @@ export function createAdminBookingService(client: HttpClient): AdminBookingServi
   return {
     list: (filters, page) => client.request(`/admin/bookings?${bookingQuery(filters, page)}`),
     get: (reference) => unwrap(client.request(path(reference))),
+    create: (input) => unwrap(client.request('/admin/bookings', { method: 'POST', body: input })),
     update: (reference, input) => unwrap(client.request(path(reference), { method: 'PATCH', body: input })),
     cancel: (reference, notifyGuest) => unwrap(client.request(`${path(reference)}/cancel`, { method: 'POST', body: { notify_guest: notifyGuest } })),
     resendConfirmation: (reference) => client.request<void>(`${path(reference)}/resend-confirmation`, { method: 'POST' }),

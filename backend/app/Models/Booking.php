@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property BookingStatus $status
  * @property BookingSource $source
+ * @property string|null $guest_email absent pour certaines réservations saisies à la main
  * @property CarbonImmutable $arrival
  * @property CarbonImmutable $departure
  * @property Carbon|null $expires_at

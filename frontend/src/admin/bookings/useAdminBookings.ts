@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminBookingService, type AdminBookingService } from './bookingService'
-import type { BookingFilters, GuestInput } from './types'
+import type { BookingFilters, GuestInput, ManualBookingInput } from './types'
 
 export const bookingKeys = {
   all: ['admin', 'bookings'] as const,
@@ -34,4 +34,9 @@ export function useCancelBooking(reference: string, service: AdminBookingService
 
 export function useResendConfirmation(reference: string, service: AdminBookingService = adminBookingService) {
   return useMutation({ mutationFn: () => service.resendConfirmation(reference) })
+}
+
+export function useCreateBooking(service: AdminBookingService = adminBookingService) {
+  const refresh = useRefreshAdmin()
+  return useMutation({ mutationFn: (input: ManualBookingInput) => service.create(input), onSuccess: refresh })
 }

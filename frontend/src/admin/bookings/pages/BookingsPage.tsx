@@ -6,6 +6,7 @@ import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
+import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Card } from '@/components/ui/Card'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { Spinner } from '@/components/ui/Spinner'
@@ -34,6 +35,11 @@ export function BookingsPage() {
       <PageHeader
         title={t('admin.bookings.title')}
         subtitle={t('admin.bookings.subtitle')}
+        actions={
+          <Link to="/admin/reservations/nouvelle" className={buttonClasses('primary')}>
+            {t('admin.bookings.create')}
+          </Link>
+        }
       />
       <form
         className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"

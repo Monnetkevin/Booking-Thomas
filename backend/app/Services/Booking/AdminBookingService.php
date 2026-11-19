@@ -7,6 +7,7 @@ use App\Enums\BookingStatus;
 use App\Events\StayScheduleChanged;
 use App\Exceptions\Booking\BookingNotCancellableException;
 use App\Exceptions\Booking\BookingNotConfirmedException;
+use App\Exceptions\Booking\GuestEmailMissingException;
 use App\Mail\BookingCancelledGuest;
 use App\Mail\BookingConfirmedGuest;
 use App\Models\Booking;
@@ -128,9 +129,9 @@ class AdminBookingService
         $this->availabilityService->flushApartment($booking->apartment_id);
         $this->audit->record(AuditAction::BookingCancelled, $booking,
             ['status' => 'confirmed'],
-            ['status' => 'cancelled', 'refund_proposed' => $proposal->amount(), 'guest_notified' => $notifyGuest],
+            ['status' => 'cancelled', 'refund_proposed' => $proposal->amount(), 'guest_notified' => $notifyGuest && filled($booking->guest_email)],
         );
-        if ($notifyGuest) {
+        if ($notifyGuest && filled($booking->guest_email)) {
             $this->mailer->to([['email' => $booking->guest_email, 'name' => $booking->guest_name]])
                 ->queue(new BookingCancelledGuest($booking, $this->host->recipients()[0] ?? null));
         }
@@ -140,11 +141,15 @@ class AdminBookingService
 
     /**
      * @throws BookingNotConfirmedException
+     * @throws GuestEmailMissingException
      */
     public function resendConfirmation(Booking $booking): void
     {
         if (! in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::Completed], true)) {
             throw new BookingNotConfirmedException;
+        }
+        if (blank($booking->guest_email)) {
+            throw new GuestEmailMissingException;
         }
 
         $this->mailer->to([['email' => $booking->guest_email, 'name' => $booking->guest_name]])

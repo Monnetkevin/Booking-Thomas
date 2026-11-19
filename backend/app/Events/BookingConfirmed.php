@@ -14,5 +14,9 @@ class BookingConfirmed implements ShouldDispatchAfterCommit
 {
     use Dispatchable;
 
-    public function __construct(public readonly Booking $booking) {}
+    /**
+     * @param  bool  $notifyGuest  envoyer la confirmation au voyageur (réservation saisie à la
+     *                             main : au choix de l'hôte)
+     */
+    public function __construct(public readonly Booking $booking, public readonly bool $notifyGuest = true) {}
 }

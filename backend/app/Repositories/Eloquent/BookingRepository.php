@@ -3,6 +3,8 @@
 namespace App\Repositories\Eloquent;
 
 use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
 use App\Models\Booking;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Booking\BookingFilters;
@@ -93,5 +95,10 @@ class BookingRepository implements BookingRepositoryInterface
         $booking->refresh();
 
         return false;
+    }
+
+    public function recordOfflinePayment(Booking $booking, int $amount): void
+    {
+        $booking->payments()->create(['type' => PaymentType::Payment, 'amount' => $amount, 'status' => PaymentStatus::Succeeded]);
     }
 }

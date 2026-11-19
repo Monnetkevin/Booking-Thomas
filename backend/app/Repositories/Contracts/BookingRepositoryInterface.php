@@ -55,4 +55,7 @@ interface BookingRepositoryInterface
      * base (mise à jour conditionnelle) ; false si une autre opération est passée avant.
      */
     public function cancelIfConfirmed(Booking $booking): bool;
+
+    /** Règlement reçu hors ligne (espèces, virement) : paiement réussi, sans Stripe. */
+    public function recordOfflinePayment(Booking $booking, int $amount): void;
 }

@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Bookings\CancelBookingRequest;
 use App\Http\Requests\Admin\Bookings\ListBookingsRequest;
+use App\Http\Requests\Admin\Bookings\StoreManualBookingRequest;
 use App\Http\Requests\Admin\Bookings\UpdateBookingRequest;
 use App\Http\Resources\Admin\AdminBookingListResource;
 use App\Http\Resources\Admin\AdminBookingResource;
 use App\Models\Booking;
+use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Services\Booking\AdminBookingService;
 use App\Services\Booking\BookingConfirmationPdf;
 use App\Services\Booking\BookingService;
+use App\Services\Booking\ManualBookingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
@@ -23,6 +27,8 @@ class BookingController extends Controller
         private readonly AdminBookingService $bookings,
         private readonly BookingService $lifecycle,
         private readonly BookingConfirmationPdf $pdf,
+        private readonly ManualBookingService $manual,
+        private readonly ApartmentRepositoryInterface $apartments,
     ) {}
 
     public function index(ListBookingsRequest $request): AnonymousResourceCollection
@@ -30,6 +36,26 @@ class BookingController extends Controller
         Gate::authorize('viewAny', Booking::class);
 
         return AdminBookingListResource::collection($this->bookings->list($request->filters()));
+    }
+
+    /** Réservation saisie par l'hôte (téléphone, connaissance), confirmée tout de suite. */
+    public function store(StoreManualBookingRequest $request): JsonResponse
+    {
+        Gate::authorize('create', Booking::class);
+
+        $apartment = $this->apartments->findWithTrashed($request->integer('apartment_id'));
+        abort_if($apartment === null, 404);
+
+        $booking = $this->manual->create(
+            $apartment,
+            $request->stay(),
+            $request->guest(),
+            $request->total(),
+            $request->boolean('paid'),
+            $request->boolean('send_confirmation'),
+        );
+
+        return $this->resource($booking)->response()->setStatusCode(201);
     }
 
     public function show(Booking $booking): AdminBookingResource

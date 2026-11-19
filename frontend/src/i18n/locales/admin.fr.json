@@ -573,5 +573,31 @@
     "refundOffline": "Le remboursement en ligne arrive avec le paiement Stripe ; en attendant, remboursez le voyageur hors ligne.",
     "notifyGuest": "Prévenir le voyageur par e-mail",
     "cancelConfirm": "Annuler la réservation"
+  },
+  "manual": {
+    "title": "Saisir une réservation",
+    "subtitle": "Réservation prise par téléphone ou par une connaissance : confirmée tout de suite, sans paiement en ligne. Le préavis et le séjour minimum ne s’appliquent pas.",
+    "stay": "Séjour",
+    "chooseApartment": "Choisir un logement",
+    "adults": "Adultes",
+    "children": "Enfants",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "computePrice": "Calculer le prix",
+    "noRate": "Aucun tarif ne couvre toutes ces nuits : indiquez le prix total convenu.",
+    "warnings": "À savoir : {{list}} (ne bloque pas une saisie à la main).",
+    "price": "Prix et règlement",
+    "priceHint": "Laissez le total vide pour garder le prix calculé, ou indiquez le total convenu (l’écart est noté comme ajustement).",
+    "total": "Total convenu",
+    "paid": "Réglé hors ligne (espèces, virement…)",
+    "emailHint": "Facultatif : sans e-mail, rien n’est envoyé au voyageur.",
+    "locale": "Langue du voyageur",
+    "sendConfirmation": "Envoyer la confirmation au voyageur (avec le PDF)",
+    "submit": "Enregistrer la réservation",
+    "errors": {
+      "required": "Champ obligatoire.",
+      "invalidNumber": "Nombre attendu.",
+      "invalidAmount": "Montant invalide."
+    }
   }
 }

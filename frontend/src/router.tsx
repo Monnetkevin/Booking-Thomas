@@ -84,6 +84,10 @@ export const router = createBrowserRouter([
             lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingsPage')).BookingsPage }),
           },
           {
+            path: 'reservations/nouvelle',
+            lazy: async () => ({ Component: (await import('@/admin/bookings/pages/NewBookingPage')).NewBookingPage }),
+          },
+          {
             path: 'reservations/:reference',
             lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingDetailPage')).BookingDetailPage }),
           },

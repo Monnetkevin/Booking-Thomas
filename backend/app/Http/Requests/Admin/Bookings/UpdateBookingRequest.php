@@ -14,7 +14,7 @@ class UpdateBookingRequest extends FormRequest
     {
         return [
             'guest_name' => ['sometimes', 'string', 'max:120'],
-            'guest_email' => ['sometimes', 'string', 'email', 'max:190'],
+            'guest_email' => ['sometimes', 'nullable', 'string', 'email', 'max:190'],
             'guest_phone' => ['sometimes', 'nullable', 'string', 'max:40'],
             'guest_country' => ['sometimes', 'nullable', 'string', 'size:2', 'alpha'],
             'housekeeping_notes' => ['sometimes', 'nullable', 'string', 'max:500'],

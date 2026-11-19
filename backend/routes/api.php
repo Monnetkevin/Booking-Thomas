@@ -121,6 +121,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Réservations : liste, fiche, coordonnées, annulation, confirmation (référence BT-…)
     Route::get('bookings', [AdminBookingController::class, 'index']);
+    Route::post('bookings', [AdminBookingController::class, 'store'])->middleware('throttle:20,1');
     Route::get('bookings/{booking}', [AdminBookingController::class, 'show']);
     Route::patch('bookings/{booking}', [AdminBookingController::class, 'update']);
     Route::post('bookings/{booking}/cancel', [AdminBookingController::class, 'cancel']);
