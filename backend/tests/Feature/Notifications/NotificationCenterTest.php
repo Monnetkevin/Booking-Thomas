@@ -130,6 +130,12 @@ describe('canaux', function () {
             ->and((new IcalFeedRecoveredNotification($this->feed))->via($this->host))->toBe([InAppChannel::class]);
     });
 
+    it('rédige la notification d’un calendrier dont le logement a été supprimé', function () {
+        $this->feed->apartment->delete();
+
+        expect((new IcalFeedFailingNotification($this->feed->fresh()))->title())->toStartWith('Calendrier Airbnb en échec : ');
+    });
+
     it('respecte l’e-mail coupé par le compte, sauf pour un conflit de dates', function () {
         $this->host->update(['notification_preferences' => ['email' => ['ical_feed_failing' => false, 'ical_conflict' => false]]]);
         $block = AvailabilityBlock::factory()->create();

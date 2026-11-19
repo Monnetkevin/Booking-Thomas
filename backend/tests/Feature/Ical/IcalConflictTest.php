@@ -66,6 +66,16 @@ it('alerte l’hôte quand Airbnb recouvre une réservation directe confirmée',
     });
 });
 
+it('envoie aussi l’alerte aux autres adresses du réglage, sans doublon avec le compte de l’hôte', function () {
+    app(SettingRepositoryInterface::class)->put('notifications.admin_emails', ['HOTE@example.com', 'associe@example.com']);
+    directBooking($this->apartment, '2026-11-23', '2026-11-26');
+
+    airbnbNow(['HM1' => ['2026-11-21', '2026-11-25']]);
+
+    Mail::assertQueuedCount(1);
+    Mail::assertQueued(IcalConflictAlert::class, fn (IcalConflictAlert $mail) => $mail->hasTo('associe@example.com') && ! $mail->hasTo('hote@example.com'));
+});
+
 it('garde occupées toutes les nuits du séjour Airbnb en conflit, même celles qu’il est seul à tenir', function () {
     $this->apartment->update(['status' => 'published', 'turnover_days' => 0]);
     RatePeriod::factory()->for($this->apartment)->create(['starts_on' => '2026-11-01', 'ends_on' => '2026-12-31']);
