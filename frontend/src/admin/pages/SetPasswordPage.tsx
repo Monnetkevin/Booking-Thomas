@@ -1,3 +1,4 @@
+import '@/admin/i18n'
 import { useEffect, useLayoutEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
