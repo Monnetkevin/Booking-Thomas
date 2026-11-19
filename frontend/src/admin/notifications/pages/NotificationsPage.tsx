@@ -25,6 +25,11 @@ export function NotificationsPage() {
   const markAllRead = useMarkAllRead()
   const openNotification = useOpenNotification()
 
+  // Des notifications lues depuis le filtre « non lues » peuvent vider la page courante :
+  // on revient alors à la dernière page qui existe encore.
+  const lastPage = list.data?.meta.last_page
+  if (lastPage !== undefined && !list.isPlaceholderData && page > Math.max(1, lastPage)) setPage(Math.max(1, lastPage))
+
   const changeFilter = (value: Filter) => {
     setFilter(value)
     setPage(1)
