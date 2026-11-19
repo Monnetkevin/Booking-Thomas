@@ -160,6 +160,7 @@
       "apartments": "Appartements",
       "rates": "Tarifs",
       "sync": "Synchronisation",
+      "notifications": "Notifications",
       "users": "Utilisateurs"
     },
     "login": {
@@ -470,6 +471,40 @@
           "unchanged": "Inchangé",
           "failed": "Erreur"
         }
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Ce qui demande votre attention. Les urgentes vous sont aussi envoyées par e-mail.",
+      "bell": "Notifications",
+      "bellUnread_one": "Notifications : {{count}} non lue",
+      "bellUnread_other": "Notifications : {{count}} non lues",
+      "urgent": "Urgent",
+      "unreadLabel": "(non lue)",
+      "markAllRead": "Tout marquer comme lu",
+      "seeAll": "Voir toutes les notifications",
+      "empty": "Aucune notification pour le moment.",
+      "emptyUnread": "Aucune notification non lue.",
+      "filter": "Filtrer les notifications",
+      "all": "Toutes",
+      "unread": "Non lues ({{count}})",
+      "pages": "Pages de notifications",
+      "page": "Page {{page}} sur {{total}}",
+      "when": {
+        "now": "À l’instant",
+        "minutes": "Il y a {{count}} min",
+        "hours": "Il y a {{count}} h",
+        "yesterday": "Hier"
+      },
+      "types": {
+        "ical_conflict": "Conflit de dates avec un séjour importé",
+        "ical_feed_failing": "Calendrier en échec",
+        "ical_empty_calendar_refused": "Calendrier vide refusé",
+        "ical_feed_recovered": "Calendrier de nouveau à jour",
+        "booking_confirmed": "Réservation confirmée",
+        "contact_message": "Nouveau message de contact",
+        "stay_changed": "Séjour ajouté, annulé ou déplacé",
+        "daily_summary": "Récapitulatif du lendemain"
       }
     },
     "users": {

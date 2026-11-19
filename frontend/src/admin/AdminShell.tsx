@@ -4,6 +4,7 @@ import { useCurrentUser, useLogout } from '@/admin/auth/useAuth'
 import { AdminLayout } from '@/admin/AdminLayout'
 import { UserMenu } from '@/admin/components/UserMenu'
 import { canVisit, navigationFor } from '@/admin/navigation'
+import { NotificationBell } from '@/admin/notifications/components/NotificationBell'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner'
 
@@ -31,6 +32,7 @@ export function AdminShell() {
   return (
     <AdminLayout
       navigation={navigation}
+      headerActions={<NotificationBell />}
       footer={<UserMenu user={user} onLogout={handleLogout} />}
     />
   )

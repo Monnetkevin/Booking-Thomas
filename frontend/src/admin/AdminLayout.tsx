@@ -8,6 +8,8 @@ import { cn } from '@/lib/cn'
 
 interface AdminLayoutProps {
   navigation: AdminNavItem[]
+  /** Actions à côté du logo (cloche des notifications). */
+  headerActions?: ReactNode
   footer?: ReactNode
 }
 
@@ -15,7 +17,7 @@ interface AdminLayoutProps {
  * Mise en page du back-office : barre latérale sombre sur ordinateur, barre du haut
  * défilante sur téléphone. Ne connaît ni la session ni les droits : elle affiche ce qu'on lui donne.
  */
-export function AdminLayout({ navigation, footer }: AdminLayoutProps) {
+export function AdminLayout({ navigation, headerActions, footer }: AdminLayoutProps) {
   const { t } = useTranslation()
 
   const { pathname } = useLocation()
@@ -40,8 +42,9 @@ export function AdminLayout({ navigation, footer }: AdminLayoutProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-sand lg:flex-row">
       <aside className="flex shrink-0 flex-col bg-night text-night-text lg:sticky lg:top-0 lg:h-dvh lg:w-60">
-        <div className="flex items-center px-4 pt-4 pb-2 text-white lg:px-5 lg:pt-5 lg:pb-5">
+        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2 text-white lg:px-5 lg:pt-5 lg:pb-5">
           <Logo />
+          {headerActions}
         </div>
         <nav ref={navRef} aria-label={t('admin.nav.label')} className="px-3 pb-3 lg:flex-1">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col">

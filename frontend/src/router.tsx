@@ -70,6 +70,10 @@ export const router = createBrowserRouter([
             lazy: async () => ({ Component: (await import('@/admin/sync/pages/SyncPage')).SyncPage }),
           },
           {
+            path: 'notifications',
+            lazy: async () => ({ Component: (await import('@/admin/notifications/pages/NotificationsPage')).NotificationsPage }),
+          },
+          {
             path: 'utilisateurs',
             lazy: async () => ({ Component: (await import('@/admin/users/pages/UsersPage')).UsersPage }),
           },

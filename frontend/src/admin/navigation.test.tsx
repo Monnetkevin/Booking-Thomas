@@ -19,4 +19,9 @@ describe('navigation du back-office', () => {
     expect(canVisit('/admin/menage-autre', 'housekeeping', items)).toBe(false)
     expect(canVisit('/admin/appartements', 'admin', items)).toBe(true)
   })
+
+  it('donne au ménage les notifications, et la gestion des comptes au seul administrateur', () => {
+    expect(navigationFor('housekeeping').map((item) => item.to)).toEqual(['/admin/notifications'])
+    expect(navigationFor('admin').map((item) => item.to)).toContain('/admin/utilisateurs')
+  })
 })
