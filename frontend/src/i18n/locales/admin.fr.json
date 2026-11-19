@@ -50,7 +50,8 @@
     "departures": "Départs",
     "platform": "Séjour importé",
     "guests_one": "{{count}} voyageur",
-    "guests_other": "{{count}} voyageurs"
+    "guests_other": "{{count}} voyageurs",
+    "noMovement": "Ni arrivée ni départ."
   },
   "forbidden": "Votre compte n'a pas accès à cette page.",
   "common": {

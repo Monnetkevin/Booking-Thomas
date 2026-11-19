@@ -81,14 +81,20 @@ export function DashboardPage() {
               {dashboard.data.movements.map((day) => (
                 <li key={day.date} className="grid gap-2 py-3 sm:grid-cols-[12rem_1fr_1fr]">
                   <p className="font-semibold">{day.date === dashboard.data.today ? t('admin.dashboard.today') : formatLongDate(day.date)}</p>
-                  <div>
-                    <p className="text-sm text-muted">{t('admin.dashboard.arrivals')}</p>
-                    {day.arrivals.length === 0 ? <p className="text-sm text-muted">—</p> : <ul className="space-y-0.5 text-[15px]">{day.arrivals.map((m, i) => <MovementLine key={i} movement={m} />)}</ul>}
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted">{t('admin.dashboard.departures')}</p>
-                    {day.departures.length === 0 ? <p className="text-sm text-muted">—</p> : <ul className="space-y-0.5 text-[15px]">{day.departures.map((m, i) => <MovementLine key={i} movement={m} />)}</ul>}
-                  </div>
+                  {day.arrivals.length === 0 && day.departures.length === 0 ? (
+                    <p className="text-sm text-muted sm:col-span-2">{t('admin.dashboard.noMovement')}</p>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-sm text-muted">{t('admin.dashboard.arrivals')}</p>
+                        {day.arrivals.length === 0 ? <p className="text-sm text-muted">—</p> : <ul className="space-y-0.5 text-[15px]">{day.arrivals.map((m, i) => <MovementLine key={i} movement={m} />)}</ul>}
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted">{t('admin.dashboard.departures')}</p>
+                        {day.departures.length === 0 ? <p className="text-sm text-muted">—</p> : <ul className="space-y-0.5 text-[15px]">{day.departures.map((m, i) => <MovementLine key={i} movement={m} />)}</ul>}
+                      </div>
+                    </>
+                  )}
                 </li>
               ))}
             </ol>
