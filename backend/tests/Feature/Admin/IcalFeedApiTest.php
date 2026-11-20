@@ -4,6 +4,7 @@ use App\Enums\IcalSyncStatus;
 use App\Jobs\SyncIcalFeed;
 use App\Models\Apartment;
 use App\Models\IcalFeed;
+use App\Models\IcalSyncLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Queue;
 
@@ -113,8 +114,8 @@ it('relit tous les calendriers importables en file d’attente', function () {
 it('donne le journal récent de tous les calendriers, avec le logement', function () {
     $this->apartment->update(['name' => ['fr' => 'Le Cocon', 'en' => 'Cocoon']]);
     $feed = IcalFeed::factory()->for($this->apartment)->create();
-    App\Models\IcalSyncLog::query()->forceCreate(['ical_feed_id' => $feed->id, 'trigger' => 'scheduled', 'status' => 'failed', 'error' => 'HTTP 403', 'created_at' => now()->subHour()]);
-    App\Models\IcalSyncLog::query()->forceCreate(['ical_feed_id' => $feed->id, 'trigger' => 'manual', 'status' => 'success', 'created_at' => now()]);
+    IcalSyncLog::query()->forceCreate(['ical_feed_id' => $feed->id, 'trigger' => 'scheduled', 'status' => 'failed', 'error' => 'HTTP 403', 'created_at' => now()->subHour()]);
+    IcalSyncLog::query()->forceCreate(['ical_feed_id' => $feed->id, 'trigger' => 'manual', 'status' => 'success', 'created_at' => now()]);
 
     $this->getJson('/api/admin/ical-sync-logs')
         ->assertOk()

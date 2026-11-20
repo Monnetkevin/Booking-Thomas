@@ -5,6 +5,7 @@ use App\Enums\BookingStatus;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
+use App\Models\PlatformPayout;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 
@@ -103,7 +104,7 @@ it('ajoute les revenus importés des plateformes, la part du direct, et change d
     soldBooking($this->cocon, '2026-11-02', '2026-11-04', 30000);
     $feed = IcalFeed::factory()->for($this->nid)->create();
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM2']);
-    App\Models\PlatformPayout::query()->create([
+    PlatformPayout::query()->create([
         'platform' => 'airbnb', 'confirmation_code' => 'HMX', 'apartment_id' => $this->nid->id,
         'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 20000,
     ]);
@@ -114,7 +115,7 @@ it('ajoute les revenus importés des plateformes, la part du direct, et change d
         ->assertJsonPath('data.months.5.platform_revenue', ['airbnb' => 20000, 'booking' => 0])
         ->assertJsonPath('data.months.5.platform_revenue_missing', false)
         ->assertJsonPath('data.totals.total_revenue', 54000)
-        ->assertJsonPath('data.totals.direct_share', 63.0)
+        ->assertJsonPath('data.totals.direct_share', 63)
         ->assertJsonPath('data.totals.revenue_per_night', 13500)
         ->assertJsonPath('data.apartments.1.platform_revenue', 20000);
     $this->getJson('/api/admin/statistics?period=all')->assertJsonPath('data.from', '2026-11-01');

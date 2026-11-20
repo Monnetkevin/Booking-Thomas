@@ -4,8 +4,8 @@ namespace App\Services\Dashboard;
 
 use App\Enums\BlockType;
 use App\Enums\DashboardPeriod;
-use App\Models\Booking;
 use App\Models\AvailabilityBlock;
+use App\Models\Booking;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;

@@ -7,7 +7,6 @@ use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Models\Booking;
-use App\Models\Payment;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Booking\BookingFilters;
 use Carbon\CarbonInterface;
@@ -132,7 +131,11 @@ class BookingRepository implements BookingRepositoryInterface
             ->get();
     }
 
-    /** Référence, nom ou e-mail du voyageur, sans jokers SQL venus de la saisie. */
+    /**
+     * Référence, nom ou e-mail du voyageur, sans jokers SQL venus de la saisie.
+     *
+     * @param  Builder<Booking>  $query
+     */
     private function matching(Builder $query, string $term): void
     {
         $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';

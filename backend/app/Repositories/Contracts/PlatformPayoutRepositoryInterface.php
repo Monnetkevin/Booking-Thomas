@@ -35,6 +35,9 @@ interface PlatformPayoutRepositoryInterface
      */
     public function createImport(array $attributes): PlatformImport;
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     public function updateImport(PlatformImport $import, array $attributes): PlatformImport;
 
     /**

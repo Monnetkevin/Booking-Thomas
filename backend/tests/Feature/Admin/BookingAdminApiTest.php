@@ -199,7 +199,7 @@ it('exporte la liste filtrée en CSV, sans coordonnées et sans formule exécuta
     $response = $this->get('/api/admin/bookings.csv?stage=upcoming')
         ->assertOk()
         ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
-    $csv = $response->streamedContent() ?: $response->getContent();
+    $csv = (string) $response->getContent();
 
     expect($csv)->toStartWith("\u{FEFF}Référence;Voyageur;Logement")
         ->toContain("'=HYPERLINK")

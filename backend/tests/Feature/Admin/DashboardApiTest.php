@@ -2,12 +2,10 @@
 
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
-use App\Enums\PaymentStatus;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\ContactMessage;
 use App\Models\IcalFeed;
-use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 

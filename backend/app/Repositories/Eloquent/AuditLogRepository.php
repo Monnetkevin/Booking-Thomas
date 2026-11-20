@@ -4,10 +4,10 @@ namespace App\Repositories\Eloquent;
 
 use App\Enums\AuditAction;
 use App\Models\AuditLog;
-use Illuminate\Database\Eloquent\Collection;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class AuditLogRepository implements AuditLogRepositoryInterface
 {

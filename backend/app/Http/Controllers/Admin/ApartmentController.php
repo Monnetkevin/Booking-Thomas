@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Services\Apartment\ApartmentListMeta;
-use Carbon\CarbonImmutable;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Apartment\IndexApartmentsRequest;
 use App\Http\Requests\Admin\Apartment\ReorderApartmentsRequest;
@@ -12,7 +10,9 @@ use App\Http\Requests\Admin\Apartment\UpdateApartmentRequest;
 use App\Http\Resources\Admin\AdminApartmentListResource;
 use App\Http\Resources\Admin\AdminApartmentResource;
 use App\Models\Apartment;
+use App\Services\Apartment\ApartmentListMeta;
 use App\Services\Apartment\ApartmentService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;

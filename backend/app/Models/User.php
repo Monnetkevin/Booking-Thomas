@@ -11,11 +11,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $email
  * @property UserRole $role
  * @property bool $is_active
+ * @property Carbon|null $last_login_at
  * @property array<string, mixed>|null $notification_preferences e-mail par type, récapitulatif du ménage
  */
 #[Fillable(['name', 'email', 'password', 'role', 'is_active', 'notification_preferences'])]

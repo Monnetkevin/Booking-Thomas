@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\RatePeriod;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
@@ -206,7 +207,7 @@ describe('droits', function () {
 });
 
 test('la liste donne le nombre de logements par statut et l’occupation du mois des logements publiés', function () {
-    Illuminate\Support\Facades\Date::setTestNow('2026-11-20 10:00:00');
+    Date::setTestNow('2026-11-20 10:00:00');
     $published = Apartment::factory()->create(['status' => ApartmentStatus::Published, 'bedrooms' => 2, 'city' => 'Le Mans']);
     $draft = Apartment::factory()->create(['status' => ApartmentStatus::Draft]);
     // 6 nuits sur 30 en novembre.
@@ -215,14 +216,14 @@ test('la liste donne le nombre de logements par statut et l’occupation du mois
     $this->getJson('/api/admin/apartments')
         ->assertOk()
         ->assertJsonPath('meta.counts', ['all' => 2, 'draft' => 1, 'published' => 1])
-        ->assertJsonPath("meta.occupancy.{$published->id}", 20.0)
+        ->assertJsonPath("meta.occupancy.{$published->id}", 20)
         ->assertJsonPath("meta.occupancy.{$draft->id}", null)
         ->assertJsonPath('data.0.bedrooms', 2)
         ->assertJsonPath('data.0.city', 'Le Mans');
 });
 
 test('la liste donne la période de prix en cours de chaque logement et ses frais de ménage', function () {
-    Illuminate\Support\Facades\Date::setTestNow('2026-11-20 10:00:00');
+    Date::setTestNow('2026-11-20 10:00:00');
     $apartment = Apartment::factory()->create(['cleaning_fee' => 4000]);
     RatePeriod::factory()->for($apartment)->create(['label' => 'Hiver', 'starts_on' => '2026-11-01', 'ends_on' => '2027-02-28', 'nightly_price' => 9500, 'weekend_supplement' => 1500, 'min_stay' => 2]);
 

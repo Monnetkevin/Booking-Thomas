@@ -50,7 +50,12 @@ it('refuse au gestionnaire les réglages, les comptes et les tarifs', function (
 
 it('refuse l’activité du back-office au ménage et à un gestionnaire désactivé', function () {
     $this->actingAs(User::factory()->housekeeping()->create())->getJson('/api/admin/bookings')->assertForbidden();
-    $this->actingAs(User::factory()->manager()->inactive()->create())->getJson('/api/admin/bookings')->assertUnauthorized();
+    // Requête de la SPA (session) : le compte désactivé est déconnecté.
+    config(['sanctum.stateful' => ['localhost:5173']]);
+    $this->withHeader('Origin', 'http://localhost:5173')
+        ->actingAs(User::factory()->manager()->inactive()->create())
+        ->getJson('/api/admin/bookings')
+        ->assertUnauthorized();
 });
 
 it('invite un gestionnaire, change un rôle, jamais celui d’un administrateur', function () {
@@ -91,5 +96,13 @@ it('note la dernière connexion', function () {
         ->postJson('/api/auth/login', ['email' => $user->email, 'password' => 'secret-de-test-123'])->assertSuccessful();
 
     expect($user->fresh()->last_login_at)->not->toBeNull();
-    $this->actingAs($this->admin)->getJson('/api/admin/users')->assertJsonPath('data.1.last_login_at', fn ($value) => $value !== null);
+});
+
+it('donne la dernière connexion dans la liste des comptes', function () {
+    $this->manager->forceFill(['last_login_at' => '2026-11-19 08:30:00'])->save();
+
+    $accounts = collect($this->actingAs($this->admin)->getJson('/api/admin/users')->json('data'))->keyBy('id');
+
+    expect($accounts[$this->manager->id]['last_login_at'])->toStartWith('2026-11-19T08:30:00')
+        ->and($accounts[$this->admin->id]['last_login_at'])->toBeNull();
 });
