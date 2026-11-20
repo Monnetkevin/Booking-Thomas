@@ -59,14 +59,14 @@ export function NotificationBell() {
           id={panelId}
           role="dialog"
           aria-label={t('admin.notifications.title')}
-          className="absolute top-12 right-0 z-30 w-[min(24rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-border bg-white p-2 text-ink shadow-xl lg:right-auto lg:left-0"
+          className="absolute top-12 right-0 z-30 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl lg:right-auto lg:left-0"
         >
-          <div className="flex items-center justify-between gap-2 px-3 py-2">
-            <h2 className="text-base font-semibold">{t('admin.notifications.title')}</h2>
+          <div className="flex items-center justify-between gap-2 px-2.5 py-1">
+            <h2 className="font-sans text-sm font-bold tracking-normal">{t('admin.notifications.title')}</h2>
             {count > 0 && (
               <button
                 type="button"
-                className="min-h-11 text-sm font-semibold text-accent-strong hover:underline"
+                className="min-h-11 text-xs font-semibold text-accent-strong hover:underline"
                 onClick={() => markAllRead.mutate()}
               >
                 {t('admin.notifications.markAllRead')}
@@ -93,7 +93,7 @@ export function NotificationBell() {
           <Link
             to="/admin/notifications"
             onClick={close}
-            className="mt-1 flex min-h-11 items-center justify-center rounded-xl text-sm font-semibold no-underline hover:bg-sand"
+            className="mt-1 flex min-h-11 items-center justify-center rounded-xl text-[13px] font-semibold no-underline hover:bg-sand"
           >
             {t('admin.notifications.seeAll')}
           </Link>

@@ -23,21 +23,22 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
       type="button"
       onClick={() => onOpen(notification)}
       className={cn(
-        'flex w-full gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-sand',
+        'flex w-full rounded-xl text-left transition-colors hover:bg-sand',
+        compact ? 'gap-2.5 px-2.5 py-2' : 'gap-3 px-3 py-3',
         !notification.read && 'bg-cream/60',
       )}
     >
       <span
         aria-hidden="true"
-        className={cn('mt-2 size-2 shrink-0 rounded-full', notification.read ? 'bg-transparent' : urgent ? 'bg-danger' : 'bg-accent')}
+        className={cn(compact ? 'mt-1.5' : 'mt-2', 'size-2 shrink-0 rounded-full', notification.read ? 'bg-transparent' : urgent ? 'bg-danger' : 'bg-accent')}
       />
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-2">
           {urgent && <Badge tone="danger">{t('admin.notifications.urgent')}</Badge>}
-          <span className={cn('text-[15px]', notification.read ? 'font-medium' : 'font-bold')}>{notification.title}</span>
+          <span className={cn(compact ? 'text-[13px]' : 'text-[15px]', notification.read ? 'font-medium' : 'font-bold')}>{notification.title}</span>
           {!notification.read && <span className="sr-only">{t('admin.notifications.unreadLabel')}</span>}
         </span>
-        <span className={cn('mt-0.5 block text-sm text-muted', compact && 'line-clamp-2')}>{notification.body}</span>
+        <span className={cn('mt-0.5 block text-muted', compact ? 'line-clamp-2 text-xs' : 'text-sm')}>{notification.body}</span>
         {!compact && notification.details.length > 0 && (
           <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm">
             {notification.details.map((detail) => (
@@ -45,7 +46,7 @@ export function NotificationItem({ notification, onOpen, compact = false }: Noti
             ))}
           </ul>
         )}
-        <time dateTime={notification.created_at} title={formatDateTime(notification.created_at)} className="mt-1 block text-xs text-muted">
+        <time dateTime={notification.created_at} title={formatDateTime(notification.created_at)} className={cn('mt-1 block text-muted', compact ? 'text-[11px]' : 'text-xs')}>
           {when.key === 'date' ? formatDateTime(notification.created_at) : t(`admin.notifications.when.${when.key}`, 'count' in when ? { count: when.count } : {})}
         </time>
       </span>

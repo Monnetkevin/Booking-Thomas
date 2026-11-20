@@ -1,0 +1,31 @@
+/*
+ * Typographie du back-office : DM Sans pour le texte, Fraunces conservée pour les titres,
+ * dans une échelle plus resserrée que le site public (écrans de gestion denses).
+ * Appliquée par la classe .admin-typo posée sur la racine d'AdminLayout.
+ *
+ * Les tailles Tailwind (text-xs … text-3xl) sont redéfinies dans ce périmètre ; les tailles
+ * fixes en pixels utilisées par les composants partagés (11, 13, 15 px) suivent la même échelle.
+ */
+@import '@fontsource-variable/dm-sans';
+
+.admin-typo {
+  --font-sans: 'DM Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 11.5px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 21px;
+  --text-3xl: 25px;
+  font-family: var(--font-sans);
+}
+
+.admin-typo .text-\[15px\] {
+  font-size: 14px;
+}
+.admin-typo .text-\[13px\] {
+  font-size: 12.5px;
+}
+.admin-typo .text-\[11px\] {
+  font-size: 10.5px;
+}
