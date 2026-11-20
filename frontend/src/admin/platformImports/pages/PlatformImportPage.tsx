@@ -5,7 +5,7 @@ import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { UploadIcon } from '@/components/icons'
 import { Alert } from '@/components/ui/Alert'
-import { Badge } from '@/components/ui/Badge'
+import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { SelectField } from '@/components/ui/Field'
 import { Section } from '@/components/ui/Section'
@@ -15,10 +15,13 @@ import { stayLabel } from '@/admin/bookings/stayLabel'
 import { ApiError } from '@/lib/api'
 import { formatDateTime } from '@/lib/dates'
 import { formatEuros } from '@/lib/money'
+import { importSelection, initialMapping, rowState, type ListingMapping, type RowState } from '../importSelection'
 import type { PayoutPlatform } from '../types'
 import { useImportHistory, usePreviewImport, useRunImport } from '../usePlatformImports'
 
 const PLATFORMS: PayoutPlatform[] = ['airbnb', 'booking']
+
+const STATE_TONES: Record<RowState, BadgeTone> = { removed: 'danger', unlinked: 'warning', update: 'neutral', new: 'success' }
 
 /**
  * Revenus des plateformes : l'hôte dépose l'export CSV d'Airbnb ou de Booking.com, vérifie
@@ -29,7 +32,7 @@ export function PlatformImportPage() {
   const [platform, setPlatform] = useState<PayoutPlatform>('airbnb')
   const [file, setFile] = useState<File | null>(null)
   // Choix de l'hôte pour chaque annonce du fichier (null : non rattachée), envoyé en entier.
-  const [mapping, setMapping] = useState<Record<string, number | null>>({})
+  const [mapping, setMapping] = useState<ListingMapping>({})
   const apartments = useApartmentList()
   const history = useImportHistory()
   const preview = usePreviewImport()
@@ -47,16 +50,12 @@ export function PlatformImportPage() {
     run.reset()
     preview.mutate(
       { platform, file },
-      { onSuccess: (data) => setMapping(Object.fromEntries(data.listings.map((entry) => [entry.listing, entry.apartment_id]))) },
+      { onSuccess: (data) => setMapping(initialMapping(data)) },
     )
   }
 
   const data = preview.data
-  const linked = (listing: string) => mapping[listing] !== null && mapping[listing] !== undefined
-  const unmapped = data ? data.listings.filter((entry) => !linked(entry.listing)).length : 0
-  const importable = data ? data.rows.filter((row) => linked(row.listing)) : []
-  // Versements déjà importés d'une annonce non rattachée : le serveur les retire à l'import.
-  const detachedRemoved = data ? data.rows.filter((row) => !linked(row.listing) && row.already_imported).length : 0
+  const { unmapped, importable, detachedRemoved } = importSelection(data, mapping)
   const errorMessage = (error: unknown) => (error instanceof ApiError && error.serverMessage) || t('common.error')
 
   return (
@@ -145,15 +144,7 @@ export function PlatformImportPage() {
                             <td className="px-3 py-2 text-right tabular-nums">{row.fees === null ? '—' : formatEuros(row.fees)}</td>
                             <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatEuros(row.net_amount)}</td>
                             <td className="px-3 py-2">
-                              {!linked(row.listing) && row.already_imported ? (
-                                <Badge tone="danger">{t('admin.platformImport.states.removed')}</Badge>
-                              ) : !linked(row.listing) ? (
-                                <Badge tone="warning">{t('admin.platformImport.states.unlinked')}</Badge>
-                              ) : row.already_imported ? (
-                                <Badge tone="neutral">{t('admin.platformImport.states.update')}</Badge>
-                              ) : (
-                                <Badge tone="success">{t('admin.platformImport.states.new')}</Badge>
-                              )}
+                              <Badge tone={STATE_TONES[rowState(row, mapping)]}>{t(`admin.platformImport.states.${rowState(row, mapping)}`)}</Badge>
                             </td>
                           </tr>
                         ))}

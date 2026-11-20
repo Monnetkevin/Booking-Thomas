@@ -31,10 +31,10 @@ final readonly class PlatformRow
         public string $entryKey,
     ) {}
 
-    /** Code et annonce assez courts pour être enregistrés. */
+    /** Code et annonce présents, assez courts pour être enregistrés (une annonce vide ne se rattache à aucun logement). */
     public static function fits(string $code, string $listing): bool
     {
-        return $code !== '' && mb_strlen($code) <= self::MAX_CODE && mb_strlen($listing) <= self::MAX_LISTING;
+        return $code !== '' && mb_strlen($code) <= self::MAX_CODE && $listing !== '' && mb_strlen($listing) <= self::MAX_LISTING;
     }
 
     /** Nuits et montants dans les bornes de la base (sinon la ligne est ignorée). */
