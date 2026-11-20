@@ -66,10 +66,14 @@ class Booking extends Model
         return (int) $this->arrival->diffInDays($this->departure);
     }
 
-    /** @return BelongsTo<Apartment, $this> */
+    /**
+     * Avec les logements supprimés : les réservations passées restent consultables (PDF, e-mails).
+     *
+     * @return BelongsTo<Apartment, $this>
+     */
     public function apartment(): BelongsTo
     {
-        return $this->belongsTo(Apartment::class);
+        return $this->belongsTo(Apartment::class)->withTrashed();
     }
 
     /** @return HasOne<AvailabilityBlock, $this> */

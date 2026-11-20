@@ -20,6 +20,9 @@ const MAX_EMAILS = 5
 export function SettingsPage() {
   const { t } = useTranslation()
   const settings = useSettings()
+  // La mutation vit ici et non dans le formulaire : celui-ci est recréé (clé) quand les
+  // réglages enregistrés changent, ce qui effacerait sinon le message « Enregistré ».
+  const update = useUpdateSettings()
 
   return (
     <>
@@ -29,17 +32,16 @@ export function SettingsPage() {
       ) : settings.isError ? (
         <ErrorState onRetry={() => void settings.refetch()} />
       ) : (
-        <SettingsForm key={JSON.stringify(settings.data)} settings={settings.data} />
+        <SettingsForm key={JSON.stringify(settings.data)} settings={settings.data} update={update} />
       )}
     </>
   )
 }
 
-function SettingsForm({ settings }: { settings: Settings }) {
+function SettingsForm({ settings, update }: { settings: Settings; update: ReturnType<typeof useUpdateSettings> }) {
   const { t } = useTranslation()
   const [values, setValues] = useState<SettingsFormValues>(() => formFromSettings(settings))
   const [errors, setErrors] = useState<SettingsFormErrors>({})
-  const update = useUpdateSettings()
   const set = <K extends keyof SettingsFormValues>(key: K, value: SettingsFormValues[K]) => setValues((current) => ({ ...current, [key]: value }))
   const error = (key: string) => (errors[key] ? t(`admin.settings.errors.${errors[key]}`) : undefined)
   const serverErrors = update.error instanceof ApiError ? update.error.fieldErrors : {}

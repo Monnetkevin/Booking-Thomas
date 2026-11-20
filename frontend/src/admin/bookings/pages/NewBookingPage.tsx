@@ -15,6 +15,8 @@ import { toIso } from '@/lib/dates'
 import { emptyManualBooking, manualBookingInput, type ManualBookingFormErrors, type ManualBookingFormValues } from '../manualBookingForm'
 import { useCreateBooking } from '../useAdminBookings'
 
+const QUOTE_FIELDS: readonly (keyof ManualBookingFormValues)[] = ['apartmentId', 'arrival', 'departure', 'adults', 'children']
+
 /**
  * Réservation prise par téléphone ou par une connaissance : confirmée tout de suite, au
  * prix calculé ou à un total fixé par l'hôte, réglée hors ligne ou plus tard.
@@ -28,8 +30,11 @@ export function NewBookingPage() {
   const create = useCreateBooking()
   const preview = useQuotePreview(Number(values.apartmentId))
   const serverErrors = create.error instanceof ApiError ? create.error.fieldErrors : {}
-  const set = <K extends keyof ManualBookingFormValues>(key: K, value: ManualBookingFormValues[K]) =>
+  const set = <K extends keyof ManualBookingFormValues>(key: K, value: ManualBookingFormValues[K]) => {
     setValues((current) => ({ ...current, [key]: value }))
+    // Le prix affiché ne vaut que pour le logement, les dates et les voyageurs calculés.
+    if (QUOTE_FIELDS.includes(key)) preview.reset()
+  }
   const error = (key: keyof ManualBookingFormValues, server?: string) =>
     (errors[key] ? t(`admin.manual.errors.${errors[key]}`) : undefined) ?? serverErrors[server ?? key]?.[0]
   const [today] = useState(() => toIso(new Date()))

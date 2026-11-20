@@ -87,6 +87,19 @@ it('corrige les coordonnées et les notes de ménage, journalisées sans les coo
         ->and(json_encode([$log->before, $log->after]))->not->toContain('06 11');
 });
 
+it('normalise les coordonnées et garde l’e-mail d’une réservation du site', function () {
+    $direct = paidBooking($this->apartment, '2026-12-10', '2026-12-12', ['guest_email' => 'camille@example.com']);
+    $manual = paidBooking($this->apartment, '2026-12-20', '2026-12-22', ['source' => BookingSource::Manual, 'guest_email' => 'paul@example.com']);
+
+    $this->patchJson("/api/admin/bookings/{$direct->reference}", ['guest_email' => null])->assertJsonValidationErrors('guest_email');
+    $this->patchJson("/api/admin/bookings/{$direct->reference}", ['guest_email' => '  '])->assertJsonValidationErrors('guest_email');
+    $this->patchJson("/api/admin/bookings/{$direct->reference}", ['guest_email' => ' Camille@Example.COM ', 'guest_country' => 'fr'])
+        ->assertOk()
+        ->assertJsonPath('data.guest_email', 'camille@example.com')
+        ->assertJsonPath('data.guest_country', 'FR');
+    $this->patchJson("/api/admin/bookings/{$manual->reference}", ['guest_email' => null])->assertOk()->assertJsonPath('data.guest_email', null);
+});
+
 it('annule une réservation : nuits libérées, conflit levé, ménage et voyageur prévenus, journal', function () {
     Notification::fake();
     $cleaner = User::factory()->housekeeping()->create();
@@ -131,6 +144,21 @@ it('renvoie la confirmation et donne le PDF d’une réservation confirmée seul
 
     $this->get("/api/admin/bookings/{$booking->reference}/pdf")->assertOk()->assertHeader('Content-Type', 'application/pdf');
     $this->get("/api/admin/bookings/{$cancelled->reference}/pdf")->assertNotFound();
+});
+
+it('garde le PDF et la confirmation d’une réservation passée dont le logement a été supprimé', function () {
+    $booking = paidBooking($this->apartment, '2026-10-10', '2026-10-12', ['guest_email' => 'camille@example.com', 'status' => BookingStatus::Completed]);
+    $this->apartment->delete();
+
+    $this->get("/api/admin/bookings/{$booking->reference}/pdf")->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    $this->postJson("/api/admin/bookings/{$booking->reference}/resend-confirmation")->assertNoContent();
+    Mail::assertQueued(BookingConfirmedGuest::class, fn ($mail) => $mail->hasTo('camille@example.com') && $mail->render() !== '');
+});
+
+it('répond 401 en JSON à un téléchargement sans session, au lieu d’une erreur serveur', function () {
+    auth()->logout();
+
+    $this->get('/api/admin/statistics.csv')->assertUnauthorized()->assertJsonStructure(['message']);
 });
 
 it('réserve les réservations à l’administrateur', function () {

@@ -1,4 +1,4 @@
-import { http, type HttpClient } from '@/lib/http'
+import { http, type DownloadedFile, type FileDownloader, type HttpClient } from '@/lib/http'
 import type { BookingDetail, BookingFilters, BookingListPage, GuestInput, ManualBookingInput } from './types'
 
 export interface AdminBookingService {
@@ -8,8 +8,8 @@ export interface AdminBookingService {
   update(reference: string, input: GuestInput): Promise<BookingDetail>
   cancel(reference: string, notifyGuest: boolean): Promise<BookingDetail>
   resendConfirmation(reference: string): Promise<void>
-  /** Lien direct (cookie de session) vers la confirmation PDF. */
-  pdfUrl(reference: string): string
+  /** Confirmation PDF, téléchargée par le client HTTP (session expirée → 401 comme ailleurs). */
+  downloadPdf(reference: string): Promise<DownloadedFile>
 }
 
 /** Paramètres de la liste, sans les filtres vides. */
@@ -22,7 +22,7 @@ export function bookingQuery(filters: BookingFilters, page: number): string {
 }
 
 /** Réservations du back-office, sans React ni cache. */
-export function createAdminBookingService(client: HttpClient): AdminBookingService {
+export function createAdminBookingService(client: HttpClient & FileDownloader): AdminBookingService {
   const unwrap = async <T>(promise: Promise<{ data: T }>) => (await promise).data
   const path = (reference: string) => `/admin/bookings/${encodeURIComponent(reference)}`
 
@@ -33,7 +33,7 @@ export function createAdminBookingService(client: HttpClient): AdminBookingServi
     update: (reference, input) => unwrap(client.request(path(reference), { method: 'PATCH', body: input })),
     cancel: (reference, notifyGuest) => unwrap(client.request(`${path(reference)}/cancel`, { method: 'POST', body: { notify_guest: notifyGuest } })),
     resendConfirmation: (reference) => client.request<void>(`${path(reference)}/resend-confirmation`, { method: 'POST' }),
-    pdfUrl: (reference) => `/api${path(reference)}/pdf`,
+    downloadPdf: (reference) => client.download(`${path(reference)}/pdf`),
   }
 }
 

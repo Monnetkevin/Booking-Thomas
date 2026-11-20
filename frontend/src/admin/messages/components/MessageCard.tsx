@@ -33,7 +33,8 @@ export function MessageCard({ message }: { message: ContactMessage }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <a
-            href={`mailto:${message.email}?subject=${encodeURIComponent(subject)}`}
+            // Adresse saisie par un visiteur : encodée, pour qu'elle ne puisse pas ajouter de cc, bcc ou body.
+            href={`mailto:${encodeURIComponent(message.email).replaceAll('%40', '@')}?subject=${encodeURIComponent(subject)}`}
             className={buttonClasses('secondary')}
             onClick={() => !message.read && setRead.mutate({ id: message.id, read: true })}
           >

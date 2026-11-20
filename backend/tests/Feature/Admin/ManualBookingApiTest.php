@@ -64,9 +64,25 @@ it('applique le total fixé par l’hôte et note le règlement reçu hors ligne
     Mail::assertNothingQueued();
 });
 
+it('répartit une forte remise sur l’hébergement puis le ménage : aucun montant négatif', function () {
+    // 2 nuits × 90 € + ménage 40 € = 220 € ; l'hôte fixe 10 €.
+    $this->postJson('/api/admin/bookings', manualBooking(['total_amount' => 1000, 'paid' => true, 'send_confirmation' => false]))->assertCreated();
+
+    $booking = Booking::sole();
+    expect($booking->discount_amount)->toBe(18000)
+        ->and($booking->cleaning_fee)->toBe(1000)
+        ->and($booking->tourist_tax)->toBe(0)
+        ->and($booking->accommodation_amount + $booking->cleaning_fee + $booking->tourist_tax - $booking->discount_amount)->toBe(1000);
+
+    $this->getJson("/api/admin/bookings/{$booking->reference}")->assertJsonPath('data.refund_proposal.paid', 1000);
+    $this->postJson('/api/admin/bookings', manualBooking(['arrival' => '2026-12-01', 'departure' => '2026-12-03', 'total_amount' => 0, 'paid' => false, 'send_confirmation' => false]))->assertCreated();
+    expect(Booking::query()->latest('id')->first())->cleaning_fee->toBe(0)->discount_amount->toBe(18000);
+});
+
 it('accepte un prix convenu quand aucun tarif ne couvre les nuits, et un voyageur sans e-mail', function () {
     $this->postJson('/api/admin/bookings', manualBooking(['arrival' => '2027-02-01', 'departure' => '2027-02-04']))
-        ->assertJsonValidationErrors('total_amount');
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'no_rate');
 
     $this->postJson('/api/admin/bookings', manualBooking([
         'arrival' => '2027-02-01', 'departure' => '2027-02-04', 'total_amount' => 30000, 'guest_email' => '',

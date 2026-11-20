@@ -6,6 +6,8 @@ use App\Enums\AuditAction;
 use App\Enums\BookingSource;
 use App\Enums\BookingStatus;
 use App\Events\BookingConfirmed;
+use App\Exceptions\Apartment\ApartmentNotFoundException;
+use App\Exceptions\Booking\NoRateForStayException;
 use App\Exceptions\Booking\StayNotAllowedException;
 use App\Exceptions\DatesUnavailableException;
 use App\Models\Apartment;
@@ -17,10 +19,8 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Pricing\MissingRateException;
 use App\Services\Pricing\PriceCalculator;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Réservation saisie par l'hôte (téléphone, connaissance), spec « Réservation manuelle » :
@@ -47,16 +47,16 @@ class ManualBookingService
      * @param  array{name: string, email: string|null, phone: string|null, country: string|null, locale: string, housekeeping_notes: string|null}  $guest
      * @param  int|null  $total  total fixé par l'hôte, en centimes (null : prix calculé)
      *
-     * @throws ModelNotFoundException logement inconnu ou supprimé
+     * @throws ApartmentNotFoundException logement inconnu ou supprimé
      * @throws StayNotAllowedException trop de voyageurs pour le logement
-     * @throws ValidationException aucun tarif et aucun total
+     * @throws NoRateForStayException aucun tarif et aucun total
      * @throws DatesUnavailableException nuits déjà occupées
      */
     public function create(int $apartmentId, Stay $stay, array $guest, ?int $total, bool $paid, bool $notifyGuest): Booking
     {
         $apartment = $this->apartments->findWithTrashed($apartmentId);
         if ($apartment === null || $apartment->trashed()) {
-            throw (new ModelNotFoundException)->setModel(Apartment::class, [$apartmentId]);
+            throw new ApartmentNotFoundException;
         }
 
         if ($stay->guests() > $apartment->capacity) {
@@ -122,7 +122,7 @@ class ManualBookingService
      *
      * @return array<string, mixed>
      *
-     * @throws ValidationException
+     * @throws NoRateForStayException
      */
     private function amounts(Apartment $apartment, Stay $stay, ?int $total): array
     {
@@ -130,7 +130,7 @@ class ManualBookingService
             $quote = $this->calculator->calculate($apartment, $stay);
         } catch (MissingRateException) {
             if ($total === null) {
-                throw ValidationException::withMessages(['total_amount' => __('booking.errors.no_rate', [], 'fr')]);
+                throw new NoRateForStayException;
             }
 
             return $this->agreed($total);
@@ -143,13 +143,23 @@ class ManualBookingService
             $lines[] = ['type' => 'adjustment', 'label' => __('pricing.host_adjustment', [], 'fr'), 'amount' => $difference];
         }
 
+        // Une remise porte d'abord sur l'hébergement, puis sur le ménage, enfin sur la taxe de
+        // séjour : chaque montant figé reste positif et la somme vaut toujours le total. Un
+        // ménage ou une taxe offerts ne sont ni comptés en revenu ni remboursés.
+        $reduction = max(0, -$difference);
+        $discount = min($reduction, $quote->accommodation);
+        $cleaningWaived = min($reduction - $discount, $quote->cleaningFee);
+        $taxWaived = min($reduction - $discount - $cleaningWaived, $quote->touristTax);
+        $cleaningFee = $quote->cleaningFee - $cleaningWaived;
+        $touristTax = $quote->touristTax - $taxWaived;
+
         return [
             'accommodation_amount' => $quote->accommodation + max(0, $difference),
-            'cleaning_fee' => $quote->cleaningFee,
-            'tourist_tax' => $quote->touristTax,
-            'discount_amount' => max(0, -$difference),
+            'cleaning_fee' => $cleaningFee,
+            'tourist_tax' => $touristTax,
+            'discount_amount' => $discount,
             'total_amount' => $total,
-            'price_breakdown' => [...$quote->toArray(), 'lines' => $lines, 'total' => $total],
+            'price_breakdown' => [...$quote->toArray(), 'cleaning_fee' => $cleaningFee, 'tourist_tax' => $touristTax, 'lines' => $lines, 'total' => $total],
         ];
     }
 

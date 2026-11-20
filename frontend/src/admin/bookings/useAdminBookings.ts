@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { saveFile } from '@/lib/saveFile'
 import { adminBookingService, type AdminBookingService } from './bookingService'
 import type { BookingFilters, GuestInput, ManualBookingInput } from './types'
 
@@ -34,6 +35,10 @@ export function useCancelBooking(reference: string, service: AdminBookingService
 
 export function useResendConfirmation(reference: string, service: AdminBookingService = adminBookingService) {
   return useMutation({ mutationFn: () => service.resendConfirmation(reference) })
+}
+
+export function useDownloadBookingPdf(reference: string, service: AdminBookingService = adminBookingService) {
+  return useMutation({ mutationFn: async () => saveFile(await service.downloadPdf(reference), `${reference}.pdf`) })
 }
 
 export function useCreateBooking(service: AdminBookingService = adminBookingService) {

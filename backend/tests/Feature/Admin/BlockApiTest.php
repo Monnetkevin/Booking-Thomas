@@ -2,13 +2,13 @@
 
 use App\Enums\AuditAction;
 use App\Enums\BlockType;
+use App\Exceptions\Availability\BlockAlreadyRemovedException;
 use App\Models\Apartment;
 use App\Models\AuditLog;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Models\User;
 use App\Services\Availability\ManualBlockService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Date;
 
 beforeEach(function () {
@@ -63,7 +63,7 @@ it('ne retire une fermeture qu’une fois, même demandée deux fois', function 
 
     $service->delete($block);
 
-    expect(fn () => $service->delete($stale))->toThrow(ModelNotFoundException::class)
+    expect(fn () => $service->delete($stale))->toThrow(BlockAlreadyRemovedException::class)
         ->and(AuditLog::query()->where('action', 'block.deleted')->count())->toBe(1);
 });
 

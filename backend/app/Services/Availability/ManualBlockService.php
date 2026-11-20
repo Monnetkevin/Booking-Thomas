@@ -4,6 +4,7 @@ namespace App\Services\Availability;
 
 use App\Enums\AuditAction;
 use App\Enums\BlockType;
+use App\Exceptions\Availability\BlockAlreadyRemovedException;
 use App\Exceptions\Availability\BlockNotRemovableException;
 use App\Exceptions\DatesUnavailableException;
 use App\Models\Apartment;
@@ -11,7 +12,6 @@ use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -64,6 +64,7 @@ class ManualBlockService
 
     /**
      * @throws BlockNotRemovableException réservation ou séjour importé
+     * @throws BlockAlreadyRemovedException retiré entre-temps par une autre demande
      */
     public function delete(AvailabilityBlock $block): void
     {
@@ -83,7 +84,7 @@ class ManualBlockService
             return true;
         });
         if (! $deleted) {
-            throw (new ModelNotFoundException)->setModel(AvailabilityBlock::class, [$block->id]);
+            throw new BlockAlreadyRemovedException;
         }
 
         $this->availabilityService->flushApartment($block->apartment_id);

@@ -75,6 +75,19 @@ it('signale les conflits, les calendriers en échec ou vides refusés et les mes
         ->assertJsonPath('data.alerts.unread_messages', 1);
 });
 
+it('n’alerte pas pour un logement supprimé', function () {
+    $gone = Apartment::factory()->create();
+    $feed = IcalFeed::factory()->for($gone)->create(['consecutive_failures' => 5]);
+    AvailabilityBlock::factory()->for($gone)->between('2026-12-01', '2026-12-04')->create([
+        'type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM2', 'has_conflict' => true,
+    ]);
+    $gone->delete();
+
+    $this->getJson('/api/admin/dashboard')
+        ->assertJsonPath('data.alerts.conflicts', [])
+        ->assertJsonPath('data.alerts.failing_feeds', []);
+});
+
 it('réserve le tableau de bord à l’administrateur', function () {
     $this->actingAs(User::factory()->housekeeping()->create())->getJson('/api/admin/dashboard')->assertForbidden();
 });

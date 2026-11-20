@@ -3,15 +3,15 @@ import { PageHeader } from '@/admin/components/PageHeader'
 import { StatTile } from '@/admin/dashboard/components/StatTile'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { DownloadIcon } from '@/components/icons'
-import { buttonClasses } from '@/components/ui/buttonClasses'
+import { Alert } from '@/components/ui/Alert'
+import { Button } from '@/components/ui/Button'
 import { Section } from '@/components/ui/Section'
 import { Spinner } from '@/components/ui/Spinner'
 import { formatDate } from '@/lib/dates'
 import { formatEuros } from '@/lib/money'
 import { monthLabel } from '../chartScale'
 import { NightsChart } from '../components/NightsChart'
-import { statisticsService } from '../statisticsService'
-import { useStatistics } from '../useStatistics'
+import { useDownloadStatisticsCsv, useStatistics } from '../useStatistics'
 
 const decimal = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
 const rate = (value: number | null) => (value === null ? '—' : `${decimal.format(value)} %`)
@@ -20,6 +20,7 @@ const rate = (value: number | null) => (value === null ? '—' : `${decimal.form
 export function StatisticsPage() {
   const { t } = useTranslation()
   const statistics = useStatistics()
+  const exportCsv = useDownloadStatisticsCsv()
 
   if (statistics.isPending) return <Spinner label={t('common.loading')} />
   if (statistics.isError) return <ErrorState onRetry={() => void statistics.refetch()} />
@@ -34,12 +35,17 @@ export function StatisticsPage() {
         title={t('admin.statistics.title')}
         subtitle={t('admin.statistics.subtitle', { from: formatDate(data.from), to: formatDate(data.to) })}
         actions={
-          <a href={statisticsService.csvUrl()} className={buttonClasses('secondary')}>
+          <Button variant="secondary" loading={exportCsv.isPending} onClick={() => exportCsv.mutate()}>
             <DownloadIcon />
             {t('admin.statistics.export')}
-          </a>
+          </Button>
         }
       />
+      {exportCsv.isError && (
+        <div className="mb-4">
+          <Alert tone="danger">{t('common.error')}</Alert>
+        </div>
+      )}
       <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatTile label={t('admin.statistics.revenue')} value={formatEuros(totals.revenue)} detail={t('admin.statistics.revenueDetail')} />

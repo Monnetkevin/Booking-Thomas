@@ -5,10 +5,16 @@ import { Button } from '@/components/ui/Button'
 import { TextArea, TextField } from '@/components/ui/Field'
 import { ApiError } from '@/lib/api'
 import type { BookingDetail } from '../types'
-import { useUpdateBooking } from '../useAdminBookings'
+import type { useUpdateBooking } from '../useAdminBookings'
+
+interface GuestFormProps {
+  booking: BookingDetail
+  /** Fournie par la page : le formulaire est recréé après chaque enregistrement (clé), la mutation et son message « Enregistré » doivent lui survivre. */
+  update: ReturnType<typeof useUpdateBooking>
+}
 
 /** Coordonnées du voyageur et notes de ménage, corrigées par l'hôte. */
-export function GuestForm({ booking }: { booking: BookingDetail }) {
+export function GuestForm({ booking, update }: GuestFormProps) {
   const { t } = useTranslation()
   const [values, setValues] = useState({
     guest_name: booking.guest_name,
@@ -16,7 +22,6 @@ export function GuestForm({ booking }: { booking: BookingDetail }) {
     guest_phone: booking.guest_phone ?? '',
     housekeeping_notes: booking.housekeeping_notes ?? '',
   })
-  const update = useUpdateBooking(booking.reference)
   const errors = update.error instanceof ApiError ? update.error.fieldErrors : {}
   const set = (field: keyof typeof values, value: string) => setValues((current) => ({ ...current, [field]: value }))
 

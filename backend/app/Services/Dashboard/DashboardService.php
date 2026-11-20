@@ -100,10 +100,12 @@ class DashboardService
      */
     private function alerts(CarbonImmutable $today): array
     {
-        $feeds = $this->feeds->all()->filter(fn (IcalFeed $feed) => $feed->is_active);
+        // Logements existants seulement : un logement supprimé ne laisse pas d'alerte impossible à traiter.
+        $apartmentIds = $this->apartments->allOrdered()->modelKeys();
+        $feeds = $this->feeds->all()->filter(fn (IcalFeed $feed) => $feed->is_active && in_array($feed->apartment_id, $apartmentIds, true));
 
         return [
-            'conflicts' => $this->availability->upcomingConflicts($today->toDateString())->map(fn (AvailabilityBlock $block) => [
+            'conflicts' => $this->availability->upcomingConflicts($today->toDateString())->whereIn('apartment_id', $apartmentIds)->map(fn (AvailabilityBlock $block) => [
                 'apartment' => $block->apartment->getTranslation('name', 'fr'),
                 'starts_on' => $block->starts_on->toDateString(),
                 'ends_on' => $block->ends_on->toDateString(),

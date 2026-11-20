@@ -67,6 +67,28 @@ function send(path: string, method: HttpMethod, options: HttpRequestOptions): Pr
   })
 }
 
+/** Nom de fichier de l'en-tête Content-Disposition (forme RFC 5987 « filename*= » d'abord). */
+export function filenameFromDisposition(header: string | null): string | null {
+  if (!header) return null
+  const encoded = /filename\*=(?:UTF-8'')?([^;]+)/i.exec(header)
+  if (encoded) {
+    try {
+      return decodeURIComponent((encoded[1] ?? '').trim().replace(/^"|"$/g, ''))
+    } catch {
+      // nom mal encodé : on tente la forme simple
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header)
+  return plain?.[1]?.trim() ?? null
+}
+
+/** Téléchargement d'un fichier : mêmes en-têtes et mêmes erreurs que api(). */
+export async function apiDownload(path: string): Promise<{ blob: Blob; filename: string | null }> {
+  const response = await send(path, 'GET', {})
+  if (!response.ok) throw new ApiError(response.status, await response.json().catch(() => null))
+  return { blob: await response.blob(), filename: filenameFromDisposition(response.headers.get('Content-Disposition')) }
+}
+
 export async function api<T>(path: string, options: HttpRequestOptions = {}): Promise<T> {
   const method = options.method ?? 'GET'
   if (method !== 'GET') await ensureCsrfCookie()

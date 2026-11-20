@@ -6,17 +6,15 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { ArrowLeftIcon, DownloadIcon } from '@/components/icons'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
-import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Section } from '@/components/ui/Section'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api'
 import { formatDate, formatDateTime } from '@/lib/dates'
 import { formatEuros } from '@/lib/money'
-import { adminBookingService } from '../bookingService'
 import { BookingStatusBadge } from '../components/BookingStatusBadge'
 import { CancelBookingDialog } from '../components/CancelBookingDialog'
 import { GuestForm } from '../components/GuestForm'
-import { useBooking, useResendConfirmation } from '../useAdminBookings'
+import { useBooking, useDownloadBookingPdf, useResendConfirmation, useUpdateBooking } from '../useAdminBookings'
 
 /** Fiche d'une réservation : séjour, voyageur, prix, paiements et actions de l'hôte. */
 export function BookingDetailPage() {
@@ -24,6 +22,8 @@ export function BookingDetailPage() {
   const { reference = '' } = useParams()
   const booking = useBooking(reference)
   const resend = useResendConfirmation(reference)
+  const pdf = useDownloadBookingPdf(reference)
+  const update = useUpdateBooking(reference)
   const [cancelling, setCancelling] = useState(false)
 
   if (booking.isPending) return <Spinner label={t('common.loading')} />
@@ -48,10 +48,10 @@ export function BookingDetailPage() {
           <>
             {confirmed && (
               <>
-                <a href={adminBookingService.pdfUrl(data.reference)} className={buttonClasses('secondary')}>
+                <Button variant="secondary" loading={pdf.isPending} onClick={() => pdf.mutate()}>
                   <DownloadIcon />
                   {t('admin.bookings.pdf')}
-                </a>
+                </Button>
                 {data.guest_email && (
                   <Button variant="secondary" loading={resend.isPending} onClick={() => resend.mutate()}>
                     {t('admin.bookings.resend')}
@@ -70,6 +70,11 @@ export function BookingDetailPage() {
       {resend.isSuccess && (
         <div className="mb-4">
           <Alert tone="success">{t('admin.bookings.resent', { email: data.guest_email ?? '' })}</Alert>
+        </div>
+      )}
+      {pdf.isError && (
+        <div className="mb-4">
+          <Alert tone="danger">{(pdf.error instanceof ApiError && pdf.error.serverMessage) || t('common.error')}</Alert>
         </div>
       )}
       {resend.isError && (
@@ -143,7 +148,7 @@ export function BookingDetailPage() {
         </Section>
 
         <Section title={t('admin.bookings.guest')} className="lg:col-span-2">
-          <GuestForm key={`${data.guest_email}-${data.guest_phone}-${data.housekeeping_notes}`} booking={data} />
+          <GuestForm key={`${data.guest_email}-${data.guest_phone}-${data.housekeeping_notes}`} booking={data} update={update} />
         </Section>
       </div>
 
