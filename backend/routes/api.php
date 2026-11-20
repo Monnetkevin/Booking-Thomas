@@ -109,6 +109,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager'])->grou
 
     // Calendriers des plateformes (Airbnb) : import et export iCal
     Route::get('ical-feeds', [IcalFeedController::class, 'index']);
+    Route::get('ical-sync-logs', [IcalFeedController::class, 'latestLogs']);
+    // Tout synchroniser : en file d'attente, 2 fois par minute au plus.
+    Route::post('ical-feeds/sync-all', [IcalFeedController::class, 'syncAll'])->middleware('throttle:2,1');
     Route::post('apartments/{apartment:id}/ical-feeds', [IcalFeedController::class, 'store']);
     Route::patch('ical-feeds/{icalFeed}', [IcalFeedController::class, 'update']);
     Route::post('ical-feeds/{icalFeed}/export-token', [IcalFeedController::class, 'regenerateExportToken']);

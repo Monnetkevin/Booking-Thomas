@@ -14,7 +14,12 @@ export function ApartmentFeedCard({ apartment, feed }: { apartment: { id: number
   const health = feedHealth(feed)
 
   return (
-    <Section title={apartment.name} actions={<Badge tone={healthTone[health]}>{t(`admin.sync.health.${health}`)}</Badge>}>
+    <Section
+      title={apartment.name}
+      actions={<Badge tone={healthTone[health]}>{t(`admin.sync.health.${health}`)}</Badge>}
+      className="scroll-mt-24"
+      id={`calendrier-${apartment.id}`}
+    >
       {feed && <FeedState feed={feed} />}
       <div className="grid gap-6 lg:grid-cols-2">
         <div>

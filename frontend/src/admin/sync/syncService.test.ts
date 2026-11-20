@@ -36,4 +36,13 @@ describe('service des calendriers', () => {
       ['/admin/ical-feeds/7/export-token', { method: 'POST' }],
     ])
   })
+
+  it('lit le journal de tous les calendriers et les relit tous', async () => {
+    const client: HttpClient = { request: vi.fn(async <T,>() => ({ data: { queued: 3 } }) as T) as HttpClient['request'] }
+    const service = createSyncService(client)
+
+    expect(await service.syncAll()).toBe(3)
+    await service.latestLogs()
+    expect(vi.mocked(client.request).mock.calls).toEqual([['/admin/ical-feeds/sync-all', { method: 'POST' }], ['/admin/ical-sync-logs']])
+  })
 })

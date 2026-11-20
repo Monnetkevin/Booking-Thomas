@@ -18,6 +18,12 @@ class IcalFeedPolicy
         return $user->canOperate();
     }
 
+    /** « Tout synchroniser ». */
+    public function syncAll(User $user): bool
+    {
+        return $user->canOperate();
+    }
+
     public function create(User $user): bool
     {
         return $user->canOperate();

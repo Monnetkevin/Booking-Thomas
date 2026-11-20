@@ -27,6 +27,9 @@ export interface IcalFeed {
 export interface IcalSyncLog {
   id: number
   feed_id: number
+  /** Journal de tous les calendriers seulement. */
+  apartment?: string | null
+  provider?: string
   trigger: 'scheduled' | 'manual'
   status: IcalSyncStatus
   /** Séjours ajoutés, déplacés, libérés ; conflits en cours ; événements aux dates illisibles (laissés tels quels). */

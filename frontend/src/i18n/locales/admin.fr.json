@@ -366,7 +366,7 @@
   },
   "sync": {
     "title": "Synchronisation des calendriers",
-    "subtitle": "Calendriers Airbnb lus toutes les 15 minutes",
+    "subtitle": "Les calendriers Airbnb sont lus automatiquement toutes les 15 minutes.",
     "howTitle": "Mise en place, une fois par logement",
     "howImport": "Dans Airbnb (Calendrier › Disponibilités › Associer des calendriers › Exporter le calendrier), copiez le lien et collez-le dans « URL d’import ».",
     "howExport": "Copiez « URL d’export » et collez-la dans Airbnb (Importer le calendrier). Airbnb la relit à son rythme, souvent toutes les quelques heures.",
@@ -442,6 +442,38 @@
       "status": {
         "success": "Lu",
         "unchanged": "Inchangé",
+        "failed": "Erreur"
+      }
+    },
+    "overview": {
+      "title": "Calendriers connectés",
+      "never": "jamais",
+      "copy": "Copier le lien d’export",
+      "copied": "Lien copié",
+      "syncAll": "Tout synchroniser",
+      "queued_one": "{{count}} calendrier en cours de lecture.",
+      "queued_other": "{{count}} calendriers en cours de lecture.",
+      "tooSoon": "Lecture déjà demandée il y a peu : réessayez dans une minute.",
+      "failingTitle": "{{apartment}} : l’import {{provider}} échoue (dernière lecture réussie : {{since}}).",
+      "failingHint": "Le lien d’import a peut-être été régénéré : vérifiez-le sur {{provider}}.",
+      "fixLink": "Corriger le lien",
+      "columns": {
+        "apartment": "Appartement",
+        "channel": "Canal",
+        "export": "Lien d’export",
+        "lastSync": "Dernière synchro",
+        "state": "État",
+        "actions": "Actions"
+      },
+      "sync": "Synchroniser",
+      "syncOne": "Synchroniser le calendrier de {{apartment}}",
+      "logTitle": "Journal récent",
+      "noLog": "Aucune lecture pour le moment.",
+      "logFailed": "Erreur : {{error}}",
+      "logOk": "Lecture réussie · {{created}} ajoutés, {{updated}} déplacés, {{removed}} libérés",
+      "logStatus": {
+        "success": "OK",
+        "unchanged": "OK",
         "failed": "Erreur"
       }
     }

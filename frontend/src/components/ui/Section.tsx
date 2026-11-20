@@ -7,18 +7,22 @@ export function Section({
   description,
   actions,
   className,
+  id,
   children,
 }: {
   title: string
   description?: string
   actions?: ReactNode
   className?: string
+  /** Ancre (lien direct vers le bloc). */
+  id?: string
   children: ReactNode
 }) {
   const titleId = useId()
 
   return (
     <section
+      id={id}
       aria-labelledby={titleId}
       className={cn('rounded-[var(--radius-card)] border border-border bg-white p-5 sm:p-6', className)}
     >

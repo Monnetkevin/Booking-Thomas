@@ -98,3 +98,29 @@ it('réserve les calendriers aux administrateurs', function () {
     $this->postJson("/api/admin/apartments/{$this->apartment->id}/ical-feeds", ['provider' => 'airbnb'])->assertForbidden();
     $this->patchJson("/api/admin/ical-feeds/{$feed->id}", ['is_active' => false])->assertForbidden();
 });
+
+it('relit tous les calendriers importables en file d’attente', function () {
+    IcalFeed::factory()->for($this->apartment)->create(['import_url' => AIRBNB_URL]);
+    IcalFeed::factory()->for(Apartment::factory())->create(['import_url' => AIRBNB_URL, 'is_active' => false]);
+    IcalFeed::factory()->for(Apartment::factory())->create(['import_url' => null]);
+
+    $this->postJson('/api/admin/ical-feeds/sync-all')->assertAccepted()->assertJsonPath('data.queued', 1);
+
+    Queue::assertPushed(SyncIcalFeed::class, 1);
+    $this->actingAs(User::factory()->housekeeping()->create())->postJson('/api/admin/ical-feeds/sync-all')->assertForbidden();
+});
+
+it('donne le journal récent de tous les calendriers, avec le logement', function () {
+    $this->apartment->update(['name' => ['fr' => 'Le Cocon', 'en' => 'Cocoon']]);
+    $feed = IcalFeed::factory()->for($this->apartment)->create();
+    App\Models\IcalSyncLog::query()->forceCreate(['ical_feed_id' => $feed->id, 'trigger' => 'scheduled', 'status' => 'failed', 'error' => 'HTTP 403', 'created_at' => now()->subHour()]);
+    App\Models\IcalSyncLog::query()->forceCreate(['ical_feed_id' => $feed->id, 'trigger' => 'manual', 'status' => 'success', 'created_at' => now()]);
+
+    $this->getJson('/api/admin/ical-sync-logs')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.status', 'success')
+        ->assertJsonPath('data.0.apartment', 'Le Cocon')
+        ->assertJsonPath('data.0.provider', 'Airbnb')
+        ->assertJsonPath('data.1.error', 'HTTP 403');
+});
