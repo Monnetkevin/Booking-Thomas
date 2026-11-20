@@ -5,15 +5,27 @@
     "dashboard": "Tableau de bord",
     "apartments": "Appartements",
     "rates": "Tarifs",
-    "sync": "Synchronisation",
+    "sync": "Synchronisation iCal",
     "notifications": "Notifications",
-    "users": "Utilisateurs",
+    "users": "Utilisateurs et rôles",
     "audit": "Journal",
     "messages": "Messages",
-    "settings": "Réglages",
+    "settings": "Réglages du site",
     "bookings": "Réservations",
     "planning": "Planning",
-    "statistics": "Statistiques"
+    "statistics": "Statistiques",
+    "notificationPreferences": "E-mails et notifications",
+    "toggle": "Ouvrir ou réduire le menu",
+    "close": "Fermer le menu",
+    "viewSite": "Voir le site",
+    "badge_one": "{{count}} à traiter",
+    "badge_other": "{{count}} à traiter",
+    "withBadge": "{{label}} ({{count}})",
+    "groups": {
+      "pilotage": "Pilotage",
+      "catalogue": "Catalogue",
+      "suivi": "Suivi"
+    }
   },
   "login": {
     "title": "Connexion",
@@ -701,5 +713,23 @@
     "byApartment": "Par logement",
     "platformAmounts": "Les montants Airbnb ne sont pas connus : le calendrier iCal ne transmet que les dates.",
     "rating": "Note moyenne"
+  },
+  "badge": "ADMIN",
+  "account": {
+    "label": "Compte : {{name}}"
+  },
+  "alerts": {
+    "title": "Alertes",
+    "none": "Rien à signaler",
+    "unread_one": "{{count}} notification non lue",
+    "unread_other": "{{count}} notifications non lues",
+    "conflicts_one": "{{count}} conflit",
+    "conflicts_other": "{{count}} conflits",
+    "failingFeeds_one": "{{count}} erreur iCal",
+    "failingFeeds_other": "{{count}} erreurs iCal"
+  },
+  "syncStatus": {
+    "label": "Synchro Airbnb",
+    "never": "jamais"
   }
 }

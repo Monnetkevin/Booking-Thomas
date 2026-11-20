@@ -9,8 +9,6 @@ use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
-use App\Repositories\Contracts\IcalFeedRepositoryInterface;
-use App\Services\Ical\IcalImportService;
 use App\Services\Statistics\NightCounter;
 use Carbon\CarbonImmutable;
 
@@ -28,7 +26,7 @@ class DashboardService
         private readonly ApartmentRepositoryInterface $apartments,
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly BookingRepositoryInterface $bookings,
-        private readonly IcalFeedRepositoryInterface $feeds,
+        private readonly AlertCollector $alertCollector,
         private readonly ContactMessageRepositoryInterface $messages,
         private readonly NightCounter $nights,
     ) {}
@@ -100,24 +98,18 @@ class DashboardService
      */
     private function alerts(CarbonImmutable $today): array
     {
-        // Logements existants seulement : un logement supprimé ne laisse pas d'alerte impossible à traiter.
-        $apartmentIds = $this->apartments->allOrdered()->modelKeys();
-        $feeds = $this->feeds->all()->filter(fn (IcalFeed $feed) => $feed->is_active && in_array($feed->apartment_id, $apartmentIds, true));
-
         return [
-            'conflicts' => $this->availability->upcomingConflicts($today->toDateString())->whereIn('apartment_id', $apartmentIds)->map(fn (AvailabilityBlock $block) => [
+            'conflicts' => $this->alertCollector->conflicts($today)->map(fn (AvailabilityBlock $block) => [
                 'apartment' => $block->apartment->getTranslation('name', 'fr'),
                 'starts_on' => $block->starts_on->toDateString(),
                 'ends_on' => $block->ends_on->toDateString(),
-            ])->values()->all(),
-            'failing_feeds' => $feeds
-                ->filter(fn (IcalFeed $feed) => $feed->consecutive_failures >= IcalImportService::FAILURES_BEFORE_ALERT || $feed->empty_calendar_refused)
-                ->map(fn (IcalFeed $feed) => [
-                    'apartment' => $feed->apartment->getTranslation('name', 'fr'),
-                    'provider' => $feed->provider->label(),
-                    'empty_refused' => $feed->empty_calendar_refused,
-                    'failures' => $feed->consecutive_failures,
-                ])->values()->all(),
+            ])->all(),
+            'failing_feeds' => $this->alertCollector->failingFeeds()->map(fn (IcalFeed $feed) => [
+                'apartment' => $feed->apartment->getTranslation('name', 'fr'),
+                'provider' => $feed->provider->label(),
+                'empty_refused' => $feed->empty_calendar_refused,
+                'failures' => $feed->consecutive_failures,
+            ])->all(),
             'unread_messages' => $this->messages->unreadCount(),
         ];
     }

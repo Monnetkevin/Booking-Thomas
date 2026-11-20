@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { BellIcon } from '@/components/icons'
 import { Spinner } from '@/components/ui/Spinner'
+import { cn } from '@/lib/cn'
 import { useDismiss } from '@/components/ui/useDismiss'
 import { badgeLabel } from '../notificationFormat'
 import { useMarkAllRead, useNotificationList, useUnreadCount } from '../useNotifications'
@@ -12,11 +13,19 @@ import { useOpenNotification } from './useOpenNotification'
 /** Dernières notifications montrées dans le panneau de la cloche. */
 const PANEL_SIZE = 6
 
+interface AlertsButtonProps {
+  /** Résumé des situations à traiter (« 1 conflit · 1 erreur iCal »), null s'il n'y en a pas. */
+  summary: string | null
+  /** Menu réduit : icône seule, libellé en infobulle. */
+  collapsed?: boolean
+}
+
 /**
- * Cloche du back-office : nombre de non lues (rafraîchi toutes les minutes) et panneau
- * des dernières notifications. Échap ou un clic en dehors referme le panneau.
+ * Bouton « Alertes » du menu latéral : nombre de notifications non lues (relu chaque
+ * minute), résumé des situations à traiter, et panneau des dernières notifications.
+ * Échap ou un clic en dehors referme le panneau.
  */
-export function NotificationBell() {
+export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -31,6 +40,8 @@ export function NotificationBell() {
   const openNotification = useOpenNotification(close)
   const count = unread.data ?? 0
   const badge = badgeLabel(count)
+  const alerting = count > 0 || summary !== null
+  const label = count > 0 ? t('admin.notifications.bellUnread', { count }) : t('admin.alerts.title')
 
   return (
     <div ref={rootRef} className="relative">
@@ -39,17 +50,32 @@ export function NotificationBell() {
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={count > 0 ? t('admin.notifications.bellUnread', { count }) : t('admin.notifications.bell')}
+        aria-label={collapsed ? label : undefined}
+        title={collapsed ? label : undefined}
         onClick={() => setOpen((value) => !value)}
-        className="relative flex size-11 items-center justify-center rounded-[10px] text-night-text hover:bg-night-soft hover:text-white"
+        className={cn(
+          'flex w-full items-center gap-3 rounded-2xl border text-left transition-colors',
+          collapsed ? 'justify-center border-transparent p-1.5' : 'px-3 py-2.5',
+          alerting && !collapsed ? 'border-danger/25 bg-danger-soft text-danger hover:bg-danger-soft/70' : !collapsed && 'border-border bg-white hover:bg-sand',
+        )}
       >
-        <BellIcon />
-        {badge && (
-          <span
-            aria-hidden="true"
-            className="absolute top-1.5 right-1 min-w-5 rounded-full bg-accent px-1 text-center text-[11px] leading-5 font-bold text-white"
-          >
-            {badge}
+        <span className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-white', alerting ? 'text-danger' : 'text-ink', collapsed && 'border border-border')}>
+          <BellIcon />
+          {badge && (
+            <span
+              aria-hidden="true"
+              className="absolute -top-1.5 -right-1.5 min-w-5 rounded-full border-2 border-white bg-danger px-1 text-center text-[11px] leading-4 font-bold text-white"
+            >
+              {badge}
+            </span>
+          )}
+        </span>
+        {!collapsed && (
+          <span className="flex min-w-0 flex-col leading-tight">
+            <strong className="text-[15px]">{t('admin.alerts.title')}</strong>
+            <span className={cn('truncate text-xs', alerting ? 'text-danger' : 'text-muted')}>
+              {summary ?? (count > 0 ? t('admin.alerts.unread', { count }) : t('admin.alerts.none'))}
+            </span>
           </span>
         )}
       </button>
@@ -59,7 +85,7 @@ export function NotificationBell() {
           id={panelId}
           role="dialog"
           aria-label={t('admin.notifications.title')}
-          className="absolute top-12 right-0 z-30 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl lg:right-auto lg:left-0"
+          className="absolute top-full left-0 z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl lg:top-0 lg:left-full lg:mt-0 lg:ml-3"
         >
           <div className="flex items-center justify-between gap-2 px-2.5 py-1">
             <h2 className="font-sans text-sm font-bold tracking-normal">{t('admin.notifications.title')}</h2>

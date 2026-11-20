@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\PlanningController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
@@ -124,6 +125,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager'])->grou
 
     // Tableau de bord
     Route::get('dashboard', DashboardController::class);
+    // Compteurs de la barre (menu, alertes), relus toutes les minutes
+    Route::get('overview', OverviewController::class);
 
     // Statistiques sur 12 mois glissants
     Route::get('statistics', [StatisticsController::class, 'show']);

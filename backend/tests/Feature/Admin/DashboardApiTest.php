@@ -91,3 +91,21 @@ it('n’alerte pas pour un logement supprimé', function () {
 it('réserve le tableau de bord à l’administrateur', function () {
     $this->actingAs(User::factory()->housekeeping()->create())->getJson('/api/admin/dashboard')->assertForbidden();
 });
+
+it('donne les compteurs de la barre : conflits, calendriers en échec, messages, dernière lecture', function () {
+    IcalFeed::factory()->for($this->nid)->create(['consecutive_failures' => 3, 'last_succeeded_at' => '2026-11-20 08:00:00']);
+    $feed = IcalFeed::factory()->for($this->cocon)->create(['last_succeeded_at' => '2026-11-20 09:30:00']);
+    AvailabilityBlock::factory()->for($this->cocon)->between('2026-12-01', '2026-12-04')->create([
+        'type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM9', 'has_conflict' => true,
+    ]);
+    ContactMessage::query()->create(['name' => 'Léa', 'email' => 'lea@example.com', 'message' => 'Bonjour', 'locale' => 'fr']);
+
+    $this->getJson('/api/admin/overview')
+        ->assertOk()
+        ->assertJsonPath('data.conflicts', 1)
+        ->assertJsonPath('data.failing_feeds', 1)
+        ->assertJsonPath('data.unread_messages', 1)
+        ->assertJsonPath('data.last_sync_at', fn (string $value) => str_starts_with($value, '2026-11-20T09:30:00'));
+
+    $this->actingAs(User::factory()->housekeeping()->create())->getJson('/api/admin/overview')->assertForbidden();
+});
