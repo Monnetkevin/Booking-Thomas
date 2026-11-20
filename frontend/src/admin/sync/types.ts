@@ -1,5 +1,8 @@
 /** Plateforme dont le calendrier est synchronisé. */
-export type IcalProvider = 'airbnb'
+export type IcalProvider = 'airbnb' | 'booking'
+
+/** Plateformes proposées pour chaque logement, dans l'ordre d'affichage. */
+export const ICAL_PROVIDERS: IcalProvider[] = ['airbnb', 'booking']
 
 /** Issue d'une lecture : flux appliqué, identique au précédent, ou erreur (rien n'est libéré). */
 export type IcalSyncStatus = 'success' | 'unchanged' | 'failed'

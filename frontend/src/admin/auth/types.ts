@@ -10,6 +10,8 @@ export interface AuthUser {
   name: string
   email: string
   role: Role
+  /** Droit de fixer les prix (frais de ménage, total d'une saisie à la main), décidé par l'API. */
+  can_manage_pricing: boolean
 }
 
 export interface LoginInput {

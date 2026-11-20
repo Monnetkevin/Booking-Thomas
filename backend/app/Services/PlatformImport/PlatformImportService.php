@@ -85,9 +85,12 @@ class PlatformImportService
             $import = $this->payouts->createImport(['platform' => $platform, 'filename' => mb_substr($filename, 0, 190), 'user_id' => $userId]);
             $created = $updated = 0;
             $skipped = count($result->skipped);
+            $detached = [];
             foreach ($result->rows as $row) {
                 $apartmentId = $map[$row->listing] ?? null;
                 if ($apartmentId === null) {
+                    // Annonce détachée : ses versements déjà importés (rattachés par erreur) sont retirés.
+                    $detached[] = $row->entryKey;
                     $skipped++;
 
                     continue;
@@ -106,7 +109,7 @@ class PlatformImportService
                 $isNew ? $created++ : $updated++;
             }
 
-            $removed = $this->payouts->deleteKeys($platform, $result->cancelledKeys);
+            $removed = $this->payouts->deleteKeys($platform, $result->cancelledKeys) + $this->payouts->deleteKeys($platform, $detached);
 
             return $this->payouts->updateImport($import, ['rows_created' => $created, 'rows_updated' => $updated, 'rows_skipped' => $skipped, 'rows_removed' => $removed]);
         });

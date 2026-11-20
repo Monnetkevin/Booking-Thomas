@@ -57,12 +57,17 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
 
   // Panneau en position fixe (le menu latéral défile et le couperait), rendu à la racine de la
   // page : le menu, collant, crée son propre empilement, et la colonne figée du planning ou les
-  // barres d'enregistrement passaient par-dessus. Replacé si la fenêtre change.
+  // barres d'enregistrement passaient par-dessus. Replacé si la fenêtre change ou défile.
   useEffect(() => {
     if (!open) return
     const place = () => setPlacement(panelPlacement(buttonRef.current))
     window.addEventListener('resize', place)
-    return () => window.removeEventListener('resize', place)
+    // Capture : suit aussi le défilement du menu latéral, pas seulement celui de la page.
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
   }, [open])
 
   // Rendu en fin de page, le panneau est hors de l'ordre de tabulation du bouton : il reçoit le focus.

@@ -165,7 +165,7 @@ export function ApartmentEditPage() {
                 addressInfo={<ComputedAddressInfo apartment={data} />}
                 visibleSections={tab === 'regles' ? ['rules'] : ['info', 'location']}
                 onErrorsIn={(section) => setTab(FORM_TAB[section])}
-                canEditPricing={user?.role === 'admin'}
+                canEditPricing={user?.can_manage_pricing ?? false}
                 onSubmit={(input) => update.mutate(input)}
               />
             </div>

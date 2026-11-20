@@ -117,7 +117,7 @@ class DashboardService
 
         return [
             'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $from->diffInDays($to)),
-            'revenue' => $this->revenue->of($this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids)),
+            'revenue' => $this->revenue->of($this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids)),
             'stays' => $arrivals['all'],
             'direct_stays' => $arrivals['direct'],
         ];
@@ -133,14 +133,14 @@ class DashboardService
         $to = $today->startOfMonth()->addMonth();
         $from = $to->subMonths(self::REVENUE_MONTHS);
         $ids = $this->apartments->allOrdered()->modelKeys();
-        $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
+        $earning = $this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
 
         $months = [];
         for ($month = $from; $month->lt($to); $month = $month->addMonth()) {
             $end = $month->addMonth();
             $months[] = [
                 'month' => $month->format('Y-m'),
-                'revenue' => $this->revenue->of($sold->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
+                'revenue' => $this->revenue->of($earning->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
             ];
         }
 

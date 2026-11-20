@@ -34,19 +34,19 @@ class NightCounter
     }
 
     /**
-     * Nuits vendues sur chaque plateforme (séjours importés par iCal) dans [from, to[, par
-     * plateforme (« airbnb »…), pour savoir lesquelles n'ont pas leurs revenus importés.
+     * Nuits des séjours importés par iCal qui arrivent dans [from, to[, par plateforme
+     * (« airbnb », « booking »), comptées comme leurs revenus : au mois d'arrivée.
      *
      * @param  Collection<int, AvailabilityBlock>  $blocks  blocs actifs (calendrier chargé)
      * @return array<string, int>
      */
-    public function platformNights(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
+    public function platformNightsArriving(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
     {
         $nights = [];
         foreach ($blocks as $block) {
             $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
-            if ($provider !== null) {
-                $nights[$provider->value] = ($nights[$provider->value] ?? 0) + $this->overlap($block, $from, $to);
+            if ($provider !== null && $block->starts_on->gte($from) && $block->starts_on->lt($to)) {
+                $nights[$provider->value] = ($nights[$provider->value] ?? 0) + (int) $block->starts_on->diffInDays($block->ends_on);
             }
         }
 

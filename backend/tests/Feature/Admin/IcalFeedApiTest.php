@@ -125,3 +125,23 @@ it('donne le journal récent de tous les calendriers, avec le logement', functio
         ->assertJsonPath('data.0.provider', 'Airbnb')
         ->assertJsonPath('data.1.error', 'HTTP 403');
 });
+
+it('ajoute aussi le calendrier Booking.com du logement, à côté de celui d’Airbnb', function () {
+    IcalFeed::factory()->for($this->apartment)->create();
+
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/ical-feeds", ['provider' => 'booking', 'import_url' => 'https://admin.booking.com/hotel/hoteladmin/ical.html?t=secret'])
+        ->assertCreated()
+        ->assertJsonPath('data.provider', 'booking')
+        ->assertJsonPath('data.provider_label', 'Booking.com');
+    expect($this->apartment->icalFeeds()->count())->toBe(2);
+});
+
+it('refuse une URL Booking.com hors du domaine de Booking.com', function (string $url) {
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/ical-feeds", ['provider' => 'booking', 'import_url' => $url])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('import_url');
+})->with([
+    'faux domaine' => 'https://admin.booking.com.exemple.fr/ical.html',
+    'domaine voisin' => 'https://notbooking.com/ical.html',
+    'Airbnb' => 'https://www.airbnb.fr/calendar/ical/1.ics',
+]);

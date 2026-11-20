@@ -82,6 +82,14 @@ interface BookingRepositoryInterface
     public function recordOfflinePayment(Booking $booking, int $amount): void;
 
     /**
+     * Réservations qui peuvent rapporter (confirmées, terminées, ou annulées avec une somme
+     * gardée) qui arrivent dans [from, to[, avec paid_amount et refunded_amount.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function earningArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
+
+    /**
      * Réservations vendues (confirmées ou terminées) qui arrivent dans [from, to[.
      *
      * @return Collection<int, Booking>

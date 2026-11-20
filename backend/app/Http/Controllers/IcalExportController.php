@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\Ical\IcalExportService;
 use Illuminate\Http\Response;
 
-/** GET /ical/{token}.ics : calendrier d'un logement, lu par la plateforme (Airbnb). */
+/** GET /ical/{token}.ics : calendrier d'un logement, lu par la plateforme (Airbnb, Booking.com). */
 class IcalExportController extends Controller
 {
     public function __construct(private readonly IcalExportService $export) {}

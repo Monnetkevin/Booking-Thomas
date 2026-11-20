@@ -53,6 +53,8 @@ class ApartmentService
     public function create(array $data, bool $canManagePricing = true): Apartment
     {
         $data = $this->withoutPricesUnlessAllowed($data, $canManagePricing);
+        // Valeur par défaut de la base, posée ici pour que la réponse la renvoie (et non null).
+        $data['cleaning_fee'] ??= 0;
         $amenityIds = $data['amenity_ids'] ?? null;
         unset($data['amenity_ids']);
 

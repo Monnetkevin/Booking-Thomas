@@ -46,9 +46,9 @@
       "month": "ce mois-ci, tous canaux",
       "year": "cette année, tous canaux"
     },
-    "nightsDetail": "{{direct}} en direct · {{platform}} sur Airbnb",
+    "nightsDetail": "{{direct}} en direct · {{platform}} sur les plateformes",
     "revenue": "Revenus directs",
-    "revenueDetail": "Réservations du site, hors taxe de séjour.",
+    "revenueDetail": "Encaissé (moins les remboursements), hors taxe de séjour, au mois d’arrivée.",
     "movements": "Arrivées et départs",
     "today": "Aujourd’hui",
     "guests_one": "{{count}} voyageur",
@@ -77,7 +77,7 @@
     "staysDetail_one": "dont {{count}} réservé sur le site",
     "staysDetail_other": "dont {{count}} réservés sur le site",
     "revenueChart": "Revenus directs",
-    "revenueChartHint": "6 derniers mois, réservations du site, au mois d’arrivée.",
+    "revenueChartHint": "6 derniers mois, montants encaissés, au mois d’arrivée.",
     "revenueChartLabel": "Revenus directs par mois : {{list}}.",
     "todoTitle": "À traiter",
     "nothingToDo": "Rien à traiter pour le moment.",
@@ -367,10 +367,14 @@
   },
   "sync": {
     "title": "Synchronisation des calendriers",
-    "subtitle": "Les calendriers Airbnb sont lus automatiquement toutes les 15 minutes.",
-    "howTitle": "Mise en place, une fois par logement",
-    "howImport": "Dans Airbnb (Calendrier › Disponibilités › Associer des calendriers › Exporter le calendrier), copiez le lien et collez-le dans « URL d’import ».",
-    "howExport": "Copiez « URL d’export » et collez-la dans Airbnb (Importer le calendrier). Airbnb la relit à son rythme, souvent toutes les quelques heures.",
+    "providers": {
+      "airbnb": "Airbnb",
+      "booking": "Booking.com"
+    },
+    "subtitle": "Les calendriers Airbnb et Booking.com sont lus automatiquement toutes les 15 minutes.",
+    "howTitle": "Mise en place, une fois par logement et par plateforme",
+    "howImport": "Copiez le lien d’export de la plateforme et collez-le dans « URL d’import » : dans Airbnb, Calendrier › Disponibilités › Associer des calendriers › Exporter le calendrier ; dans l’extranet Booking.com, Tarifs et disponibilités › Synchroniser les calendriers › Exporter le calendrier.",
+    "howExport": "Copiez « URL d’export » et collez-la chez la plateforme (Importer le calendrier). Chaque plateforme la relit à son rythme, souvent toutes les quelques heures.",
     "noApartment": "Créez d’abord un logement.",
     "health": {
       "not_configured": "Non configuré",
@@ -386,9 +390,12 @@
     "failures_one": "Échec de la dernière lecture : {{error}}",
     "failures_other": "{{count}} échecs consécutifs : {{error}} Les nuits déjà connues restent bloquées.",
     "import": {
-      "title": "Airbnb → site (import)",
-      "label": "URL d’import (calendrier exporté par Airbnb)",
-      "placeholder": "https://www.airbnb.fr/calendar/ical/…",
+      "title": "{{provider}} → site (import)",
+      "label": "URL d’import (calendrier exporté par {{provider}})",
+      "placeholder": {
+        "airbnb": "https://www.airbnb.fr/calendar/ical/…",
+        "booking": "https://admin.booking.com/hotel/hoteladmin/ical.html?t=…"
+      },
       "hint": "Laissez vide pour ne rien importer : le site publie quand même son calendrier.",
       "save": "Enregistrer l’URL",
       "saved": "URL enregistrée, lecture lancée.",
@@ -396,12 +403,12 @@
       "inactiveHint": "Import arrêté : les nuits déjà importées restent bloquées."
     },
     "export": {
-      "title": "Site → Airbnb (export)",
-      "label": "URL d’export (à coller dans Airbnb)",
+      "title": "Site → {{provider}} (export)",
+      "label": "URL d’export (à coller dans {{provider}})",
       "missing": "Cliquez sur « Enregistrer l’URL » (même sans URL d’import) pour obtenir l’URL d’export du site.",
       "regenerate": "Changer l’URL d’export",
       "confirmTitle": "Changer l’URL d’export ?",
-      "confirm": "L’ancienne URL cessera aussitôt de fonctionner : il faudra coller la nouvelle dans Airbnb, sinon Airbnb ne verra plus les réservations du site.",
+      "confirm": "L’ancienne URL cessera aussitôt de fonctionner : il faudra coller la nouvelle dans {{provider}}, sinon {{provider}} ne verra plus les réservations du site.",
       "confirmAction": "Changer l’URL"
     },
     "syncNow": "Synchroniser maintenant",
@@ -700,7 +707,7 @@
   },
   "bookings": {
     "title": "Réservations",
-    "subtitle": "Réservations du site et saisies à la main. Les séjours Airbnb sont dans le planning.",
+    "subtitle": "Réservations du site et saisies à la main. Les séjours des plateformes sont dans le planning.",
     "create": "Nouvelle réservation",
     "search": "Voyageur ou référence",
     "status": "Statut",
@@ -866,7 +873,7 @@
       "direct": "Réservation du site",
       "manualBooking": "Saisie à la main",
       "pending": "Paiement en cours",
-      "ical": "Séjour importé (Airbnb)",
+      "ical": "Séjour importé (plateforme)",
       "closed": "Fermé"
     },
     "view": "Affichage",
@@ -905,24 +912,24 @@
     "subtitle": "Du {{from}} au {{to}}.",
     "export": "Exporter en CSV",
     "revenue": "Revenus directs",
-    "revenueDetail": "Réservations du site et saisies à la main, hors taxe de séjour, au mois d’arrivée.",
+    "revenueDetail": "Réservations du site et saisies à la main : encaissé moins les remboursements, hors taxe de séjour, au mois d’arrivée.",
     "nights": "Nuits vendues",
     "occupancy": "Occupation",
     "averagePrice": "Prix moyen d’une nuit",
     "averagePriceDetail": "Hébergement seul, réservations directes.",
     "averageStay": "Durée moyenne d’un séjour",
-    "averageStayDetail": "Séjours directs et Airbnb.",
+    "averageStayDetail": "Séjours directs et des plateformes.",
     "nightsValue": "{{value}} nuits",
     "chartTitle": "Nuits vendues par mois",
     "chartHint": "Survolez une colonne pour le détail ; le tableau dessous donne toutes les valeurs.",
     "legend": "Légende",
     "direct": "En direct",
-    "platform": "Airbnb",
-    "barLabel": "{{month}} : {{direct}} nuits en direct, {{platform}} sur Airbnb",
+    "platform": "Plateformes",
+    "barLabel": "{{month}} : {{direct}} nuits en direct, {{platform}} sur les plateformes",
     "directNights_one": "{{count}} nuit en direct",
     "directNights_other": "{{count}} nuits en direct",
-    "platformNights_one": "{{count}} nuit sur Airbnb",
-    "platformNights_other": "{{count}} nuits sur Airbnb",
+    "platformNights_one": "{{count}} nuit sur les plateformes",
+    "platformNights_other": "{{count}} nuits sur les plateformes",
     "monthsTable": "Nuits, revenus et occupation par mois",
     "month": "Mois",
     "revenueShort": "Revenus directs",
@@ -975,7 +982,7 @@
     "failingFeeds_other": "{{count}} erreurs iCal"
   },
   "syncStatus": {
-    "label": "Synchro Airbnb",
+    "label": "Synchro des calendriers",
     "never": "jamais"
   },
   "search": {

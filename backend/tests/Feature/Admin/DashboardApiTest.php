@@ -44,12 +44,15 @@ it('calcule l’occupation, les revenus directs et les séjours de la période, 
     // Novembre : 2 logements × 30 nuits = 60 ; 5 fermées → 55 ouvertes ; 9 + 4 vendues.
     $booking = directBooking($this->cocon, '2026-11-21', '2026-11-30');
     $booking->update(['total_amount' => 50000, 'tourist_tax' => 2000]);
+    recordPayment($booking, 50000);
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-27', '2026-12-03')->create([
         'type' => BlockType::Ical, 'ical_feed_id' => IcalFeed::factory()->for($this->nid)->create()->id, 'external_uid' => 'HM1',
     ]);
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-15')->create(['type' => BlockType::Manual]);
     // Octobre : un séjour direct de 30 000 (taxe 1 000).
-    directBooking($this->cocon, '2026-10-05', '2026-10-08')->update(['total_amount' => 30000, 'tourist_tax' => 1000]);
+    $october = directBooking($this->cocon, '2026-10-05', '2026-10-08');
+    $october->update(['total_amount' => 30000, 'tourist_tax' => 1000]);
+    recordPayment($october, 30000);
     // Réservation non payée : ni revenu ni séjour.
     directBooking($this->nid, '2026-11-02', '2026-11-04', BookingStatus::Pending);
 

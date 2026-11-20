@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { useCurrentUser } from '@/admin/auth/useAuth'
+import { canVisit } from '@/admin/navigation'
 import { KpiCard } from '@/admin/components/KpiCard'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -76,7 +77,7 @@ export function StatisticsPage() {
         <div className="mb-4">
           <Alert tone="warning">
             {t('admin.statistics.platformMissing')}{' '}
-            {user?.role === 'admin' && <Link to="/admin/revenus-plateformes">{t('admin.statistics.importLink')}</Link>}
+            {user && canVisit('/admin/revenus-plateformes', user.role) && <Link to="/admin/revenus-plateformes">{t('admin.statistics.importLink')}</Link>}
           </Alert>
         </div>
       )}

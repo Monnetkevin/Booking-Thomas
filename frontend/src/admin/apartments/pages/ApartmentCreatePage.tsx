@@ -25,7 +25,7 @@ export function ApartmentCreatePage() {
         initialValues={emptyApartmentForm}
         submitLabel={t('admin.apartments.create')}
         pending={create.isPending}
-        canEditPricing={user?.role === 'admin'}
+        canEditPricing={user?.can_manage_pricing ?? false}
         serverErrors={apiError ? formErrorsFromApi(apiError.fieldErrors) : undefined}
         onSubmit={(input) =>
           create.mutate(input, { onSuccess: (apartment) => navigate(`/admin/appartements/${apartment.id}`, { replace: true }) })

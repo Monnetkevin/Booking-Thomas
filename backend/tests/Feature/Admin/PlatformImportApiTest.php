@@ -123,15 +123,16 @@ it('écarte nuits et montants hors limites au lieu d’échouer', function () {
         ->assertJsonPath('data.skipped', [['line' => 2, 'reason' => 'out_of_range'], ['line' => 3, 'reason' => 'out_of_range']]);
 });
 
-it('détache une annonce mise sur « Non rattachée » : ses lignes ne sont plus importées', function () {
+it('détache une annonce mise sur « Non rattachée » : ses lignes ne sont plus importées, celles déjà importées sont retirées', function () {
     $mapping = [['listing' => 'Studio Cocon centre', 'apartment_id' => $this->cocon->id], ['listing' => 'Nid doux gare', 'apartment_id' => $this->nid->id]];
     $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv'), 'mapping' => $mapping], ['Accept' => 'application/json'])->assertCreated();
-    PlatformPayout::query()->delete();
 
     $this->post('/api/admin/platform-imports', [
         'platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv'),
         'mapping' => [['listing' => 'Studio Cocon centre', 'apartment_id' => null], ['listing' => 'Nid doux gare', 'apartment_id' => $this->nid->id]],
-    ], ['Accept' => 'application/json'])->assertJsonPath('data.rows_created', 1);
+    ], ['Accept' => 'application/json'])
+        ->assertJsonPath('data.rows_updated', 1)
+        ->assertJsonPath('data.rows_removed', 1);
 
     expect(PlatformPayout::query()->pluck('apartment_id')->all())->toBe([$this->nid->id]);
     $this->post('/api/admin/platform-imports/preview', ['platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv')], ['Accept' => 'application/json'])
@@ -159,4 +160,19 @@ it('lit le séparateur des milliers, retire une réservation Booking.com annulé
     $this->post('/api/admin/platform-imports/preview', ['platform' => 'booking', 'file' => $big], ['Accept' => 'application/json'])
         ->assertUnprocessable()
         ->assertJsonPath('code', 'platform_file_too_large');
+});
+
+it('ajoute les ajustements Airbnb au séjour : une annulation remboursée ramène son revenu à zéro', function () {
+    $this->post('/api/admin/platform-imports', [
+        'platform' => 'airbnb', 'file' => platformFile('airbnb-adjustments.csv'),
+        'mapping' => [['listing' => 'Studio Cocon centre', 'apartment_id' => $this->cocon->id]],
+    ], ['Accept' => 'application/json'])
+        ->assertCreated()
+        ->assertJsonPath('data.rows_created', 3)
+        ->assertJsonPath('data.rows_skipped', 1);
+
+    expect(PlatformPayout::query()->where('confirmation_code', 'HMCANCEL1')->sum('net_amount'))->toBe(0)
+        // L'ajustement sans dates reprend celles de la réservation.
+        ->and(PlatformPayout::query()->where('confirmation_code', 'HMCANCEL1')->where('net_amount', '<', 0)->sole()->arrival->toDateString())->toBe('2026-11-04')
+        ->and(PlatformPayout::query()->where('confirmation_code', 'HMKEEP1')->sole()->net_amount)->toBe(40000);
 });

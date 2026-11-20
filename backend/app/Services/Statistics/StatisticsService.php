@@ -22,8 +22,8 @@ use Illuminate\Support\Collection;
  * Statistiques ») : nuits vendues en direct et sur les plateformes, revenus par canal, part
  * du direct, revenu par nuit, durée moyenne de séjour, occupation, par mois et par logement.
  *
- * Revenus directs : total des réservations vendues hors taxe de séjour (reversée à la
- * commune), compté au mois d'arrivée. Revenus des plateformes : montants nets importés de
+ * Revenus directs : argent encaissé moins les remboursements, hors taxe de séjour (voir
+ * RevenueCalculator), compté au mois d'arrivée. Revenus des plateformes : montants nets importés de
  * leurs fichiers CSV (l'iCal ne transmet que les dates), au mois d'arrivée. La note moyenne
  * viendra avec les avis.
  */
@@ -55,6 +55,7 @@ class StatisticsService
         $ids = $apartments->modelKeys();
         $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
         $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
+        $earning = $this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
         $payouts = $this->payouts->arrivingBetween($from, $to)->whereIn('apartment_id', $ids);
 
         $months = [];
@@ -66,21 +67,26 @@ class StatisticsService
                 'month' => $month->format('Y-m'),
                 'nights_direct' => $nights['direct'],
                 'nights_platform' => $nights['platform'],
-                'revenue' => $this->revenue->of($sold->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
+                'revenue' => $this->revenue->of($earning->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
                 'platform_revenue' => $platform,
-                // Nuits vendues sur une plateforme dont aucun revenu n'est importé : montants inconnus.
-                'platform_revenue_missing' => $this->platformRevenueMissing($this->nights->platformNights($blocks, $month, $end), $platform),
+                // Séjours arrivés ce mois-ci sur une plateforme dont aucun revenu n'est importé :
+                // montants inconnus (revenus et séjours comptés tous deux au mois d'arrivée).
+                'platform_revenue_missing' => $this->platformRevenueMissing($this->nights->platformNightsArriving($blocks, $month, $end), $platform),
                 'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $month->diffInDays($end)),
             ];
         }
 
         $days = (int) $from->diffInDays($to);
         $total = $this->nights->count($blocks, $from, $to);
-        $direct = $this->revenue->of($sold);
+        $direct = $this->revenue->of($earning);
         $platform = $this->platformRevenue($payouts);
         $allRevenue = $direct + array_sum($platform);
         $soldNights = $total['direct'] + $total['platform'];
-        $missing = $this->platformRevenueMissing($this->nights->platformNights($blocks, $from, $to), $platform);
+        $platformNights = $this->nights->platformNightsArriving($blocks, $from, $to);
+        $missing = $this->platformRevenueMissing($platformNights, $platform);
+        // Revenu par nuit : seulement les plateformes dont les nuits sont comptées (calendrier
+        // iCal relié) ; sinon leurs revenus s'ajouteraient sans leurs nuits.
+        $countedRevenue = $direct + array_sum(array_intersect_key($platform, array_filter($platformNights)));
 
         return [
             'period' => $period->value,
@@ -92,7 +98,7 @@ class StatisticsService
                 'total_revenue' => $allRevenue,
                 'direct_share' => $allRevenue > 0 ? round($direct / $allRevenue * 100, 1) : null,
                 // Revenu par nuit vendue, seulement si chaque plateforme vendue a ses revenus importés.
-                'revenue_per_night' => $soldNights > 0 && ! $missing ? (int) round($allRevenue / $soldNights) : null,
+                'revenue_per_night' => $soldNights > 0 && ! $missing ? (int) round($countedRevenue / $soldNights) : null,
                 'nights_direct' => $total['direct'],
                 'nights_platform' => $total['platform'],
                 'average_nightly_price' => $this->averageNightlyPrice($sold),
@@ -100,7 +106,7 @@ class StatisticsService
                 'occupancy' => $this->nights->occupancy($total, $apartments->count(), $days),
             ],
             'months' => $months,
-            'apartments' => $apartments->map(function (Apartment $apartment) use ($blocks, $sold, $payouts, $from, $to, $days): array {
+            'apartments' => $apartments->map(function (Apartment $apartment) use ($blocks, $earning, $payouts, $from, $to, $days): array {
                 $nights = $this->nights->count($blocks->where('apartment_id', $apartment->id), $from, $to);
 
                 return [
@@ -108,7 +114,7 @@ class StatisticsService
                     'name' => $apartment->getTranslation('name', 'fr'),
                     'nights_direct' => $nights['direct'],
                     'nights_platform' => $nights['platform'],
-                    'revenue' => $this->revenue->of($sold->where('apartment_id', $apartment->id)),
+                    'revenue' => $this->revenue->of($earning->where('apartment_id', $apartment->id)),
                     'platform_revenue' => array_sum($this->platformRevenue($payouts->where('apartment_id', $apartment->id))),
                     'occupancy' => $this->nights->occupancy($nights, 1, $days),
                     'rating' => null,

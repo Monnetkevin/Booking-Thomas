@@ -123,11 +123,16 @@ it('laisse le gestionnaire voir les prix sans pouvoir les changer, ni à la cré
     $this->putJson("/api/admin/apartments/{$this->apartment->id}", [...$fields, 'cleaning_fee' => 0])->assertOk();
     expect($this->apartment->fresh()->cleaning_fee)->toBe(4000);
 
-    $created = $this->postJson('/api/admin/apartments', [...$fields, 'name' => ['fr' => 'Nouveau'], 'cleaning_fee' => 50000])->assertCreated()->json('data.id');
+    $this->getJson('/api/auth/me')->assertJsonPath('data.can_manage_pricing', false);
+    $created = $this->postJson('/api/admin/apartments', [...$fields, 'name' => ['fr' => 'Nouveau'], 'cleaning_fee' => 50000])
+        ->assertCreated()
+        ->assertJsonPath('data.cleaning_fee', 0)
+        ->json('data.id');
     expect(Apartment::find($created)->cleaning_fee)->toBe(0);
     $this->postJson('/api/admin/apartments', [...$fields, 'name' => ['fr' => 'Sans prix']])->assertCreated();
 
-    $this->actingAs($this->admin)->putJson("/api/admin/apartments/{$this->apartment->id}", [...$fields, 'cleaning_fee' => 5000])->assertOk();
+    $this->actingAs($this->admin)->getJson('/api/auth/me')->assertJsonPath('data.can_manage_pricing', true);
+    $this->putJson("/api/admin/apartments/{$this->apartment->id}", [...$fields, 'cleaning_fee' => 5000])->assertOk();
     expect($this->apartment->fresh()->cleaning_fee)->toBe(5000);
 });
 

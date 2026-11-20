@@ -86,14 +86,24 @@ class BookingRepository implements BookingRepositoryInterface
      */
     private function adminQuery(BookingFilters $filters): Builder
     {
-        $succeeded = fn (PaymentType $type) => fn (Builder $query) => $query->where('status', PaymentStatus::Succeeded)->where('type', $type);
-
-        return $this->filtered($filters)
-            ->with('apartment:id,name')
-            ->withSum(['payments as paid_amount' => $succeeded(PaymentType::Payment)], 'amount')
-            ->withSum(['payments as refunded_amount' => $succeeded(PaymentType::Refund)], 'amount')
+        return $this->withPaymentSums($this->filtered($filters)->with('apartment:id,name'))
             ->orderBy('arrival')
             ->orderBy('id');
+    }
+
+    /**
+     * Ajoute paid_amount et refunded_amount : paiements et remboursements réussis.
+     *
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
+    private function withPaymentSums(Builder $query): Builder
+    {
+        $succeeded = fn (PaymentType $type) => fn (Builder $query) => $query->where('status', PaymentStatus::Succeeded)->where('type', $type);
+
+        return $query
+            ->withSum(['payments as paid_amount' => $succeeded(PaymentType::Payment)], 'amount')
+            ->withSum(['payments as refunded_amount' => $succeeded(PaymentType::Refund)], 'amount');
     }
 
     /**
@@ -166,6 +176,15 @@ class BookingRepository implements BookingRepositoryInterface
     public function recordOfflinePayment(Booking $booking, int $amount): void
     {
         $booking->payments()->create(['type' => PaymentType::Payment, 'amount' => $amount, 'status' => PaymentStatus::Succeeded]);
+    }
+
+    public function earningArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection
+    {
+        return $this->withPaymentSums(Booking::query())
+            ->whereIn('status', [BookingStatus::Confirmed, BookingStatus::Completed, BookingStatus::Cancelled])
+            ->where('arrival', '>=', $from->toDateString())
+            ->where('arrival', '<', $to->toDateString())
+            ->get();
     }
 
     public function soldArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection

@@ -3,7 +3,7 @@ import { ApiError } from '@/lib/api'
 import type { HttpClient } from '@/lib/http'
 import { createAuthService } from './authService'
 
-const user = { id: 1, name: 'Thomas', email: 'hote@example.com', role: 'admin' as const }
+const user = { id: 1, name: 'Thomas', email: 'hote@example.com', role: 'admin' as const, can_manage_pricing: true }
 
 function fakeClient(impl: HttpClient['request']): HttpClient {
   return { request: vi.fn(impl) as HttpClient['request'] }

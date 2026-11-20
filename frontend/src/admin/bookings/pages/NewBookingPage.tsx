@@ -105,7 +105,7 @@ export function NewBookingPage() {
         <Section title={t('admin.manual.price')} description={t('admin.manual.priceHint')}>
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Prix libre : administrateur seulement (le gestionnaire réserve au prix calculé). */}
-            {user?.role === 'admin' && (
+            {user?.can_manage_pricing && (
               <TextField label={t('admin.manual.total')} inputMode="decimal" suffix="€" value={values.total} error={error('total', 'total_amount')} onChange={(event) => set('total', event.target.value)} />
             )}
           </div>

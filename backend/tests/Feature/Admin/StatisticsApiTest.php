@@ -2,6 +2,7 @@
 
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
+use App\Enums\PaymentType;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
@@ -18,10 +19,14 @@ beforeEach(function () {
 
 function soldBooking(Apartment $apartment, string $arrival, string $departure, int $accommodation, BookingStatus $status = BookingStatus::Confirmed): void
 {
-    directBooking($apartment, $arrival, $departure, $status)->update([
+    $booking = directBooking($apartment, $arrival, $departure, $status);
+    $booking->update([
         'accommodation_amount' => $accommodation, 'cleaning_fee' => 4000, 'tourist_tax' => 500,
         'total_amount' => $accommodation + 4500,
     ]);
+    if ($status !== BookingStatus::Pending) {
+        recordPayment($booking, $accommodation + 4500);
+    }
 }
 
 it('donne les chiffres des 12 derniers mois, par mois et par logement', function () {
@@ -86,11 +91,10 @@ it('exporte un CSV lisible par un tableur, sans formule exécutable', function (
         ->toContain('Le Cocon;4;0;440,00;0,00;')
         ->toContain('"\'=Le Nid; ""chic""";0;0;0,00;0,00;0,0');
 
-    // Montant négatif (séjour offert, taxe gardée) : un nombre ; nom commençant par une tabulation : neutralisé.
+    // Nom commençant par une tabulation : neutralisé.
     $this->nid->update(['name' => ['fr' => "\tCalc", 'en' => 'Nest']]);
-    soldBooking($this->nid, '2026-09-10', '2026-09-12', 0);
-    $this->nid->bookings()->update(['total_amount' => 0]);
-    expect($this->get('/api/admin/statistics.csv')->getContent())->toContain('2026-09;2;0;-5,00;')->toContain("'\tCalc;2;0;-5,00;");
+    soldBooking($this->nid, '2026-09-10', '2026-09-12', 10000);
+    expect($this->get('/api/admin/statistics.csv')->getContent())->toContain('2026-09;2;0;140,00;')->toContain("'\tCalc;2;0;140,00;");
 });
 
 it('réserve les statistiques à l’administrateur', function () {
@@ -144,4 +148,49 @@ it('ne donne pas une période « Tout » inversée quand le premier séjour est 
         ->assertJsonPath('data.from', '2026-11-01')
         ->assertJsonPath('data.to', '2026-12-01')
         ->assertJsonCount(1, 'data.months');
+});
+
+it('compte l’argent encaissé : rien pour une réservation non payée, la part gardée d’une annulation', function () {
+    // Saisie à la main non payée : vendue (nuits) mais rien d'encaissé.
+    directBooking($this->cocon, '2026-11-02', '2026-11-04')->update(['total_amount' => 30000, 'tourist_tax' => 1000]);
+    // Annulée : 40 000 payés, 25 000 remboursés, 15 000 gardés (pas de taxe de séjour due).
+    $cancelled = directBooking($this->nid, '2026-11-10', '2026-11-14', BookingStatus::Cancelled);
+    $cancelled->update(['total_amount' => 40000, 'tourist_tax' => 1000]);
+    recordPayment($cancelled, 40000);
+    recordPayment($cancelled, 25000, PaymentType::Refund);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.5.revenue', 15000)
+        ->assertJsonPath('data.months.5.nights_direct', 2)
+        ->assertJsonPath('data.totals.revenue', 15000);
+    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.figures.revenue.value', 15000);
+});
+
+it('ne divise pas les revenus d’une plateforme sans calendrier relié par les nuits des autres', function () {
+    soldBooking($this->cocon, '2026-11-02', '2026-11-04', 15500);   // 2 nuits, 20 000 encaissés, 19 500 hors taxe
+    PlatformPayout::query()->create([
+        'platform' => 'booking', 'confirmation_code' => 'BK2', 'entry_key' => 'BK2-1', 'apartment_id' => $this->nid->id,
+        'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 30000,
+    ]);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.totals.total_revenue', 49500)
+        ->assertJsonPath('data.totals.revenue_per_night', 9750);
+});
+
+it('rapproche nuits et revenus au mois d’arrivée : un séjour à cheval ne signale rien le mois suivant', function () {
+    Date::setTestNow('2027-02-20 10:00:00');
+    $feed = IcalFeed::factory()->for($this->nid)->create();
+    AvailabilityBlock::factory()->for($this->nid)->between('2027-01-28', '2027-02-05')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM9']);
+    PlatformPayout::query()->create([
+        'platform' => 'airbnb', 'confirmation_code' => 'HM9', 'entry_key' => 'HM9-1', 'apartment_id' => $this->nid->id,
+        'arrival' => '2027-01-28', 'departure' => '2027-02-05', 'nights' => 8, 'net_amount' => 80000,
+    ]);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.4.month', '2027-01')
+        ->assertJsonPath('data.months.4.platform_revenue_missing', false)
+        ->assertJsonPath('data.months.5.month', '2027-02')
+        ->assertJsonPath('data.months.5.nights_platform', 4)
+        ->assertJsonPath('data.months.5.platform_revenue_missing', false);
 });

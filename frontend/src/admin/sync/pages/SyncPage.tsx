@@ -15,7 +15,7 @@ import { ApiError } from '@/lib/api'
 import { formatDateTime, formatTime } from '@/lib/dates'
 import { ApartmentFeedCard } from '../components/ApartmentFeedCard'
 import { feedHealth, healthTone } from '../syncStatus'
-import type { IcalFeed } from '../types'
+import { ICAL_PROVIDERS, type IcalFeed } from '../types'
 import { useIcalFeeds, useLatestSyncLogs, useSyncAll, useSyncNow } from '../useSync'
 
 /** « il y a 6 min », « hier », ou la date. */
@@ -133,37 +133,40 @@ export function SyncPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {apartments.data.map((apartment) => {
-                    const feed = feeds.data.find((candidate) => candidate.apartment_id === apartment.id)
-                    const health = feedHealth(feed)
-                    return (
-                      <tr key={apartment.id} className="border-b border-line last:border-0">
-                        <th scope="row" className="px-3 py-2.5 font-semibold">
-                          <a href={`#calendrier-${apartment.id}`} className="text-ink">
-                            {apartment.name}
-                          </a>
-                        </th>
-                        <td className="px-3 py-2.5">{feed?.provider_label ?? '—'}</td>
-                        <td className="px-3 py-2.5">{feed ? <ExportLink url={feed.export_url} /> : '—'}</td>
-                        <td className="px-3 py-2.5 whitespace-nowrap">{feed?.import_url ? when(feed.last_synced_at) : '—'}</td>
-                        <td className="px-3 py-2.5">
-                          <Badge tone={healthTone[health]}>{t(`admin.sync.health.${health}`)}</Badge>
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          {feed?.import_url && feed.is_active && (
-                            <Button
-                              variant="ghost"
-                              loading={syncNow.isPending && syncNow.variables?.feedId === feed.id}
-                              onClick={() => syncNow.mutate({ feedId: feed.id })}
-                              aria-label={t('admin.sync.overview.syncOne', { apartment: apartment.name })}
-                            >
-                              {t('admin.sync.overview.sync')}
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
+                  {apartments.data.flatMap((apartment) =>
+                    ICAL_PROVIDERS.map((provider) => {
+                      const feed = feeds.data.find((candidate) => candidate.apartment_id === apartment.id && candidate.provider === provider)
+                      const health = feedHealth(feed)
+                      const label = t(`admin.sync.providers.${provider}`)
+                      return (
+                        <tr key={`${apartment.id}-${provider}`} className="border-b border-line last:border-0">
+                          <th scope="row" className="px-3 py-2.5 font-semibold">
+                            <a href={`#calendrier-${apartment.id}`} className="text-ink">
+                              {apartment.name}
+                            </a>
+                          </th>
+                          <td className="px-3 py-2.5">{label}</td>
+                          <td className="px-3 py-2.5">{feed ? <ExportLink url={feed.export_url} /> : '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{feed?.import_url ? when(feed.last_synced_at) : '—'}</td>
+                          <td className="px-3 py-2.5">
+                            <Badge tone={healthTone[health]}>{t(`admin.sync.health.${health}`)}</Badge>
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            {feed?.import_url && feed.is_active && (
+                              <Button
+                                variant="ghost"
+                                loading={syncNow.isPending && syncNow.variables?.feedId === feed.id}
+                                onClick={() => syncNow.mutate({ feedId: feed.id })}
+                                aria-label={t('admin.sync.overview.syncOne', { apartment: `${apartment.name} (${label})` })}
+                              >
+                                {t('admin.sync.overview.sync')}
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    }),
+                  )}
                 </tbody>
               </table>
             </div>
@@ -208,7 +211,7 @@ export function SyncPage() {
             </ol>
           </Section>
           {apartments.data.map((apartment) => (
-            <ApartmentFeedCard key={apartment.id} apartment={apartment} feed={feeds.data.find((feed) => feed.apartment_id === apartment.id)} />
+            <ApartmentFeedCard key={apartment.id} apartment={apartment} feeds={feeds.data.filter((feed) => feed.apartment_id === apartment.id)} />
           ))}
         </div>
       )}
