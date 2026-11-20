@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\PlanningController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\UserController;
@@ -127,6 +128,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager'])->grou
     Route::get('dashboard', DashboardController::class);
     // Compteurs de la barre (menu, alertes), relus toutes les minutes
     Route::get('overview', OverviewController::class);
+    // Recherche rapide (Ctrl K) : réservations et logements
+    Route::get('search', SearchController::class)->middleware('throttle:60,1');
 
     // Statistiques sur 12 mois glissants
     Route::get('statistics', [StatisticsController::class, 'show']);

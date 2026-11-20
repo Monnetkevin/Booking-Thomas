@@ -68,15 +68,30 @@ class BookingRepository implements BookingRepositoryInterface
             // Séjours qui touchent [from, to[ : arrivée avant la fin, départ après le début.
             ->when($filters->to, fn (Builder $query, $to) => $query->where('arrival', '<', $to))
             ->when($filters->from, fn (Builder $query, $from) => $query->where('departure', '>', $from))
-            ->when($filters->search, function (Builder $query, string $search): void {
-                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
-                $query->where(fn (Builder $q) => $q->where('reference', 'ilike', $like)
-                    ->orWhere('guest_name', 'ilike', $like)
-                    ->orWhere('guest_email', 'ilike', $like));
-            })
+            ->when($filters->search, fn (Builder $query, string $search) => $query->where(fn (Builder $q) => $this->matching($q, $search)))
             ->orderBy('arrival')
             ->orderBy('id')
             ->paginate($perPage);
+    }
+
+    public function search(string $term, int $limit): Collection
+    {
+        return Booking::query()
+            ->with('apartment:id,name')
+            ->where(fn (Builder $query) => $this->matching($query, $term))
+            ->orderByDesc('arrival')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /** Référence, nom ou e-mail du voyageur, sans jokers SQL venus de la saisie. */
+    private function matching(Builder $query, string $term): void
+    {
+        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
+        $query->where('reference', 'ilike', $like)
+            ->orWhere('guest_name', 'ilike', $like)
+            ->orWhere('guest_email', 'ilike', $like);
     }
 
     public function loadDetails(Booking $booking): Booking

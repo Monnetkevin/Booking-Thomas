@@ -51,6 +51,13 @@ interface BookingRepositoryInterface
     public function loadDetails(Booking $booking): Booking;
 
     /**
+     * Recherche rapide (référence, nom ou e-mail du voyageur), séjours les plus récents d'abord.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function search(string $term, int $limit): Collection;
+
+    /**
      * Fait passer une réservation de confirmée à annulée, seulement si elle l'est encore en
      * base (mise à jour conditionnelle) ; false si une autre opération est passée avant.
      */

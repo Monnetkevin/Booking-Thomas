@@ -10,6 +10,7 @@ import { canVisit, navigationFor } from '@/admin/navigation'
 import { AlertsButton } from '@/admin/notifications/components/AlertsButton'
 import { alertParts } from '@/admin/overview/alertSummary'
 import { useOverview } from '@/admin/overview/useOverview'
+import { SearchPalette } from '@/admin/search/components/SearchPalette'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner'
 
@@ -45,6 +46,7 @@ export function AdminShell() {
   return (
     <AdminLayout
       navigation={navigation}
+      search={staff ? <SearchPalette pages={navigation.map((item) => ({ to: item.to, label: t(item.labelKey) }))} /> : undefined}
       badges={counts ? { conflicts: counts.conflicts, failingFeeds: counts.failing_feeds, unreadMessages: counts.unread_messages } : {}}
       account={<AccountMenu user={user} items={navigation.filter((item) => item.group === 'account')} onLogout={handleLogout} />}
       alerts={staff ? (collapsed) => <AlertsButton summary={summary || null} collapsed={collapsed} /> : undefined}

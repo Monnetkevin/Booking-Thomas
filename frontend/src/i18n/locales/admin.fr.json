@@ -731,5 +731,18 @@
   "syncStatus": {
     "label": "Synchro Airbnb",
     "never": "jamais"
+  },
+  "search": {
+    "open": "Rechercher (Ctrl K)",
+    "title": "Rechercher",
+    "placeholder": "Rechercher une réservation, un voyageur…",
+    "results": "Résultats",
+    "hint": "Tapez au moins 2 caractères : référence, nom ou e-mail d’un voyageur, logement ou page.",
+    "empty": "Aucun résultat.",
+    "kinds": {
+      "booking": "Réservation",
+      "apartment": "Appartement",
+      "page": "Page de l’administration"
+    }
   }
 }
