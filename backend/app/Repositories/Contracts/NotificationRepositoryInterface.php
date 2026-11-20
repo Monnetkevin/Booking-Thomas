@@ -27,6 +27,14 @@ interface NotificationRepositoryInterface
 
     public function unreadCount(User $user): int;
 
+    /**
+     * Supprime les notifications du compte dont le type n'est pas dans cette liste (changement
+     * de rôle) ; renvoie le nombre supprimé.
+     *
+     * @param  list<NotificationType>  $keep
+     */
+    public function deleteOtherTypes(User $user, array $keep): int;
+
     public function markRead(Notification $notification): Notification;
 
     /** Marque lues toutes les notifications du compte ; renvoie leur nombre. */

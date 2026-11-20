@@ -51,7 +51,8 @@ class AirbnbCsvParser implements PlatformCsvParser
             $nights = (int) $cell('nights');
             $amount = CsvTable::cents($cell('amount'));
             $code = (string) $cell('code');
-            if ($start === null || $nights < 1 || $amount === null || $code === '') {
+            $listing = (string) $cell('listing');
+            if ($start === null || $nights < 1 || $amount === null || ! PlatformRow::fits($code, $listing)) {
                 $skipped[] = ['line' => $line, 'reason' => 'unreadable'];
 
                 continue;
@@ -60,7 +61,7 @@ class AirbnbCsvParser implements PlatformCsvParser
             $rows[] = new PlatformRow(
                 line: $line,
                 confirmationCode: $code,
-                listing: (string) $cell('listing'),
+                listing: $listing,
                 guest: $cell('guest') ?: null,
                 arrival: $start,
                 departure: $start->addDays($nights),
@@ -70,6 +71,6 @@ class AirbnbCsvParser implements PlatformCsvParser
             );
         }
 
-        return new ParseResult($rows, $skipped);
+        return (new ParseResult($rows, $skipped))->mergedByCode();
     }
 }

@@ -71,7 +71,9 @@ class PlatformImportService
     public function import(PayoutPlatform $platform, string $filename, string $contents, array $mapping, ?int $userId): PlatformImport
     {
         $result = $this->parser($platform)->parse($contents);
-        $map = $this->validMap([...$this->payouts->listingMap($platform), ...$mapping]);
+        // array_replace garde les clés : une annonce nommée « 12 » reste « 12 » (le spread
+        // renumérote les clés entières et mélangerait les annonces).
+        $map = $this->validMap(array_replace($this->payouts->listingMap($platform), $mapping));
 
         $import = DB::transaction(function () use ($platform, $filename, $result, $mapping, $map, $userId): PlatformImport {
             $this->payouts->saveListingMap($platform, $this->validMap($mapping));

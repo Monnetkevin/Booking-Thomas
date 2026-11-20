@@ -17,7 +17,6 @@ import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api'
 import { toIso } from '@/lib/dates'
 import { PlanningGrid } from '../components/PlanningGrid'
-import { planningFigures } from '../planningFigures'
 import { addDays, planningDays, type BlockKind } from '../planningLayout'
 import { periodContaining, periodIncludes, shiftPeriod, type PlanningView } from '../planningPeriod'
 import type { PlanningBlock } from '../types'
@@ -55,8 +54,8 @@ export function PlanningPage() {
   const previous = shiftPeriod(period, -1)
   const planning = usePlanning(from, days)
   const previousPlanning = usePlanning(previous.from, previous.days)
-  const figures = planning.data ? planningFigures(planning.data, days) : null
-  const previousFigures = previousPlanning.data ? planningFigures(previousPlanning.data, previous.days) : null
+  const figures = planning.data?.figures ?? null
+  const previousFigures = previousPlanning.data?.figures ?? null
 
   const go = (nextView: PlanningView, day: string) =>
     setParams(
@@ -113,8 +112,8 @@ export function PlanningPage() {
         <KpiCard
           icon={<HomeIcon />}
           label={t('admin.planning.figures.sold')}
-          value={figures?.soldNights ?? '—'}
-          detail={figures ? t('admin.planning.figures.soldDetail', { count: figures.openNights }) : undefined}
+          value={figures?.sold_nights ?? '—'}
+          detail={figures ? t('admin.planning.figures.soldDetail', { count: figures.open_nights }) : undefined}
           delta={null}
         />
         <KpiCard
@@ -128,14 +127,14 @@ export function PlanningPage() {
           icon={<CalendarIcon />}
           label={t('admin.planning.figures.arrivals')}
           value={figures?.arrivals ?? '—'}
-          detail={figures ? t('admin.planning.figures.arrivalsDetail', { count: figures.directArrivals }) : undefined}
+          detail={figures ? t('admin.planning.figures.arrivalsDetail', { count: figures.direct_arrivals }) : undefined}
           delta={figures && previousFigures ? countDelta(figures.arrivals, previousFigures.arrivals) : null}
         />
         <KpiCard
           icon={<GridIcon />}
           label={t('admin.planning.figures.free')}
-          value={figures?.freeNights ?? '—'}
-          detail={figures ? t('admin.planning.figures.freeDetail', { count: figures.freeWeekendNights }) : undefined}
+          value={figures?.free_nights ?? '—'}
+          detail={figures ? t('admin.planning.figures.freeDetail', { count: figures.free_weekend_nights }) : undefined}
           delta={null}
         />
       </div>

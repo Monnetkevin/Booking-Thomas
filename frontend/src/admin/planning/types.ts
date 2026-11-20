@@ -21,8 +21,20 @@ export interface PlanningApartment {
   blocks: PlanningBlock[]
 }
 
+/** Chiffres de la période, calculés par l'API (mêmes règles que le tableau de bord). */
+export interface PlanningFigures {
+  sold_nights: number
+  open_nights: number
+  occupancy: number | null
+  arrivals: number
+  direct_arrivals: number
+  free_nights: number
+  free_weekend_nights: number
+}
+
 export interface Planning {
   from: string
   to: string
+  figures: PlanningFigures
   apartments: PlanningApartment[]
 }

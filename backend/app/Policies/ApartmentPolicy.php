@@ -35,6 +35,15 @@ class ApartmentPolicy
         return $user->canOperate();
     }
 
+    /**
+     * Prix d'un logement (frais de ménage, période en cours) : administrateur seulement,
+     * comme les tarifs. Le gestionnaire modifie le reste de la fiche.
+     */
+    public function managePricing(User $user): bool
+    {
+        return $user->isActiveAdmin();
+    }
+
     public function reorder(User $user): bool
     {
         return $user->canOperate();

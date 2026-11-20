@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import type { Role } from '@/admin/auth/types'
 import { CheckIcon } from '@/components/icons'
 
-type RightKey = 'bookings' | 'apartments' | 'messages' | 'rates' | 'settings' | 'housekeeping'
+type RightKey = 'bookings' | 'apartments' | 'messages' | 'rates' | 'settings' | 'audit' | 'housekeeping'
 
 /** Droits de chaque rôle, tels que l'API les applique (routes role: et Policies). */
 const RIGHTS: { key: RightKey; roles: Role[] }[] = [
@@ -11,6 +11,7 @@ const RIGHTS: { key: RightKey; roles: Role[] }[] = [
   { key: 'messages', roles: ['admin', 'manager'] },
   { key: 'rates', roles: ['admin'] },
   { key: 'settings', roles: ['admin'] },
+  { key: 'audit', roles: ['admin'] },
   { key: 'housekeeping', roles: ['admin', 'manager', 'housekeeping'] },
 ]
 const ROLES: Role[] = ['admin', 'manager', 'housekeeping']

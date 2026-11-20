@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StatisticsRequest;
+use App\Http\Responses\CsvDownload;
 use App\Models\Booking;
 use App\Services\Statistics\StatisticsService;
 use Carbon\CarbonImmutable;
@@ -27,12 +28,6 @@ class StatisticsController extends Controller
     {
         Gate::authorize('viewAny', Booking::class);
 
-        $today = CarbonImmutable::today();
-
-        return response($this->statistics->csv($today, $request->period()), 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="statistiques-'.$today->format('Y-m-d').'.csv"',
-            'Cache-Control' => 'private, no-store',
-        ]);
+        return CsvDownload::make($this->statistics->csv(CarbonImmutable::today(), $request->period()), 'statistiques');
     }
 }

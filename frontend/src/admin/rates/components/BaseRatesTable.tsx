@@ -52,7 +52,7 @@ export function BaseRatesTable({ apartments, selectedId, onSelect }: BaseRatesTa
                 <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{money(rate?.nightly_price)}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums">{rate?.weekend_supplement ? `+ ${formatEuros(rate.weekend_supplement)}` : '—'}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums">{t('admin.rates.base.nights', { count: rate?.min_stay ?? apartment.min_stay })}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums">{formatEuros(apartment.cleaning_fee)}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums">{money(apartment.cleaning_fee)}</td>
               </tr>
             )
           })}

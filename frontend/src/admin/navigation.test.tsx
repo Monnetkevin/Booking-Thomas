@@ -27,6 +27,7 @@ describe('navigation du back-office', () => {
     expect(pages).not.toContain('/admin/tarifs')
     expect(pages).not.toContain('/admin/utilisateurs')
     expect(pages).not.toContain('/admin/reglages')
+    expect(pages).not.toContain('/admin/journal')
     expect(canVisit('/admin/reservations/BT-1', 'manager')).toBe(true)
     expect(canVisit('/admin/reglages', 'manager')).toBe(false)
     expect(canVisit('/admin/tarifs', 'manager')).toBe(false)

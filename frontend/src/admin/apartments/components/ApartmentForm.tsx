@@ -26,6 +26,8 @@ interface ApartmentFormProps {
   visibleSections?: ApartmentFormSection[]
   /** Appelé avec la section de la première erreur, pour y amener l'hôte. */
   onErrorsIn?: (section: ApartmentFormSection) => void
+  /** Faux pour le gestionnaire : les prix (frais de ménage) restent à l'administrateur. */
+  canEditPricing?: boolean
 }
 
 
@@ -44,6 +46,7 @@ export function ApartmentForm({
   onSubmit,
   visibleSections = APARTMENT_FORM_SECTIONS,
   onErrorsIn,
+  canEditPricing = true,
 }: ApartmentFormProps) {
   const { t } = useTranslation()
   const [values, setValues] = useState(initialValues)
@@ -104,9 +107,10 @@ export function ApartmentForm({
           <TextField label={f('checkOut')} type="time" required {...bind('checkOutTime')} />
           <TextField
             label={f('cleaningFee')}
-            hint={f('cleaningFeeHint')}
+            hint={canEditPricing ? f('cleaningFeeHint') : f('cleaningFeeAdminOnly')}
             inputMode="decimal"
             suffix={t('admin.apartments.units.euro')}
+            disabled={!canEditPricing}
             {...bind('cleaningFee')}
           />
         </div>

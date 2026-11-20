@@ -47,7 +47,8 @@ class BookingCsvParser implements PlatformCsvParser
             $departure = CsvTable::date($cell('departure'), true);
             $price = CsvTable::cents($cell('price'));
             $code = (string) $cell('code');
-            if ($arrival === null || $departure === null || ! $departure->gt($arrival) || $price === null || $code === '') {
+            $listing = (string) ($cell('listing') ?: 'Booking.com');
+            if ($arrival === null || $departure === null || ! $departure->gt($arrival) || $price === null || ! PlatformRow::fits($code, $listing)) {
                 $skipped[] = ['line' => $line, 'reason' => 'unreadable'];
 
                 continue;
@@ -56,7 +57,7 @@ class BookingCsvParser implements PlatformCsvParser
             $rows[] = new PlatformRow(
                 line: $line,
                 confirmationCode: $code,
-                listing: (string) ($cell('listing') ?: 'Booking.com'),
+                listing: $listing,
                 guest: $cell('guest') ?: null,
                 arrival: $arrival,
                 departure: $departure,
@@ -66,6 +67,6 @@ class BookingCsvParser implements PlatformCsvParser
             );
         }
 
-        return new ParseResult($rows, $skipped);
+        return (new ParseResult($rows, $skipped))->mergedByCode();
     }
 }

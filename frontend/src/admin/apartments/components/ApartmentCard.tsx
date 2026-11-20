@@ -8,7 +8,7 @@ import { StatusBadge } from './StatusBadge'
 const percent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 })
 
 /** Carte d'un logement : photo, ville, statut, capacité, occupation du mois, prix, liens. */
-export function ApartmentCard({ apartment, occupancy }: { apartment: ApartmentListItem; occupancy: number | null | undefined }) {
+export function ApartmentCard({ apartment, occupancy, showPrice }: { apartment: ApartmentListItem; occupancy: number | null | undefined; showPrice: boolean }) {
   const { t } = useTranslation()
   const image = apartment.card_url ?? apartment.cover_url
 
@@ -34,9 +34,11 @@ export function ApartmentCard({ apartment, occupancy }: { apartment: ApartmentLi
           </span>
           <span>{t('admin.apartments.occupancy', { value: occupancy === null || occupancy === undefined ? '—' : `${percent.format(occupancy)} %` })}</span>
         </p>
-        <p className="text-lg font-bold">
-          {apartment.base_price === null ? <span className="text-sm font-normal text-muted">{t('admin.apartments.noRate')}</span> : t('admin.apartments.perNight', { price: formatEuros(apartment.base_price) })}
-        </p>
+        {showPrice && (
+          <p className="text-lg font-bold">
+            {apartment.base_price === null ? <span className="text-sm font-normal text-muted">{t('admin.apartments.noRate')}</span> : t('admin.apartments.perNight', { price: formatEuros(apartment.base_price) })}
+          </p>
+        )}
         <div className="mt-auto flex gap-2">
           {apartment.status === 'published' && (
             <a href={`/logements/${apartment.slug}`} target="_blank" rel="noopener" className={`${buttonClasses('secondary')} flex-1 justify-center`}>

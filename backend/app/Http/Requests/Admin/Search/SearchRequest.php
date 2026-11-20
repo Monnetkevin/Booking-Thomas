@@ -9,7 +9,11 @@ class SearchRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        $this->merge(['q' => trim((string) $this->input('q'))]);
+        // Un tableau (q[]=…) est laissé tel quel : la règle « string » le refuse (422).
+        $q = $this->input('q');
+        if (is_string($q)) {
+            $this->merge(['q' => trim($q)]);
+        }
     }
 
     /**

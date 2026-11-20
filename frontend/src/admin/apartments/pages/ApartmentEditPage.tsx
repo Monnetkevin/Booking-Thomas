@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router'
+import { useCurrentUser } from '@/admin/auth/useAuth'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { OccupancyStrip } from '@/admin/dashboard/components/OccupancyStrip'
 import { relativeTime } from '@/admin/notifications/notificationFormat'
@@ -68,6 +69,7 @@ export function ApartmentEditPage() {
   const [params, setParams] = useSearchParams()
   const apartment = useApartment(id)
   const update = useUpdateApartment(id)
+  const { data: user } = useCurrentUser()
   const tab: Tab = TABS.find((value) => value === params.get('onglet')) ?? 'informations'
   const setTab = (value: Tab) =>
     setParams(
@@ -163,6 +165,7 @@ export function ApartmentEditPage() {
                 addressInfo={<ComputedAddressInfo apartment={data} />}
                 visibleSections={tab === 'regles' ? ['rules'] : ['info', 'location']}
                 onErrorsIn={(section) => setTab(FORM_TAB[section])}
+                canEditPricing={user?.role === 'admin'}
                 onSubmit={(input) => update.mutate(input)}
               />
             </div>

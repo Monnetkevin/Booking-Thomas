@@ -23,7 +23,7 @@ export interface ApartmentListItem {
   cover_url: string | null
   card_url: string | null
   /** Frais de ménage par séjour, en centimes. */
-  cleaning_fee: number
+  cleaning_fee: number | null
   /** Période de prix en cours ou prochaine. */
   current_rate: {
     id: number

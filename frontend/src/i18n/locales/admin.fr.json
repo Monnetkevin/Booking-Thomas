@@ -192,7 +192,8 @@
       "registrationHint": "Affiché sur la fiche si la commune l'exige.",
       "taglineFr": "Accroche (français)",
       "taglineEn": "Accroche (anglais)",
-      "taglineHint": "Une phrase courte affichée sur les cartes, par ex. « Bohème, rotin et lumière »."
+      "taglineHint": "Une phrase courte affichée sur les cartes, par ex. « Bohème, rotin et lumière ».",
+      "cleaningFeeAdminOnly": "Les prix sont gérés par l’administrateur."
     },
     "units": {
       "nights": "nuits",
@@ -569,7 +570,8 @@
         "messages": "Messages, alertes et statistiques",
         "rates": "Tarifs et coupons",
         "settings": "Réglages et utilisateurs",
-        "housekeeping": "Planning du ménage"
+        "housekeeping": "Planning du ménage",
+        "audit": "Journal des actions"
       }
     }
   },

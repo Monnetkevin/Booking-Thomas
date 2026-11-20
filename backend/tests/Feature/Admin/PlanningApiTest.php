@@ -37,7 +37,12 @@ it('donne, par logement dans l’ordre du site, les nuits occupées de la pério
         ->assertJsonPath('data.apartments.0.blocks.1.booking.status', 'pending')
         ->assertJsonPath('data.apartments.1.blocks.0.label', 'Travaux')
         ->assertJsonPath('data.apartments.1.blocks.1.label', 'Airbnb')
-        ->assertJsonPath('data.apartments.1.blocks.1.has_conflict', true);
+        ->assertJsonPath('data.apartments.1.blocks.1.has_conflict', true)
+        // 2 logements × 14 nuits : 2 vendues en direct, 4 sur Airbnb, 2 fermées, 2 en paiement.
+        ->assertJsonPath('data.figures', [
+            'sold_nights' => 6, 'open_nights' => 26, 'occupancy' => 23.1, 'arrivals' => 1,
+            'direct_arrivals' => 0, 'free_nights' => 18, 'free_weekend_nights' => 4,
+        ]);
 
     expect($response->json('data.apartments.1.blocks'))->toHaveCount(2);
 });

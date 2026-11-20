@@ -12,27 +12,32 @@ use Carbon\CarbonImmutable;
 /**
  * Planning multi-logements (spec « Back-office › Planning ») : pour chaque logement, les
  * nuits occupées sur la période — réservations directes (avec leur statut), séjours
- * importés, fermetures manuelles, et les conflits.
+ * importés, fermetures manuelles, et les conflits ; avec les chiffres de la période.
  */
 class PlanningService
 {
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
         private readonly AvailabilityRepositoryInterface $availability,
+        private readonly PlanningFigures $figures,
     ) {}
 
     /**
-     * @return array{from: string, to: string, apartments: list<array{id: int, name: string, blocks: list<array<string, mixed>>}>}
+     * @return array{from: string, to: string, figures: array<string, mixed>, apartments: list<array{id: int, name: string, blocks: list<array<string, mixed>>}>}
      */
     public function build(CarbonImmutable $from, int $days): array
     {
         $to = $from->addDays($days);
-        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->groupBy('apartment_id');
+        $apartments = $this->apartments->allOrdered();
+        $ids = $apartments->modelKeys();
+        $all = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
+        $blocks = $all->groupBy('apartment_id');
 
         return [
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
-            'apartments' => $this->apartments->allOrdered()->map(fn (Apartment $apartment) => [
+            'figures' => $this->figures->compute($all->toBase(), $ids, $from, $to),
+            'apartments' => $apartments->map(fn (Apartment $apartment) => [
                 'id' => $apartment->id,
                 'name' => $apartment->getTranslation('name', 'fr'),
                 'blocks' => $blocks->get($apartment->id, collect())->map(fn (AvailabilityBlock $block) => $this->block($block))->values()->all(),

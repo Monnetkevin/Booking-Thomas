@@ -55,7 +55,11 @@ class AdminApartmentResource extends JsonResource
             'photos' => $this->whenLoaded('media', fn () => PhotoResource::collection(
                 $this->getMedia(Apartment::PHOTOS),
             )),
-            'base_price' => $this->whenLoaded('ratePeriods', fn () => $this->ratePeriods->first()?->nightly_price),
+            // Prix de la période en cours : administrateur seulement (le gestionnaire n'a pas les tarifs).
+            'base_price' => $this->when(
+                (bool) $request->user()?->can('managePricing', Apartment::class),
+                fn () => $this->whenLoaded('ratePeriods', fn () => $this->ratePeriods->first()?->nightly_price),
+            ),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }

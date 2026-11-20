@@ -54,7 +54,8 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: STAFF, group: 'suivi' },
   { to: '/admin/revenus-plateformes', labelKey: 'admin.nav.platformImport', icon: <UploadIcon />, roles: ['admin'], group: 'suivi' },
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: STAFF, group: 'suivi', badge: 'failingFeeds' },
-  { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: STAFF, group: 'suivi' },
+  // Le journal contient réglages, tarifs et comptes : administrateur seulement.
+  { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: ['admin'], group: 'suivi' },
   // Le ménage n'a pas le bouton « Alertes » : ses notifications restent une entrée du menu.
   { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['housekeeping'], group: 'suivi' },
   { to: '/admin/reglages', labelKey: 'admin.nav.settings', icon: <SettingsIcon />, roles: ['admin'], group: 'account' },

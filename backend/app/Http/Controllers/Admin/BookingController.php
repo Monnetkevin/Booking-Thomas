@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\Bookings\StoreManualBookingRequest;
 use App\Http\Requests\Admin\Bookings\UpdateBookingRequest;
 use App\Http\Resources\Admin\AdminBookingListResource;
 use App\Http\Resources\Admin\AdminBookingResource;
+use App\Http\Responses\CsvDownload;
 use App\Models\Booking;
 use App\Services\Booking\AdminBookingService;
 use App\Services\Booking\BookingConfirmationPdf;
@@ -47,11 +48,7 @@ class BookingController extends Controller
     {
         Gate::authorize('viewAny', Booking::class);
 
-        return response($this->bookings->csv($request->filters()), 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="reservations-'.now()->format('Y-m-d').'.csv"',
-            'Cache-Control' => 'private, no-store',
-        ]);
+        return CsvDownload::make($this->bookings->csv($request->filters()), 'reservations');
     }
 
     /** Réservation saisie par l'hôte (téléphone, connaissance), confirmée tout de suite. */

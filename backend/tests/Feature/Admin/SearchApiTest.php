@@ -37,5 +37,6 @@ it('neutralise les jokers SQL et refuse une recherche trop courte', function () 
 
     $this->getJson('/api/admin/search?q=%25%25')->assertJsonCount(0, 'data.bookings');
     $this->getJson('/api/admin/search?q=a')->assertJsonValidationErrors('q');
+    $this->getJson('/api/admin/search?q[]=camille')->assertJsonValidationErrors('q');
     $this->actingAs(User::factory()->housekeeping()->create())->getJson('/api/admin/search?q=camille')->assertForbidden();
 });

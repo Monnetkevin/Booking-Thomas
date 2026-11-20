@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { useCurrentUser } from '@/admin/auth/useAuth'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { PlusIcon } from '@/components/icons'
@@ -18,6 +19,7 @@ const FILTERS: Filter[] = ['all', 'published', 'draft']
 export function ApartmentsPage() {
   const { t } = useTranslation()
   const [filter, setFilter] = useState<Filter>('all')
+  const { data: user } = useCurrentUser()
   const list = useApartmentOverview(filter === 'all' ? undefined : filter)
   const counts = list.data?.meta.counts
 
@@ -61,7 +63,7 @@ export function ApartmentsPage() {
           {list.data.data.map((apartment) => (
             <li key={apartment.id} className="flex">
               <div className="flex-1">
-                <ApartmentCard apartment={apartment} occupancy={list.data.meta.occupancy[apartment.id]} />
+                <ApartmentCard apartment={apartment} occupancy={list.data.meta.occupancy[apartment.id]} showPrice={user?.role === 'admin'} />
               </div>
             </li>
           ))}

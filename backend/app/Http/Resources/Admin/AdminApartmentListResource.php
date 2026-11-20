@@ -30,11 +30,25 @@ class AdminApartmentListResource extends JsonResource
             'city' => $this->city,
             'min_stay' => $this->min_stay,
             'position' => $this->position,
-            // Prix de la période en cours ou de la prochaine, en centimes (relation filtrée).
-            'base_price' => $this->ratePeriods->first()?->nightly_price,
+            // Prix : visibles par l'administrateur seulement (le gestionnaire n'a pas les tarifs).
+            ...($request->user()?->can('managePricing', Apartment::class) ? $this->prices() : ['base_price' => null, 'cleaning_fee' => null, 'current_rate' => null]),
+            'cover_url' => $cover?->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : null,
+            'card_url' => $cover?->hasGeneratedConversion('card') ? $cover->getUrl('card') : null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function prices(): array
+    {
+        $period = $this->ratePeriods->first();
+
+        return [
+            'base_price' => $period?->nightly_price,
             'cleaning_fee' => $this->cleaning_fee,
             // Période en cours ou prochaine : tableau des tarifs de base.
-            'current_rate' => ($period = $this->ratePeriods->first()) ? [
+            'current_rate' => $period ? [
                 'id' => $period->id,
                 'label' => $period->label,
                 'starts_on' => $period->starts_on->toDateString(),
@@ -43,8 +57,6 @@ class AdminApartmentListResource extends JsonResource
                 'weekend_supplement' => $period->weekend_supplement,
                 'min_stay' => $period->min_stay,
             ] : null,
-            'cover_url' => $cover?->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : null,
-            'card_url' => $cover?->hasGeneratedConversion('card') ? $cover->getUrl('card') : null,
         ];
     }
 }

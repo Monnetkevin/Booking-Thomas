@@ -92,3 +92,23 @@ it('refuse un fichier qui n’est pas l’export de la plateforme, et le gestion
 
     $this->actingAs(User::factory()->manager()->create())->getJson('/api/admin/platform-imports')->assertForbidden();
 });
+
+it('additionne les versements d’un long séjour, garde les annonces au nom numérique et ignore les valeurs trop longues', function () {
+    $this->post('/api/admin/platform-imports', [
+        'platform' => 'airbnb',
+        'file' => platformFile('airbnb-multi.csv'),
+        'mapping' => [['listing' => '12', 'apartment_id' => $this->cocon->id], ['listing' => '2', 'apartment_id' => $this->nid->id]],
+    ], ['Accept' => 'application/json'])
+        ->assertCreated()
+        ->assertJsonPath('data.rows_created', 2)
+        ->assertJsonPath('data.rows_updated', 0)
+        ->assertJsonPath('data.rows_skipped', 1);
+
+    expect(PlatformPayout::query()->where('confirmation_code', 'HMLONG1')->sole())
+        ->apartment_id->toBe($this->cocon->id)
+        ->net_amount->toBe(200000)
+        ->fees->toBe(6000)
+        ->nights->toBe(32)
+        ->arrival->toDateString()->toBe('2026-12-01')
+        ->and(PlatformPayout::query()->where('confirmation_code', 'HMOTHER')->sole()->apartment_id)->toBe($this->nid->id);
+});

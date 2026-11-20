@@ -32,11 +32,11 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
   const debounced = useDebouncedValue(term)
   const search = useSearch(debounced)
 
-  const hits = useMemo<SearchHit[]>(
-    () => [...apiHits(search.data, (arrival, departure) => `${formatDate(arrival)} → ${formatDate(departure)}`), ...pageHits(term, pages)],
-    [search.data, term, pages],
-  )
   const ready = term.trim().length >= MIN_SEARCH_LENGTH
+  const hits = useMemo<SearchHit[]>(
+    () => [...apiHits(ready ? search.data : undefined, (arrival, departure) => `${formatDate(arrival)} → ${formatDate(departure)}`), ...pageHits(term, pages)],
+    [ready, search.data, term, pages],
+  )
 
   // Ctrl K / Cmd K ouvre la palette depuis n'importe quelle page.
   useEffect(() => {
