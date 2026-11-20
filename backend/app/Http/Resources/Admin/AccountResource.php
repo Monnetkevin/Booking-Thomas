@@ -24,6 +24,7 @@ class AccountResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role->value,
             'is_active' => $this->is_active,
+            'last_login_at' => $this->last_login_at?->toIso8601String(),
             'is_self' => $request->user()?->is($this->resource) ?? false,
         ];
     }

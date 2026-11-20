@@ -9,6 +9,6 @@ class AuditLogPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 }

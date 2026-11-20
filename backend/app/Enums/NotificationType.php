@@ -56,6 +56,6 @@ enum NotificationType: string
      */
     public static function for(UserRole $role): array
     {
-        return array_values(array_filter(self::cases(), fn (self $type) => $type->audience() === $role));
+        return array_values(array_filter(self::cases(), fn (self $type) => $type->audience() === $role->notificationProfile()));
     }
 }

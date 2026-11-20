@@ -23,23 +23,26 @@ export interface AdminNavItem {
   end?: boolean
 }
 
+/** Administrateur et gestionnaire : tout le back-office sauf tarifs, utilisateurs et réglages. */
+const STAFF: Role[] = ['admin', 'manager']
+
 /**
  * Entrées du menu du back-office. Chaque module s'ajoute ici, sans toucher à la mise
  * en page (ouvert à l'extension, fermé à la modification).
  */
 export const adminNavigation: AdminNavItem[] = [
-  { to: '/admin', labelKey: 'admin.nav.dashboard', icon: <HomeIcon />, roles: ['admin'], end: true },
-  { to: '/admin/planning', labelKey: 'admin.nav.planning', icon: <GridIcon />, roles: ['admin'] },
-  { to: '/admin/reservations', labelKey: 'admin.nav.bookings', icon: <CalendarIcon />, roles: ['admin'] },
-  { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: ['admin'] },
-  { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: ['admin'] },
+  { to: '/admin', labelKey: 'admin.nav.dashboard', icon: <HomeIcon />, roles: STAFF, end: true },
+  { to: '/admin/planning', labelKey: 'admin.nav.planning', icon: <GridIcon />, roles: STAFF },
+  { to: '/admin/reservations', labelKey: 'admin.nav.bookings', icon: <CalendarIcon />, roles: STAFF },
+  { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: STAFF },
+  { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: STAFF },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'] },
-  { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: ['admin'] },
-  { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: ['admin'] },
-  { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['admin', 'housekeeping'] },
+  { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: STAFF },
+  { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: STAFF },
+  { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['admin', 'manager', 'housekeeping'] },
   { to: '/admin/utilisateurs', labelKey: 'admin.nav.users', icon: <UsersIcon />, roles: ['admin'] },
   { to: '/admin/reglages', labelKey: 'admin.nav.settings', icon: <SettingsIcon />, roles: ['admin'] },
-  { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: ['admin'] },
+  { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: STAFF },
 ]
 
 export function navigationFor(role: Role, items: AdminNavItem[] = adminNavigation): AdminNavItem[] {
@@ -47,10 +50,11 @@ export function navigationFor(role: Role, items: AdminNavItem[] = adminNavigatio
 }
 
 /**
- * Page accessible au rôle : l'administrateur va partout ; les autres seulement sous leurs
+ * Page accessible au rôle : l'administrateur va partout ; les autres (gestionnaire, ménage) seulement sous leurs
  * entrées de menu. L'API reste seule juge (403) ; ceci évite d'afficher une page vide.
  */
 export function canVisit(pathname: string, role: Role, items: AdminNavItem[] = adminNavigation): boolean {
   if (role === 'admin') return true
-  return navigationFor(role, items).some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`))
+  // Une entrée « end » (le tableau de bord, /admin) ne couvre que sa propre adresse.
+  return navigationFor(role, items).some((item) => pathname === item.to || (!item.end && pathname.startsWith(`${item.to}/`)))
 }

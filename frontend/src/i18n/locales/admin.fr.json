@@ -398,10 +398,11 @@
   },
   "users": {
     "title": "Utilisateurs",
-    "subtitle": "Votre compte et les comptes ménage, limités au planning et à leurs notifications.",
-    "listTitle": "Comptes",
+    "subtitle": "Les personnes qui ont accès à l’administration, et ce que chaque rôle peut faire.",
+    "listTitle": "Équipe",
     "roles": {
       "admin": "Administrateur",
+      "manager": "Gestionnaire",
       "housekeeping": "Ménage"
     },
     "inactive": "Désactivé",
@@ -410,14 +411,37 @@
     "deactivate": "Désactiver",
     "deactivateTitle": "Désactiver le compte de {{name}} ?",
     "deactivateConfirm": "Le compte perd aussitôt l’accès au back-office et ne reçoit plus de notifications. Vous pourrez le réactiver.",
-    "sendReset": "Envoyer un lien de mot de passe",
-    "resetSent": "Lien envoyé à {{email}}, valable 24 heures.",
-    "inviteTitle": "Inviter un compte ménage",
-    "inviteHint": "La personne reçoit un e-mail pour choisir son mot de passe (lien valable 24 heures). Elle ne verra ni noms, ni coordonnées, ni montants.",
+    "sendReset": "Réinitialiser le mot de passe",
+    "resetSent": "Lien de réinitialisation envoyé à {{email}}, valable 24 heures.",
+    "inviteTitle": "Inviter un utilisateur",
+    "inviteHint": "La personne reçoit un e-mail pour choisir son mot de passe (lien valable 24 heures).",
     "name": "Nom",
     "email": "Adresse e-mail",
     "invite": "Envoyer l’invitation",
-    "invited": "Invitation envoyée à {{email}}."
+    "invited": "Invitation envoyée à {{email}}.",
+    "role": "Rôle",
+    "roleHints": {
+      "manager": "Réservations, planning, logements, calendriers, messages et statistiques.",
+      "housekeeping": "Planning du ménage et ses notifications, sans noms, coordonnées ni montants."
+    },
+    "lastLogin": "Dernière connexion : {{when}}",
+    "neverLoggedIn": "Jamais connecté",
+    "changeRole": "Rôle de {{name}}",
+    "rights": {
+      "title": "Droits par rôle",
+      "description": "Ce que chaque rôle peut faire dans l’administration.",
+      "right": "Droit",
+      "yes": "Oui",
+      "no": "Non",
+      "rows": {
+        "bookings": "Réservations et planning",
+        "apartments": "Appartements et calendriers",
+        "messages": "Messages, alertes et statistiques",
+        "rates": "Tarifs et coupons",
+        "settings": "Réglages et utilisateurs",
+        "housekeeping": "Planning du ménage"
+      }
+    }
   },
   "password": {
     "title": "Choisir mon mot de passe",

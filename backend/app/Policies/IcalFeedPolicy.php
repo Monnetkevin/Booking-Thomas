@@ -10,21 +10,21 @@ class IcalFeedPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 
     public function view(User $user, IcalFeed $feed): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 
     public function create(User $user): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 
     public function update(User $user, IcalFeed $feed): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 }

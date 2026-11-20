@@ -56,10 +56,10 @@ class NotifyHostOfCalendars
         $this->notifications->dispatch(new IcalFeedRecoveredNotification($event->feed));
     }
 
-    /** Adresses du réglage qui ne sont pas déjà celles d'un administrateur actif. */
+    /** Adresses du réglage qui ne sont pas déjà celles d'un administrateur ou gestionnaire actif. */
     private function alsoToSettingAddresses(Mailable $mail): void
     {
-        $admins = $this->users->activeByRole(UserRole::Admin)->map(fn (User $user) => $user->email)->values()->all();
+        $admins = $this->users->activeByRoles(UserRole::Admin->members())->map(fn (User $user) => $user->email)->values()->all();
         $this->host->notify($mail, except: $admins);
     }
 }

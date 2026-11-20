@@ -35,6 +35,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
             'notification_preferences' => 'array',
         ];
     }
@@ -58,6 +59,16 @@ class User extends Authenticatable
     public function isActiveAdmin(): bool
     {
         return $this->is_active && $this->isAdmin();
+    }
+
+    /**
+     * Compte actif qui gère l'activité (administrateur ou gestionnaire) : réservations,
+     * planning, logements, calendriers, messages. Réglages, utilisateurs et tarifs
+     * restent à l'administrateur (isActiveAdmin).
+     */
+    public function canOperate(): bool
+    {
+        return $this->is_active && in_array($this->role, [UserRole::Admin, UserRole::Manager], true);
     }
 
     public function isHousekeeping(): bool

@@ -5,9 +5,10 @@ import { Section } from '@/components/ui/Section'
 import { Spinner } from '@/components/ui/Spinner'
 import { AccountRow } from '../components/AccountRow'
 import { InviteAccountForm } from '../components/InviteAccountForm'
+import { RoleRightsTable } from '../components/RoleRightsTable'
 import { useAccounts } from '../useUsers'
 
-/** Comptes du back-office : l'hôte et les comptes ménage qu'il invite. */
+/** Comptes du back-office : équipe, invitation (gestionnaire ou ménage) et droits par rôle. */
 export function UsersPage() {
   const { t } = useTranslation()
   const accounts = useAccounts()
@@ -31,6 +32,9 @@ export function UsersPage() {
         </Section>
         <Section title={t('admin.users.inviteTitle')} description={t('admin.users.inviteHint')}>
           <InviteAccountForm />
+        </Section>
+        <Section title={t('admin.users.rights.title')} description={t('admin.users.rights.description')}>
+          <RoleRightsTable />
         </Section>
       </div>
     </>

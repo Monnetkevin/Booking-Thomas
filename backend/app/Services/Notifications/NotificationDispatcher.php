@@ -19,7 +19,7 @@ class NotificationDispatcher
 
     public function dispatch(BackOfficeNotification $notification): void
     {
-        $recipients = $this->users->activeByRole($notification->type()->audience());
+        $recipients = $this->users->activeByRoles($notification->type()->audience()->members());
         if ($recipients->isNotEmpty()) {
             $this->notifier->send($recipients, $notification);
         }
