@@ -672,7 +672,15 @@
       "duplicateDay": "Deux paliers ne peuvent pas tomber le même jour.",
       "noEmail": "Indiquez au moins une adresse.",
       "fix": "Corrigez les champs signalés avant d’enregistrer."
-    }
+    },
+    "tabsLabel": "Parties des réglages",
+    "tabs": {
+      "reservation": "Réservation",
+      "paiement": "Paiement",
+      "notifications": "Notifications"
+    },
+    "personalHint": "Ces adresses reçoivent les e-mails du site. Vos propres alertes (dans le back-office et par e-mail) se règlent ici :",
+    "personalLink": "mes notifications"
   },
   "blocks": {
     "title": "Fermer des dates",
