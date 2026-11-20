@@ -113,15 +113,13 @@ class DashboardService
         $ids = $apartments->modelKeys();
         $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
         $nights = $this->nights->count($blocks, $from, $to);
-        $arrivals = $blocks->filter(fn (AvailabilityBlock $block) => $block->starts_on->gte($from) && $block->starts_on->lt($to))
-            ->map(fn (AvailabilityBlock $block) => $this->nights->kind($block))
-            ->filter(fn (?string $kind) => in_array($kind, ['direct', 'platform'], true));
+        $arrivals = $this->nights->arrivals($blocks, $from, $to);
 
         return [
             'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $from->diffInDays($to)),
             'revenue' => $this->revenue->of($this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids)),
-            'stays' => $arrivals->count(),
-            'direct_stays' => $arrivals->filter(fn (string $kind) => $kind === 'direct')->count(),
+            'stays' => $arrivals['all'],
+            'direct_stays' => $arrivals['direct'],
         ];
     }
 

@@ -105,7 +105,7 @@ it('ajoute les revenus importés des plateformes, la part du direct, et change d
     $feed = IcalFeed::factory()->for($this->nid)->create();
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM2']);
     PlatformPayout::query()->create([
-        'platform' => 'airbnb', 'confirmation_code' => 'HMX', 'apartment_id' => $this->nid->id,
+        'platform' => 'airbnb', 'confirmation_code' => 'HMX', 'entry_key' => 'HMX-1', 'apartment_id' => $this->nid->id,
         'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 20000,
     ]);
 

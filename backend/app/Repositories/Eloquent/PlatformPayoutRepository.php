@@ -23,14 +23,18 @@ class PlatformPayoutRepository implements PlatformPayoutRepositoryInterface
     public function saveListingMap(PayoutPlatform $platform, array $map): void
     {
         foreach ($map as $listing => $apartmentId) {
-            PlatformListing::query()->updateOrCreate(['platform' => $platform, 'listing' => $listing], ['apartment_id' => $apartmentId]);
+            if ($apartmentId === null) {
+                PlatformListing::query()->where('platform', $platform)->where('listing', (string) $listing)->delete();
+            } else {
+                PlatformListing::query()->updateOrCreate(['platform' => $platform, 'listing' => (string) $listing], ['apartment_id' => $apartmentId]);
+            }
         }
     }
 
-    public function existingCodes(PayoutPlatform $platform, array $codes): array
+    public function existingKeys(PayoutPlatform $platform, array $keys): array
     {
         /** @var list<string> $existing */
-        $existing = PlatformPayout::query()->where('platform', $platform)->whereIn('confirmation_code', $codes)->pluck('confirmation_code')->all();
+        $existing = PlatformPayout::query()->where('platform', $platform)->whereIn('entry_key', $keys)->pluck('entry_key')->all();
 
         return $existing;
     }
@@ -47,9 +51,9 @@ class PlatformPayoutRepository implements PlatformPayoutRepositoryInterface
         return $import;
     }
 
-    public function upsert(PayoutPlatform $platform, string $code, array $attributes): bool
+    public function upsert(PayoutPlatform $platform, string $entryKey, array $attributes): bool
     {
-        $payout = PlatformPayout::query()->updateOrCreate(['platform' => $platform, 'confirmation_code' => $code], $attributes);
+        $payout = PlatformPayout::query()->updateOrCreate(['platform' => $platform, 'entry_key' => $entryKey], $attributes);
 
         return $payout->wasRecentlyCreated;
     }

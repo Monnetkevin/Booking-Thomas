@@ -93,22 +93,47 @@ it('refuse un fichier qui n’est pas l’export de la plateforme, et le gestion
     $this->actingAs(User::factory()->manager()->create())->getJson('/api/admin/platform-imports')->assertForbidden();
 });
 
-it('additionne les versements d’un long séjour, garde les annonces au nom numérique et ignore les valeurs trop longues', function () {
-    $this->post('/api/admin/platform-imports', [
-        'platform' => 'airbnb',
-        'file' => platformFile('airbnb-multi.csv'),
-        'mapping' => [['listing' => '12', 'apartment_id' => $this->cocon->id], ['listing' => '2', 'apartment_id' => $this->nid->id]],
-    ], ['Accept' => 'application/json'])
+it('garde chaque versement d’un long séjour, d’un fichier à l’autre, les annonces au nom numérique, et ignore les valeurs hors limites', function () {
+    $mapping = [['listing' => '12', 'apartment_id' => $this->cocon->id], ['listing' => '2', 'apartment_id' => $this->nid->id]];
+    $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => platformFile('airbnb-multi.csv'), 'mapping' => $mapping], ['Accept' => 'application/json'])
         ->assertCreated()
-        ->assertJsonPath('data.rows_created', 2)
-        ->assertJsonPath('data.rows_updated', 0)
+        ->assertJsonPath('data.rows_created', 3)
         ->assertJsonPath('data.rows_skipped', 1);
 
-    expect(PlatformPayout::query()->where('confirmation_code', 'HMLONG1')->sole())
-        ->apartment_id->toBe($this->cocon->id)
-        ->net_amount->toBe(200000)
-        ->fees->toBe(6000)
-        ->nights->toBe(32)
-        ->arrival->toDateString()->toBe('2026-12-01')
+    expect(PlatformPayout::query()->where('confirmation_code', 'HMLONG1')->count())->toBe(2)
+        ->and((int) PlatformPayout::query()->where('confirmation_code', 'HMLONG1')->sum('net_amount'))->toBe(200000)
+        ->and(PlatformPayout::query()->where('confirmation_code', 'HMLONG1')->pluck('apartment_id')->unique()->all())->toBe([$this->cocon->id])
         ->and(PlatformPayout::query()->where('confirmation_code', 'HMOTHER')->sole()->apartment_id)->toBe($this->nid->id);
+
+    // Même fichier ré-importé : rien de neuf ; versement du mois suivant (autre fichier) : ajouté.
+    $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => platformFile('airbnb-multi.csv')], ['Accept' => 'application/json'])
+        ->assertJsonPath('data.rows_created', 0)
+        ->assertJsonPath('data.rows_updated', 3);
+    $next = UploadedFile::fake()->createWithContent('next.csv', "Date;Type;Code de confirmation;Date de début;Nuits;Logement;Montant\n01/02/2027;Réservation;HMLONG1;02/01/2027;31;12;1 000,00\n");
+    $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => $next], ['Accept' => 'application/json'])->assertJsonPath('data.rows_created', 1);
+    expect((int) PlatformPayout::query()->where('confirmation_code', 'HMLONG1')->sum('net_amount'))->toBe(300000);
+});
+
+it('écarte nuits et montants hors limites au lieu d’échouer', function () {
+    $file = UploadedFile::fake()->createWithContent('big.csv', "Book number,Check-in,Check-out,Price\n1,2026-11-20,2300-01-01,100.00\n2,2026-11-20,2026-11-22,99999999999.00\n3,2026-11-20,2026-11-22,200.00\n");
+
+    $this->post('/api/admin/platform-imports/preview', ['platform' => 'booking', 'file' => $file], ['Accept' => 'application/json'])
+        ->assertOk()
+        ->assertJsonCount(1, 'data.rows')
+        ->assertJsonPath('data.skipped', [['line' => 2, 'reason' => 'out_of_range'], ['line' => 3, 'reason' => 'out_of_range']]);
+});
+
+it('détache une annonce mise sur « Non rattachée » : ses lignes ne sont plus importées', function () {
+    $mapping = [['listing' => 'Studio Cocon centre', 'apartment_id' => $this->cocon->id], ['listing' => 'Nid doux gare', 'apartment_id' => $this->nid->id]];
+    $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv'), 'mapping' => $mapping], ['Accept' => 'application/json'])->assertCreated();
+    PlatformPayout::query()->delete();
+
+    $this->post('/api/admin/platform-imports', [
+        'platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv'),
+        'mapping' => [['listing' => 'Studio Cocon centre', 'apartment_id' => null], ['listing' => 'Nid doux gare', 'apartment_id' => $this->nid->id]],
+    ], ['Accept' => 'application/json'])->assertJsonPath('data.rows_created', 1);
+
+    expect(PlatformPayout::query()->pluck('apartment_id')->all())->toBe([$this->nid->id]);
+    $this->post('/api/admin/platform-imports/preview', ['platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv')], ['Accept' => 'application/json'])
+        ->assertJsonPath('data.listings.0.apartment_id', null);
 });

@@ -54,8 +54,9 @@ export function PlanningPage() {
   const previous = shiftPeriod(period, -1)
   const planning = usePlanning(from, days)
   const previousPlanning = usePlanning(previous.from, previous.days)
-  const figures = planning.data?.figures ?? null
-  const previousFigures = previousPlanning.data?.figures ?? null
+  // Pendant le chargement d'une autre période, pas de chiffres d'une période voisine.
+  const figures = planning.isPlaceholderData ? null : (planning.data?.figures ?? null)
+  const previousFigures = previousPlanning.isPlaceholderData ? null : (previousPlanning.data?.figures ?? null)
 
   const go = (nextView: PlanningView, day: string) =>
     setParams(

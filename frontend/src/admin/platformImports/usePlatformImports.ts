@@ -16,7 +16,7 @@ export function usePreviewImport(service: PlatformImportService = platformImport
 export function useRunImport(service: PlatformImportService = platformImportService) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ platform, file, mapping }: { platform: PayoutPlatform; file: File; mapping: Record<string, number> }) => service.import(platform, file, mapping),
+    mutationFn: ({ platform, file, mapping }: { platform: PayoutPlatform; file: File; mapping: Record<string, number | null> }) => service.import(platform, file, mapping),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin'] }),
   })
 }

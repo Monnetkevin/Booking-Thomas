@@ -64,4 +64,30 @@ class NightCounter
 
         return $open > 0 ? round(($nights['direct'] + $nights['platform']) / $open * 100, 1) : null;
     }
+
+    /**
+     * Séjours vendus (site et plateformes) qui arrivent dans [from, to[, et ceux du site.
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks
+     * @return array{all: int, direct: int}
+     */
+    public function arrivals(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $kinds = $blocks
+            ->filter(fn (AvailabilityBlock $block) => $block->starts_on->gte($from) && $block->starts_on->lt($to))
+            ->map(fn (AvailabilityBlock $block) => $this->kind($block))
+            ->filter(fn (?string $kind) => in_array($kind, ['direct', 'platform'], true));
+
+        return ['all' => $kinds->count(), 'direct' => $kinds->filter(fn (string $kind) => $kind === 'direct')->count()];
+    }
+
+    /**
+     * Nuits ouvertes à la vente : nuits de la période moins les fermetures.
+     *
+     * @param  array{direct: int, platform: int, closed: int}  $nights
+     */
+    public function openNights(array $nights, int $apartments, int $days): int
+    {
+        return $apartments * $days - $nights['closed'];
+    }
 }

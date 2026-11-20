@@ -10,9 +10,8 @@ export function useSearch(term: string, service: SearchService = searchService) 
     queryKey: ['admin', 'search', trimmed] as const,
     queryFn: () => service.search(trimmed),
     enabled,
-    // Garde les résultats pendant la frappe, jamais quand la recherche est vide ou trop courte
-    // (sinon la palette rouverte montrerait la recherche précédente).
-    placeholderData: (previous) => (enabled ? previous : undefined),
+    // Pas de données de remplacement : les résultats affichés sont toujours ceux du terme
+    // saisi, jamais ceux d'une recherche précédente.
     staleTime: 30_000,
   })
 }

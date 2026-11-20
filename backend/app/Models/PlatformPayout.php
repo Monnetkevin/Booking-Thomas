@@ -9,11 +9,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Revenu d'une réservation de plateforme, importé de son fichier CSV (montants en centimes).
+ * Versement d'une réservation de plateforme, importé de son fichier CSV (montants en centimes) ;
+ * un long séjour payé en plusieurs fois a plusieurs lignes, additionnées à la lecture.
  *
  * @property int $id
  * @property PayoutPlatform $platform
  * @property string $confirmation_code
+ * @property string $entry_key
  * @property int $apartment_id
  * @property int|null $platform_import_id
  * @property CarbonImmutable $arrival
@@ -23,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $fees
  * @property int $net_amount
  */
-#[Fillable(['platform', 'confirmation_code', 'apartment_id', 'platform_import_id', 'arrival', 'departure', 'nights', 'gross_amount', 'fees', 'net_amount'])]
+#[Fillable(['platform', 'confirmation_code', 'entry_key', 'apartment_id', 'platform_import_id', 'arrival', 'departure', 'nights', 'gross_amount', 'fees', 'net_amount'])]
 class PlatformPayout extends Model
 {
     /**

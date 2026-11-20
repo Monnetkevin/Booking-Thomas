@@ -25,10 +25,7 @@ class PlanningFigures
     {
         $days = (int) $from->diffInDays($to);
         $nights = $this->nights->count($blocks, $from, $to);
-        $arrivals = $blocks
-            ->filter(fn (AvailabilityBlock $block) => $block->starts_on->gte($from) && $block->starts_on->lt($to))
-            ->map(fn (AvailabilityBlock $block) => $this->nights->kind($block))
-            ->filter(fn (?string $kind) => in_array($kind, ['direct', 'platform'], true));
+        $arrivals = $this->nights->arrivals($blocks, $from, $to);
 
         $free = 0;
         $freeWeekend = 0;
@@ -45,10 +42,10 @@ class PlanningFigures
 
         return [
             'sold_nights' => $nights['direct'] + $nights['platform'],
-            'open_nights' => count($apartmentIds) * $days - $nights['closed'],
+            'open_nights' => $this->nights->openNights($nights, count($apartmentIds), $days),
             'occupancy' => $this->nights->occupancy($nights, count($apartmentIds), $days),
-            'arrivals' => $arrivals->count(),
-            'direct_arrivals' => $arrivals->filter(fn (string $kind) => $kind === 'direct')->count(),
+            'arrivals' => $arrivals['all'],
+            'direct_arrivals' => $arrivals['direct'],
             'free_nights' => $free,
             'free_weekend_nights' => $freeWeekend,
         ];

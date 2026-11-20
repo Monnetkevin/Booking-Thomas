@@ -28,7 +28,8 @@ export function PlatformImportPage() {
   const { t } = useTranslation()
   const [platform, setPlatform] = useState<PayoutPlatform>('airbnb')
   const [file, setFile] = useState<File | null>(null)
-  const [mapping, setMapping] = useState<Record<string, number>>({})
+  // Choix de l'hôte pour chaque annonce du fichier (null : non rattachée), envoyé en entier.
+  const [mapping, setMapping] = useState<Record<string, number | null>>({})
   const apartments = useApartmentList()
   const history = useImportHistory()
   const preview = usePreviewImport()
@@ -46,13 +47,14 @@ export function PlatformImportPage() {
     run.reset()
     preview.mutate(
       { platform, file },
-      { onSuccess: (data) => setMapping(Object.fromEntries(data.listings.filter((entry) => entry.apartment_id !== null).map((entry) => [entry.listing, entry.apartment_id as number]))) },
+      { onSuccess: (data) => setMapping(Object.fromEntries(data.listings.map((entry) => [entry.listing, entry.apartment_id]))) },
     )
   }
 
   const data = preview.data
-  const unmapped = data ? data.listings.filter((entry) => mapping[entry.listing] === undefined).length : 0
-  const importable = data ? data.rows.filter((row) => mapping[row.listing] !== undefined) : []
+  const linked = (listing: string) => mapping[listing] !== null && mapping[listing] !== undefined
+  const unmapped = data ? data.listings.filter((entry) => !linked(entry.listing)).length : 0
+  const importable = data ? data.rows.filter((row) => linked(row.listing)) : []
   const errorMessage = (error: unknown) => (error instanceof ApiError && error.serverMessage) || t('common.error')
 
   return (
@@ -102,14 +104,7 @@ export function PlatformImportPage() {
                         key={entry.listing}
                         label={entry.listing}
                         value={mapping[entry.listing] ? String(mapping[entry.listing]) : ''}
-                        onChange={(value) =>
-                          setMapping((current) => {
-                            const next = { ...current }
-                            if (value) next[entry.listing] = Number(value)
-                            else delete next[entry.listing]
-                            return next
-                          })
-                        }
+                        onChange={(value) => setMapping((current) => ({ ...current, [entry.listing]: value ? Number(value) : null }))}
                         options={[
                           { value: '', label: t('admin.platformImport.notLinked') },
                           ...(apartments.data ?? []).map((apartment) => ({ value: String(apartment.id), label: apartment.name })),
@@ -141,14 +136,14 @@ export function PlatformImportPage() {
                       </thead>
                       <tbody>
                         {data.rows.map((row) => (
-                          <tr key={row.confirmation_code} className="border-b border-line last:border-0">
+                          <tr key={row.entry_key} className="border-b border-line last:border-0">
                             <td className="px-3 py-2 font-semibold">{row.confirmation_code}</td>
                             <td className="px-3 py-2">{row.listing}</td>
                             <td className="px-3 py-2 whitespace-nowrap">{stayLabel(row.arrival, row.departure)}</td>
                             <td className="px-3 py-2 text-right tabular-nums">{row.fees === null ? '—' : formatEuros(row.fees)}</td>
                             <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatEuros(row.net_amount)}</td>
                             <td className="px-3 py-2">
-                              {mapping[row.listing] === undefined ? (
+                              {!linked(row.listing) ? (
                                 <Badge tone="warning">{t('admin.platformImport.states.unlinked')}</Badge>
                               ) : row.already_imported ? (
                                 <Badge tone="neutral">{t('admin.platformImport.states.update')}</Badge>

@@ -33,9 +33,11 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
   const search = useSearch(debounced)
 
   const ready = term.trim().length >= MIN_SEARCH_LENGTH
+  // Résultats de l'API seulement s'ils répondent au terme affiché (pas pendant la temporisation).
+  const current = ready && debounced.trim() === term.trim() ? search.data : undefined
   const hits = useMemo<SearchHit[]>(
-    () => [...apiHits(ready ? search.data : undefined, (arrival, departure) => `${formatDate(arrival)} → ${formatDate(departure)}`), ...pageHits(term, pages)],
-    [ready, search.data, term, pages],
+    () => [...apiHits(current, (arrival, departure) => `${formatDate(arrival)} → ${formatDate(departure)}`), ...pageHits(term, pages)],
+    [current, term, pages],
   )
 
   // Ctrl K / Cmd K ouvre la palette depuis n'importe quelle page.

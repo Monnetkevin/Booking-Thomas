@@ -64,9 +64,11 @@ class BookingCsvParser implements PlatformCsvParser
                 grossAmount: $price,
                 fees: $commission,
                 netAmount: $price - ($commission ?? 0),
+                // Une ligne par réservation dans l'export Booking.com.
+                entryKey: PlatformRow::key($code),
             );
         }
 
-        return (new ParseResult($rows, $skipped))->mergedByCode();
+        return (new ParseResult($rows, $skipped))->withinRange();
     }
 }

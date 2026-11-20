@@ -2,7 +2,7 @@
 
 namespace App\Services\PlatformImport;
 
-/** Lignes reconnues et lignes écartées (numéro de ligne et raison) d'un fichier. */
+/** Versements reconnus et lignes écartées (numéro de ligne et raison) d'un fichier. */
 final readonly class ParseResult
 {
     /**
@@ -15,34 +15,21 @@ final readonly class ParseResult
     ) {}
 
     /**
-     * Une réservation par code de confirmation : un long séjour payé en plusieurs versements
-     * (plusieurs lignes au même code) devient une seule ligne, montants additionnés, de la
-     * première arrivée au dernier départ.
+     * Lignes hors des bornes de la base (nuits, montants) écartées, comme les illisibles.
      */
-    public function mergedByCode(): self
+    public function withinRange(): self
     {
-        /** @var array<string, PlatformRow> $merged */
-        $merged = [];
+        $rows = [];
+        $skipped = $this->skipped;
         foreach ($this->rows as $row) {
-            $previous = $merged[$row->confirmationCode] ?? null;
-            $merged[$row->confirmationCode] = $previous === null ? $row : new PlatformRow(
-                line: $previous->line,
-                confirmationCode: $row->confirmationCode,
-                listing: $previous->listing,
-                guest: $previous->guest ?? $row->guest,
-                arrival: $previous->arrival->min($row->arrival),
-                departure: $previous->departure->max($row->departure),
-                grossAmount: self::sum($previous->grossAmount, $row->grossAmount),
-                fees: self::sum($previous->fees, $row->fees),
-                netAmount: $previous->netAmount + $row->netAmount,
-            );
+            if ($row->inRange()) {
+                $rows[] = $row;
+            } else {
+                $skipped[] = ['line' => $row->line, 'reason' => 'out_of_range'];
+            }
         }
+        usort($skipped, fn (array $a, array $b) => $a['line'] <=> $b['line']);
 
-        return new self(array_values($merged), $this->skipped);
-    }
-
-    private static function sum(?int $a, ?int $b): ?int
-    {
-        return $a === null && $b === null ? null : (int) $a + (int) $b;
+        return new self($rows, $skipped);
     }
 }

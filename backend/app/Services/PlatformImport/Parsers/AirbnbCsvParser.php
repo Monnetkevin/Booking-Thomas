@@ -23,6 +23,7 @@ class AirbnbCsvParser implements PlatformCsvParser
         'amount' => ['Montant', 'Amount'],
         'fee' => ['Frais de service', 'Service fee'],
         'gross' => ['Revenus bruts', 'Gross earnings'],
+        'date' => ['Date'],
     ];
 
     private const REQUIRED = ['type', 'code', 'start', 'nights', 'listing', 'amount'];
@@ -68,9 +69,11 @@ class AirbnbCsvParser implements PlatformCsvParser
                 grossAmount: CsvTable::cents($cell('gross')),
                 fees: $fee === null ? null : abs($fee),
                 netAmount: $amount,
+                // Un versement : code, date du versement, période et montant (un long séjour en a plusieurs).
+                entryKey: PlatformRow::key($code, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount),
             );
         }
 
-        return (new ParseResult($rows, $skipped))->mergedByCode();
+        return (new ParseResult($rows, $skipped))->withinRange();
     }
 }

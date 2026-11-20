@@ -2,6 +2,8 @@ export type PayoutPlatform = 'airbnb' | 'booking'
 
 export interface PreviewRow {
   line: number
+  /** Un versement (ligne de l'export) ; un long séjour en a plusieurs au même code. */
+  entry_key: string
   confirmation_code: string
   listing: string
   guest: string | null

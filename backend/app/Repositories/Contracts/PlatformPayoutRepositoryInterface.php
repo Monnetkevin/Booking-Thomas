@@ -18,17 +18,19 @@ interface PlatformPayoutRepositoryInterface
     public function listingMap(PayoutPlatform $platform): array;
 
     /**
-     * @param  array<string, int>  $map  nom de l'annonce → id du logement
+     * Enregistre les rattachements ; une annonce mise à null est détachée.
+     *
+     * @param  array<string, int|null>  $map  nom de l'annonce → id du logement
      */
     public function saveListingMap(PayoutPlatform $platform, array $map): void;
 
     /**
-     * Codes de confirmation déjà importés parmi ceux-ci.
+     * Versements déjà importés parmi ces clés.
      *
-     * @param  list<string>  $codes
+     * @param  list<string>  $keys
      * @return list<string>
      */
-    public function existingCodes(PayoutPlatform $platform, array $codes): array;
+    public function existingKeys(PayoutPlatform $platform, array $keys): array;
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -41,11 +43,11 @@ interface PlatformPayoutRepositoryInterface
     public function updateImport(PlatformImport $import, array $attributes): PlatformImport;
 
     /**
-     * Crée ou met à jour le revenu (clé : plateforme + code de confirmation) ; vrai si créé.
+     * Crée ou met à jour le versement (clé : plateforme + clé du versement) ; vrai si créé.
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function upsert(PayoutPlatform $platform, string $code, array $attributes): bool;
+    public function upsert(PayoutPlatform $platform, string $entryKey, array $attributes): bool;
 
     /**
      * @return Collection<int, PlatformImport>

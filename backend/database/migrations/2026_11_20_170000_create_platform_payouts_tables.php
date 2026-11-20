@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Revenus des plateformes (Airbnb, Booking.com) importés à la main depuis leurs exports CSV :
- * l'iCal ne transmet aucun montant. Une ligne par réservation de la plateforme.
+ * l'iCal ne transmet aucun montant. Une ligne par versement (ligne de l'export).
  */
 return new class extends Migration
 {
@@ -36,8 +36,10 @@ return new class extends Migration
         Schema::create('platform_payouts', function (Blueprint $table) {
             $table->id();
             $table->string('platform', 20);
-            // Code de confirmation de la plateforme : clé du ré-import sans doublon.
             $table->string('confirmation_code', 64);
+            // Un versement (une ligne de l'export) : un long séjour payé chaque mois en a plusieurs.
+            // Clé du ré-import sans doublon, d'un fichier à l'autre.
+            $table->string('entry_key', 64);
             $table->foreignId('apartment_id')->constrained()->cascadeOnDelete();
             $table->foreignId('platform_import_id')->nullable()->constrained()->nullOnDelete();
             $table->date('arrival');
@@ -48,7 +50,8 @@ return new class extends Migration
             $table->integer('fees')->nullable();
             $table->integer('net_amount');
             $table->timestamps();
-            $table->unique(['platform', 'confirmation_code']);
+            $table->unique(['platform', 'entry_key']);
+            $table->index(['platform', 'confirmation_code']);
             $table->index(['arrival']);
         });
     }
