@@ -285,7 +285,7 @@
   },
   "rates": {
     "title": "Tarifs",
-    "subtitle": "Prix par période et par logement",
+    "subtitle": "Chaque logement a ses périodes de prix (saisons), saisies en euros.",
     "add": "Ajouter une période",
     "chooseApartment": "Choisir un logement",
     "tableTitle": "Périodes tarifaires · {{name}}",
@@ -345,6 +345,22 @@
       "children": "Enfants",
       "submit": "Calculer",
       "noRate": "Pas de prix : certaines nuits n'ont pas de tarif."
+    },
+    "base": {
+      "title": "Tarifs de base",
+      "hint": "Période de prix en cours (ou prochaine) de chaque logement. Choisissez un logement pour gérer ses périodes.",
+      "columns": {
+        "apartment": "Appartement",
+        "period": "Période en cours",
+        "nightly": "Nuit",
+        "weekend": "Supplément week-end",
+        "minStay": "Séjour minimum",
+        "cleaning": "Ménage"
+      },
+      "unnamed": "Période",
+      "none": "Aucune période à venir",
+      "nights_one": "{{count}} nuit",
+      "nights_other": "{{count}} nuits"
     }
   },
   "sync": {

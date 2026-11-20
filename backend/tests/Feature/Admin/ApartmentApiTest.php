@@ -220,3 +220,15 @@ test('la liste donne le nombre de logements par statut et l’occupation du mois
         ->assertJsonPath('data.0.bedrooms', 2)
         ->assertJsonPath('data.0.city', 'Le Mans');
 });
+
+test('la liste donne la période de prix en cours de chaque logement et ses frais de ménage', function () {
+    Illuminate\Support\Facades\Date::setTestNow('2026-11-20 10:00:00');
+    $apartment = Apartment::factory()->create(['cleaning_fee' => 4000]);
+    RatePeriod::factory()->for($apartment)->create(['label' => 'Hiver', 'starts_on' => '2026-11-01', 'ends_on' => '2027-02-28', 'nightly_price' => 9500, 'weekend_supplement' => 1500, 'min_stay' => 2]);
+
+    $this->getJson('/api/admin/apartments')
+        ->assertJsonPath('data.0.cleaning_fee', 4000)
+        ->assertJsonPath('data.0.current_rate.label', 'Hiver')
+        ->assertJsonPath('data.0.current_rate.nightly_price', 9500)
+        ->assertJsonPath('data.0.current_rate.weekend_supplement', 1500);
+});

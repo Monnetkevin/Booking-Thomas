@@ -32,6 +32,17 @@ class AdminApartmentListResource extends JsonResource
             'position' => $this->position,
             // Prix de la période en cours ou de la prochaine, en centimes (relation filtrée).
             'base_price' => $this->ratePeriods->first()?->nightly_price,
+            'cleaning_fee' => $this->cleaning_fee,
+            // Période en cours ou prochaine : tableau des tarifs de base.
+            'current_rate' => ($period = $this->ratePeriods->first()) ? [
+                'id' => $period->id,
+                'label' => $period->label,
+                'starts_on' => $period->starts_on->toDateString(),
+                'ends_on' => $period->ends_on->toDateString(),
+                'nightly_price' => $period->nightly_price,
+                'weekend_supplement' => $period->weekend_supplement,
+                'min_stay' => $period->min_stay,
+            ] : null,
             'cover_url' => $cover?->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : null,
             'card_url' => $cover?->hasGeneratedConversion('card') ? $cover->getUrl('card') : null,
         ];

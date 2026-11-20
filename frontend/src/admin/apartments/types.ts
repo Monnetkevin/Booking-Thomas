@@ -22,6 +22,18 @@ export interface ApartmentListItem {
   base_price: number | null
   cover_url: string | null
   card_url: string | null
+  /** Frais de ménage par séjour, en centimes. */
+  cleaning_fee: number
+  /** Période de prix en cours ou prochaine. */
+  current_rate: {
+    id: number
+    label: string | null
+    starts_on: string
+    ends_on: string
+    nightly_price: number
+    weekend_supplement: number | null
+    min_stay: number | null
+  } | null
 }
 
 /** Compléments de la liste : nombre par statut, occupation du mois par logement (id → %). */
