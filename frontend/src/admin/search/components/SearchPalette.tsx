@@ -26,7 +26,9 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [term, setTerm] = useState('')
-  const [active, setActive] = useState(0)
+  // Résultat choisi, suivi par son identifiant : les résultats de l'API arrivent après ceux des pages
+  // et décalent la liste ; un index ferait ouvrir un autre résultat que celui surligné.
+  const [activeId, setActiveId] = useState<string | null>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const listId = useId()
   const debounced = useDebouncedValue(term)
@@ -39,6 +41,8 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
     () => [...apiHits(current, (arrival, departure) => `${formatDate(arrival)} → ${formatDate(departure)}`), ...pageHits(term, pages)],
     [current, term, pages],
   )
+  const found = hits.findIndex((hit) => hit.id === activeId)
+  const active = found === -1 ? 0 : found
 
   // Ctrl K / Cmd K ouvre la palette depuis n'importe quelle page.
   useEffect(() => {
@@ -62,7 +66,7 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
   const close = () => {
     setOpen(false)
     setTerm('')
-    setActive(0)
+    setActiveId(null)
   }
 
   const go = (hit: SearchHit | undefined) => {
@@ -76,7 +80,7 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
       event.preventDefault()
       if (hits.length === 0) return
       const step = event.key === 'ArrowDown' ? 1 : -1
-      setActive((index) => (index + step + hits.length) % hits.length)
+      setActiveId(hits[(active + step + hits.length) % hits.length]?.id ?? null)
     } else if (event.key === 'Enter') {
       event.preventDefault()
       go(hits[active])
@@ -125,7 +129,7 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
                 value={term}
                 onChange={(event) => {
                   setTerm(event.target.value)
-                  setActive(0)
+                  setActiveId(null)
                 }}
                 onKeyDown={onKeyDown}
                 className="h-14 min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted"
@@ -141,7 +145,7 @@ export function SearchPalette({ pages }: SearchPaletteProps) {
                     id={`${listId}-${index}`}
                     role="option"
                     aria-selected={index === active}
-                    onMouseEnter={() => setActive(index)}
+                    onMouseEnter={() => setActiveId(hit.id)}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => go(hit)}
                     className={cn('flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3 py-2', index === active && 'bg-accent-soft')}

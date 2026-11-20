@@ -121,3 +121,27 @@ it('ajoute les revenus importés des plateformes, la part du direct, et change d
     $this->getJson('/api/admin/statistics?period=all')->assertJsonPath('data.from', '2026-11-01');
     $this->getJson('/api/admin/statistics?period=forever')->assertJsonValidationErrors('period');
 });
+
+it('signale les revenus manquants plateforme par plateforme', function () {
+    // Nuits vendues sur Airbnb, mais seuls des revenus Booking.com importés.
+    $feed = IcalFeed::factory()->for($this->nid)->create();
+    AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM3']);
+    PlatformPayout::query()->create([
+        'platform' => 'booking', 'confirmation_code' => 'BK1', 'entry_key' => 'BK1-1', 'apartment_id' => $this->cocon->id,
+        'arrival' => '2026-11-05', 'departure' => '2026-11-07', 'nights' => 2, 'net_amount' => 15000,
+    ]);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.5.platform_revenue', ['airbnb' => 0, 'booking' => 15000])
+        ->assertJsonPath('data.months.5.platform_revenue_missing', true)
+        ->assertJsonPath('data.totals.revenue_per_night', null);
+});
+
+it('ne donne pas une période « Tout » inversée quand le premier séjour est à venir', function () {
+    soldBooking($this->cocon, '2027-01-10', '2027-01-14', 40000);
+
+    $this->getJson('/api/admin/statistics?period=all')
+        ->assertJsonPath('data.from', '2026-11-01')
+        ->assertJsonPath('data.to', '2026-12-01')
+        ->assertJsonCount(1, 'data.months');
+});

@@ -5,7 +5,8 @@ import type { Planning } from '@/admin/planning/types'
 import { cn } from '@/lib/cn'
 
 const initial = new Intl.DateTimeFormat('fr-FR', { weekday: 'narrow', timeZone: 'UTC' })
-const LEGEND: BlockKind[] = ['direct', 'ical', 'closed']
+/** Toutes les couleurs que `nightKinds` peut donner, comme la légende du planning. */
+const LEGEND: BlockKind[] = ['direct', 'manualBooking', 'pending', 'ical', 'closed']
 
 /** Occupation des prochains jours, une ligne par logement, une case par nuit. */
 export function OccupancyStrip({ planning }: { planning: Planning }) {

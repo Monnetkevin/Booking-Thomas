@@ -22,10 +22,18 @@ export function useLatestSyncLogs(service: SyncService = syncService) {
   return useQuery({ queryKey: syncKeys.latestLogs, queryFn: () => service.latestLogs(), refetchInterval: 60_000 })
 }
 
-/** Après une écriture : état des calendriers et journaux. */
+/**
+ * Après une écriture : état des calendriers et journaux, mais aussi les compteurs de la barre
+ * (calendriers en échec, état de la synchro) et le tableau de bord, qui en dépendent.
+ */
 function useRefresh() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: syncKeys.all })
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: syncKeys.all }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] }),
+    ])
 }
 
 /** Enregistre l'URL d'import : crée le calendrier du logement s'il n'existe pas encore. */

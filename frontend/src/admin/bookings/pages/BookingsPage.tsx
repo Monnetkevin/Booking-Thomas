@@ -12,16 +12,17 @@ import { Card } from '@/components/ui/Card'
 import { DateField, SelectField, TextField } from '@/components/ui/Field'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/lib/cn'
+import { addDays } from '@/admin/planning/planningLayout'
 import { formatEuros } from '@/lib/money'
 import { BookingStatusBadge } from '../components/BookingStatusBadge'
 import { PaymentStateBadge } from '../components/PaymentStateBadge'
 import { stayLabel } from '../stayLabel'
-import { BOOKING_STAGES, type BookingFilters, type BookingSource, type BookingStage } from '../types'
+import { BOOKING_STAGES, BOOKING_STATUSES, type BookingFilters, type BookingSource, type BookingStage, type BookingStatus } from '../types'
 import { useBookingList, useDownloadBookingsCsv } from '../useAdminBookings'
 
 /**
  * Réservations : onglets avec compteurs (à venir, en cours, terminées, annulées), filtres
- * (logement, source, période, recherche), export CSV de la liste filtrée, tableau sur
+ * (statut, logement, source, période, recherche), export CSV de la liste filtrée, tableau sur
  * ordinateur et cartes sur téléphone.
  */
 export function BookingsPage() {
@@ -35,7 +36,7 @@ export function BookingsPage() {
   const bookings = useBookingList(filters, page)
   const exportCsv = useDownloadBookingsCsv()
   const counts = bookings.data?.meta.counts
-  const activeFilters = [filters.apartment_id, filters.source, filters.from, filters.to].filter(Boolean).length
+  const activeFilters = [filters.status, filters.apartment_id, filters.source, filters.from, filters.to].filter(Boolean).length
 
   const setFilter = (patch: BookingFilters) => {
     setFilters((current) => ({ ...current, ...patch }))
@@ -98,7 +99,7 @@ export function BookingsPage() {
       <form
         id="booking-filters"
         hidden={!showFilters}
-        className="mb-4 grid gap-3 rounded-[var(--radius-card)] border border-border bg-white p-4 sm:grid-cols-2 lg:grid-cols-5"
+        className="mb-4 grid gap-3 rounded-[var(--radius-card)] border border-border bg-white p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
         onSubmit={(event) => {
           event.preventDefault()
           setFilter({ search: search.trim() || undefined })
@@ -109,6 +110,15 @@ export function BookingsPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onBlur={() => setFilter({ search: search.trim() || undefined })}
+        />
+        <SelectField
+          label={t('admin.bookings.status')}
+          value={filters.status ?? ''}
+          onChange={(value) => setFilter({ status: (value || undefined) as BookingStatus | undefined })}
+          options={[
+            { value: '', label: t('admin.bookings.allStatuses') },
+            ...BOOKING_STATUSES.map((status) => ({ value: status, label: t(`admin.bookings.statuses.${status}`) })),
+          ]}
         />
         <SelectField
           label={t('admin.bookings.apartment')}
@@ -126,8 +136,21 @@ export function BookingsPage() {
             { value: 'manual', label: t('admin.bookings.sources.manual') },
           ]}
         />
-        <DateField label={t('admin.bookings.from')} value={filters.from ?? ''} onChange={(value) => setFilter({ from: value || undefined })} />
-        <DateField label={t('admin.bookings.to')} value={filters.to ?? ''} min={filters.from} onChange={(value) => setFilter({ to: value || undefined })} />
+        {/* Période [du, au[ : « au » est au moins le lendemain de « du » (l'API refuse une période vide). */}
+        <DateField
+          label={t('admin.bookings.from')}
+          value={filters.from ?? ''}
+          onChange={(value) => {
+            const from = value || undefined
+            setFilter({ from, to: from && filters.to && filters.to <= from ? undefined : filters.to })
+          }}
+        />
+        <DateField
+          label={t('admin.bookings.to')}
+          value={filters.to ?? ''}
+          min={filters.from ? addDays(filters.from, 1) : undefined}
+          onChange={(value) => setFilter({ to: value || undefined })}
+        />
       </form>
 
       {exportCsv.isError && (

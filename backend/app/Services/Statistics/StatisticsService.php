@@ -68,8 +68,8 @@ class StatisticsService
                 'nights_platform' => $nights['platform'],
                 'revenue' => $this->revenue->of($sold->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
                 'platform_revenue' => $platform,
-                // Nuits vendues sur les plateformes sans aucun revenu importé : montants inconnus.
-                'platform_revenue_missing' => $nights['platform'] > 0 && array_sum($platform) === 0,
+                // Nuits vendues sur une plateforme dont aucun revenu n'est importé : montants inconnus.
+                'platform_revenue_missing' => $this->platformRevenueMissing($this->nights->platformNights($blocks, $month, $end), $platform),
                 'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $month->diffInDays($end)),
             ];
         }
@@ -80,6 +80,7 @@ class StatisticsService
         $platform = $this->platformRevenue($payouts);
         $allRevenue = $direct + array_sum($platform);
         $soldNights = $total['direct'] + $total['platform'];
+        $missing = $this->platformRevenueMissing($this->nights->platformNights($blocks, $from, $to), $platform);
 
         return [
             'period' => $period->value,
@@ -90,8 +91,8 @@ class StatisticsService
                 'platform_revenue' => $platform,
                 'total_revenue' => $allRevenue,
                 'direct_share' => $allRevenue > 0 ? round($direct / $allRevenue * 100, 1) : null,
-                // Revenu par nuit vendue, seulement si les plateformes ont leurs revenus importés.
-                'revenue_per_night' => $soldNights > 0 && ($total['platform'] === 0 || array_sum($platform) > 0) ? (int) round($allRevenue / $soldNights) : null,
+                // Revenu par nuit vendue, seulement si chaque plateforme vendue a ses revenus importés.
+                'revenue_per_night' => $soldNights > 0 && ! $missing ? (int) round($allRevenue / $soldNights) : null,
                 'nights_direct' => $total['direct'],
                 'nights_platform' => $total['platform'],
                 'average_nightly_price' => $this->averageNightlyPrice($sold),
@@ -116,7 +117,10 @@ class StatisticsService
         ];
     }
 
-    /** Premier mois de la période (au plus MAX_MONTHS mois pour « Tout »). */
+    /**
+     * Premier mois de la période. « Tout » : depuis le premier séjour, au plus MAX_MONTHS mois,
+     * et au moins le mois en cours (un premier séjour à venir ne donne pas une période inversée).
+     */
     private function start(StatisticsPeriod $period, CarbonImmutable $to): CarbonImmutable
     {
         $months = $period->months();
@@ -126,7 +130,25 @@ class StatisticsService
         $earliest = $this->availability->earliestStart();
         $first = $earliest === null ? $to->subMonth() : CarbonImmutable::parse($earliest)->startOfMonth();
 
-        return $first->max($to->subMonths(self::MAX_MONTHS));
+        return $first->min($to->subMonth())->max($to->subMonths(self::MAX_MONTHS));
+    }
+
+    /**
+     * Vrai si une plateforme a vendu des nuits sans qu'aucun de ses revenus ne soit importé
+     * (une plateforme sans import de revenus compte comme manquante).
+     *
+     * @param  array<string, int>  $nights  nuits par plateforme
+     * @param  array<string, int>  $revenue  revenus par plateforme
+     */
+    private function platformRevenueMissing(array $nights, array $revenue): bool
+    {
+        foreach ($nights as $platform => $count) {
+            if ($count > 0 && ($revenue[$platform] ?? 0) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

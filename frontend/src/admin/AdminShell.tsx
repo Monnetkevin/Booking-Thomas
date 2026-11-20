@@ -8,6 +8,7 @@ import { AccountMenu } from '@/admin/components/AccountMenu'
 import { SyncStatus } from '@/admin/components/SyncStatus'
 import { canVisit, navigationFor } from '@/admin/navigation'
 import { AlertsButton } from '@/admin/notifications/components/AlertsButton'
+import { useUnreadCount } from '@/admin/notifications/useNotifications'
 import { alertParts } from '@/admin/overview/alertSummary'
 import { useOverview } from '@/admin/overview/useOverview'
 import { SearchPalette } from '@/admin/search/components/SearchPalette'
@@ -26,6 +27,8 @@ export function AdminShell() {
   const logout = useLogout()
   const staff = user?.role === 'admin' || user?.role === 'manager'
   const overview = useOverview(staff)
+  // Le ménage n'a pas le bouton « Alertes » : ses non lues s'affichent sur l'entrée Notifications.
+  const unread = useUnreadCount(user?.role === 'housekeeping')
 
   if (isPending) return <FullPageSpinner />
   if (isError) return <ErrorState fullPage onRetry={() => void refetch()} />
@@ -47,7 +50,10 @@ export function AdminShell() {
     <AdminLayout
       navigation={navigation}
       search={staff ? <SearchPalette pages={navigation.map((item) => ({ to: item.to, label: t(item.labelKey) }))} /> : undefined}
-      badges={counts ? { conflicts: counts.conflicts, failingFeeds: counts.failing_feeds, unreadMessages: counts.unread_messages } : {}}
+      badges={{
+        ...(counts && { conflicts: counts.conflicts, failingFeeds: counts.failing_feeds, unreadMessages: counts.unread_messages }),
+        unreadNotifications: unread.data ?? 0,
+      }}
       account={<AccountMenu user={user} items={navigation.filter((item) => item.group === 'account')} onLogout={handleLogout} />}
       alerts={staff ? (collapsed) => <AlertsButton summary={summary || null} collapsed={collapsed} /> : undefined}
       footer={staff && counts ? <SyncStatus lastSyncAt={counts.last_sync_at} failing={counts.failing_feeds > 0} /> : undefined}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canVisit, navigationFor, sidebarGroups, type AdminNavItem } from './navigation'
+import { adminNavigation, canVisit, navigationFor, sidebarGroups, type AdminNavItem } from './navigation'
 
 const items: AdminNavItem[] = [
   { to: '/admin', labelKey: 'admin.nav.dashboard', icon: null, roles: ['admin'], group: 'pilotage' },
@@ -7,6 +7,11 @@ const items: AdminNavItem[] = [
 ]
 
 describe('navigation du back-office', () => {
+  it('montre au ménage le nombre de notifications non lues sur son entrée Notifications', () => {
+    const entry = navigationFor('housekeeping', adminNavigation).find((item) => item.to === '/admin/notifications')
+    expect(entry?.badge).toBe('unreadNotifications')
+  })
+
   it('montre à chaque rôle ses seules entrées', () => {
     expect(navigationFor('admin', items).map((item) => item.to)).toEqual(['/admin', '/admin/menage'])
     expect(navigationFor('housekeeping', items).map((item) => item.to)).toEqual(['/admin/menage'])

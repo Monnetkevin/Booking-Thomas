@@ -33,6 +33,26 @@ class NightCounter
         return $nights;
     }
 
+    /**
+     * Nuits vendues sur chaque plateforme (séjours importés par iCal) dans [from, to[, par
+     * plateforme (« airbnb »…), pour savoir lesquelles n'ont pas leurs revenus importés.
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks  blocs actifs (calendrier chargé)
+     * @return array<string, int>
+     */
+    public function platformNights(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $nights = [];
+        foreach ($blocks as $block) {
+            $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
+            if ($provider !== null) {
+                $nights[$provider->value] = ($nights[$provider->value] ?? 0) + $this->overlap($block, $from, $to);
+            }
+        }
+
+        return $nights;
+    }
+
     /** Nuits du bloc qui tombent dans [from, to[. */
     public function overlap(AvailabilityBlock $block, CarbonImmutable $from, CarbonImmutable $to): int
     {

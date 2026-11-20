@@ -3,7 +3,7 @@ import type { Role } from '@/admin/auth/types'
 import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UploadIcon, UsersIcon } from '@/components/icons'
 
 /** Compteur affiché à côté d'une entrée, lu dans les compteurs de la barre. */
-export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages'
+export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages' | 'unreadNotifications'
 
 /** Groupe du menu latéral ; « account » : menu du compte, en haut à droite. */
 export type NavGroup = 'pilotage' | 'catalogue' | 'suivi' | 'account'
@@ -56,8 +56,8 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: STAFF, group: 'suivi', badge: 'failingFeeds' },
   // Le journal contient réglages, tarifs et comptes : administrateur seulement.
   { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: ['admin'], group: 'suivi' },
-  // Le ménage n'a pas le bouton « Alertes » : ses notifications restent une entrée du menu.
-  { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['housekeeping'], group: 'suivi' },
+  // Le ménage n'a pas le bouton « Alertes » : ses notifications restent une entrée du menu, avec le nombre de non lues.
+  { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['housekeeping'], group: 'suivi', badge: 'unreadNotifications' },
   { to: '/admin/reglages', labelKey: 'admin.nav.settings', icon: <SettingsIcon />, roles: ['admin'], group: 'account' },
   { to: '/admin/utilisateurs', labelKey: 'admin.nav.users', icon: <UsersIcon />, roles: ['admin'], group: 'account' },
   { to: '/admin/notifications/preferences', labelKey: 'admin.nav.notificationPreferences', icon: <MailIcon />, roles: EVERYONE, group: 'account' },

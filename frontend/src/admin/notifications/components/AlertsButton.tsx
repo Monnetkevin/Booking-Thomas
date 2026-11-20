@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { BellIcon } from '@/components/icons'
@@ -46,17 +47,27 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
   const [open, setOpen] = useState(false)
   const [placement, setPlacement] = useState<CSSProperties>({})
   const rootRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
   const close = useCallback(() => setOpen(false), [])
-  useDismiss(open, rootRef, close, buttonRef)
+  // Un clic dans le panneau (rendu hors du bouton, dans le portail) ne le referme pas.
+  const zones = useMemo(() => [rootRef, panelRef], [])
+  useDismiss(open, zones, close, buttonRef)
 
-  // Panneau en position fixe (le menu latéral défile et le couperait) : replacé si la fenêtre change.
+  // Panneau en position fixe (le menu latéral défile et le couperait), rendu à la racine de la
+  // page : le menu, collant, crée son propre empilement, et la colonne figée du planning ou les
+  // barres d'enregistrement passaient par-dessus. Replacé si la fenêtre change.
   useEffect(() => {
     if (!open) return
     const place = () => setPlacement(panelPlacement(buttonRef.current))
     window.addEventListener('resize', place)
     return () => window.removeEventListener('resize', place)
+  }, [open])
+
+  // Rendu en fin de page, le panneau est hors de l'ordre de tabulation du bouton : il reçoit le focus.
+  useEffect(() => {
+    if (open) panelRef.current?.focus()
   }, [open])
 
   const unread = useUnreadCount()
@@ -108,13 +119,16 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
         )}
       </button>
 
-      {open && (
+      {open &&
+        createPortal(
         <div
+          ref={panelRef}
           id={panelId}
           role="dialog"
           aria-label={t('admin.notifications.title')}
+          tabIndex={-1}
           style={placement}
-          className="fixed z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl"
+          className="admin-typo fixed z-50 flex outline-none w-[min(22rem,calc(100vw-2rem))] flex-col rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl"
         >
           <div className="flex items-center justify-between gap-2 px-2.5 py-1">
             <h2 className="font-sans text-sm font-bold tracking-normal">{t('admin.notifications.title')}</h2>
@@ -152,8 +166,9 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
           >
             {t('admin.notifications.seeAll')}
           </Link>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </div>
   )
 }
