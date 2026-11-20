@@ -859,7 +859,7 @@
   },
   "statistics": {
     "title": "Statistiques",
-    "subtitle": "12 derniers mois, du {{from}} au {{to}} (exclu).",
+    "subtitle": "Du {{from}} au {{to}}.",
     "export": "Exporter en CSV",
     "revenue": "Revenus directs",
     "revenueDetail": "Réservations du site et saisies à la main, hors taxe de séjour, au mois d’arrivée.",
@@ -885,9 +885,37 @@
     "revenueShort": "Revenus directs",
     "occupancyShort": "Occupation",
     "byApartment": "Par logement",
-    "platformAmounts": "Les montants Airbnb ne sont pas connus : le calendrier iCal ne transmet que les dates.",
+    "platformAmounts": "Revenus des plateformes : montants nets importés de leurs fichiers, au mois d’arrivée.",
     "rating": "Note moyenne",
-    "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements."
+    "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements.",
+    "period": "Période",
+    "periods": {
+      "six_months": "6 mois",
+      "year": "12 mois",
+      "all": "Tout"
+    },
+    "platformMissing": "Certains mois ont des nuits vendues sur les plateformes sans revenus importés : leurs montants manquent dans les totaux.",
+    "importLink": "Importer les revenus des plateformes",
+    "totalRevenue": "Revenus totaux",
+    "totalRevenueDetail": "Site et plateformes (revenus importés), hors taxe de séjour.",
+    "revenuePerNight": "Revenu par nuit",
+    "revenuePerNightDetail_one": "sur {{count}} nuit vendue",
+    "revenuePerNightDetail_other": "sur {{count}} nuits vendues",
+    "directShare": "Part du direct",
+    "occupancyLine": "Occupation : {{value}}",
+    "revenueChart": "Revenus par mois",
+    "revenueChartHint": "Direct et plateformes, au mois d’arrivée.",
+    "revenueChartLabel": "Revenus par mois : {{list}}.",
+    "channels": {
+      "direct": "Direct",
+      "airbnb": "Airbnb",
+      "booking": "Booking.com"
+    },
+    "missingMark": "* revenus des plateformes non importés",
+    "channelsTitle": "Répartition par canal",
+    "noRevenue": "Aucun revenu sur la période.",
+    "occupancyByApartment": "Taux d’occupation par appartement",
+    "platformRevenueShort": "Plateformes"
   },
   "badge": "ADMIN",
   "account": {

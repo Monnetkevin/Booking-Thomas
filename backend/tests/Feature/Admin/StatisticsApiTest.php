@@ -36,7 +36,12 @@ it('donne les chiffres des 12 derniers mois, par mois et par logement', function
         ->assertJsonPath('data.from', '2025-12-01')
         ->assertJsonPath('data.to', '2026-12-01')
         ->assertJsonCount(12, 'data.months')
-        ->assertJsonPath('data.months.10', ['month' => '2026-10', 'nights_direct' => 4, 'nights_platform' => 0, 'revenue' => 44000, 'occupancy' => 6.5])
+        ->assertJsonPath('data.months.10.month', '2026-10')
+        ->assertJsonPath('data.months.10.nights_direct', 4)
+        ->assertJsonPath('data.months.10.revenue', 44000)
+        ->assertJsonPath('data.months.10.occupancy', 6.5)
+        ->assertJsonPath('data.months.10.platform_revenue_missing', false)
+        ->assertJsonPath('data.months.11.platform_revenue_missing', true)
         ->assertJsonPath('data.months.11.nights_direct', 3)
         ->assertJsonPath('data.months.11.nights_platform', 6)
         ->assertJsonPath('data.months.11.revenue', 40000)
@@ -76,9 +81,9 @@ it('exporte un CSV lisible par un tableur, sans formule exécutable', function (
 
     $csv = $response->getContent();
     expect($csv)->toStartWith("\u{FEFF}Mois;Nuits en direct")
-        ->toContain('2026-10;4;0;440,00;6,5')
-        ->toContain('Le Cocon;4;0;440,00;')
-        ->toContain('"\'=Le Nid; ""chic""";0;0;0,00;0,0');
+        ->toContain('2026-10;4;0;440,00;0,00;6,5')
+        ->toContain('Le Cocon;4;0;440,00;0,00;')
+        ->toContain('"\'=Le Nid; ""chic""";0;0;0,00;0,00;0,0');
 
     // Montant négatif (séjour offert, taxe gardée) : un nombre ; nom commençant par une tabulation : neutralisé.
     $this->nid->update(['name' => ['fr' => "\tCalc", 'en' => 'Nest']]);
@@ -92,4 +97,26 @@ it('réserve les statistiques à l’administrateur', function () {
 
     $this->getJson('/api/admin/statistics')->assertForbidden();
     $this->get('/api/admin/statistics.csv')->assertForbidden();
+});
+
+it('ajoute les revenus importés des plateformes, la part du direct, et change de période', function () {
+    soldBooking($this->cocon, '2026-11-02', '2026-11-04', 30000);
+    $feed = IcalFeed::factory()->for($this->nid)->create();
+    AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM2']);
+    App\Models\PlatformPayout::query()->create([
+        'platform' => 'airbnb', 'confirmation_code' => 'HMX', 'apartment_id' => $this->nid->id,
+        'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 20000,
+    ]);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.from', '2026-06-01')
+        ->assertJsonCount(6, 'data.months')
+        ->assertJsonPath('data.months.5.platform_revenue', ['airbnb' => 20000, 'booking' => 0])
+        ->assertJsonPath('data.months.5.platform_revenue_missing', false)
+        ->assertJsonPath('data.totals.total_revenue', 54000)
+        ->assertJsonPath('data.totals.direct_share', 63.0)
+        ->assertJsonPath('data.totals.revenue_per_night', 13500)
+        ->assertJsonPath('data.apartments.1.platform_revenue', 20000);
+    $this->getJson('/api/admin/statistics?period=all')->assertJsonPath('data.from', '2026-11-01');
+    $this->getJson('/api/admin/statistics?period=forever')->assertJsonValidationErrors('period');
 });

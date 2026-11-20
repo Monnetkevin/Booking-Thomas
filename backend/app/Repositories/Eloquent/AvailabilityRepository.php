@@ -117,6 +117,13 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->get();
     }
 
+    public function earliestStart(): ?string
+    {
+        $first = AvailabilityBlock::query()->where('is_active', true)->min('starts_on');
+
+        return $first === null ? null : substr((string) $first, 0, 10);
+    }
+
     public function planningBlocks(string $from, string $to): Collection
     {
         return AvailabilityBlock::query()

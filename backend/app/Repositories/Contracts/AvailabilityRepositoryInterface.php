@@ -101,6 +101,9 @@ interface AvailabilityRepositoryInterface
      *
      * @return Collection<int, AvailabilityBlock>
      */
+    /** Premier jour du plus ancien séjour ou blocage actif (AAAA-MM-JJ), null s'il n'y en a pas. */
+    public function earliestStart(): ?string;
+
     public function planningBlocks(string $from, string $to): Collection;
 
     /**
