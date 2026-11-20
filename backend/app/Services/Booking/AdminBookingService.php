@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Annuler libère les nuits, lève les conflits qu'elles portaient, prévient le ménage et,
  * si l'hôte le veut, le voyageur. Le remboursement proposé suit le barème copié dans la
- * réservation ; il est versé depuis Stripe au jalon 10 (en attendant, hors ligne).
+ * réservation ; il est versé depuis Stripe au jalon 11 (en attendant, hors ligne).
  */
 class AdminBookingService
 {
