@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/ui/Card'
 import { cn } from '@/lib/cn'
-import type { Delta } from '../dashboardFigures'
+import type { Delta } from './delta'
 
 const signed = new Intl.NumberFormat('fr-FR', { signDisplay: 'exceptZero', maximumFractionDigits: 1 })
 

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { blockKindClasses } from '../blockColors'
+import { shortGuestName } from '../planningFigures'
 import { blockKind, placeBlock } from '../planningLayout'
 import type { PlanningApartment, PlanningBlock } from '../types'
 
@@ -10,6 +11,8 @@ interface PlanningGridProps {
   apartments: PlanningApartment[]
   onBlock: (block: PlanningBlock, apartment: PlanningApartment) => void
   onEmptyDay: (apartment: PlanningApartment, day: string) => void
+  /** Colonnes plus étroites (vue au mois). */
+  dense?: boolean
 }
 
 const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', timeZone: 'UTC' })
@@ -22,12 +25,12 @@ const asDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
  * est une barre cliquable ; une case libre ouvre la fermeture de dates. Défile à
  * l'horizontale sur téléphone, la colonne des logements restant visible.
  */
-export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay }: PlanningGridProps) {
+export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay, dense = false }: PlanningGridProps) {
   const { t } = useTranslation()
-  const columns = { gridTemplateColumns: `repeat(${days.length}, minmax(2.75rem, 1fr))` }
+  const columns = { gridTemplateColumns: `repeat(${days.length}, minmax(${dense ? '2.25rem' : '2.75rem'}, 1fr))` }
 
   return (
-    <div className="overflow-x-auto rounded-[var(--radius-card)] border border-border bg-white">
+    <div className="relative overflow-x-auto rounded-[var(--radius-card)] border border-border bg-white">
       <div className="min-w-max">
         <div className="flex border-b border-border">
           <div className="sticky left-0 z-20 w-36 shrink-0 bg-white px-3 py-2 text-sm font-semibold sm:w-44">{t('admin.planning.apartment')}</div>
@@ -64,7 +67,7 @@ export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay }: P
               {apartment.blocks.map((block) => {
                 const placement = days[0] ? placeBlock(block, days[0], days.length) : null
                 if (!placement) return null
-                const label = block.label ?? t(`admin.planning.kinds.${blockKind(block)}`)
+                const label = block.booking && block.label ? shortGuestName(block.label) : (block.label ?? t(`admin.planning.kinds.${blockKind(block)}`))
                 return (
                   <button
                     key={block.id}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { countDelta, movementRows, percentDelta, pointsDelta, todoItems } from './dashboardFigures'
+import { countDelta, percentDelta, pointsDelta } from '@/admin/components/delta'
+import { movementRows, todoItems } from './dashboardFigures'
 
 describe('chiffres du tableau de bord', () => {
   it('calcule les écarts avec la période précédente', () => {

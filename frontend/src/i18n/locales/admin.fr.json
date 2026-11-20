@@ -709,14 +709,9 @@
   },
   "planning": {
     "title": "Planning",
-    "subtitle": "Tous les logements, nuit par nuit. Cliquez une réservation pour l’ouvrir, une case libre pour fermer des dates.",
+    "subtitle": "Toutes les réservations, tous canaux confondus.",
     "apartment": "Logement",
-    "previous": "Période précédente",
-    "next": "Période suivante",
     "today": "Aujourd’hui",
-    "span": "Durée affichée",
-    "days_one": "{{count}} jour",
-    "days_other": "{{count}} jours",
     "noApartment": "Aucun logement pour le moment.",
     "legend": "Légende",
     "closeFrom": "{{apartment}} : fermer à partir du {{day}}",
@@ -727,6 +722,36 @@
       "pending": "Paiement en cours",
       "ical": "Séjour importé (Airbnb)",
       "closed": "Fermé"
+    },
+    "view": "Affichage",
+    "views": {
+      "month": "Mois",
+      "week": "Semaine"
+    },
+    "weekTitle": "Semaine du {{from}} au {{to}}",
+    "previousPeriod": {
+      "month": "Mois précédent",
+      "week": "Semaine précédente"
+    },
+    "nextPeriod": {
+      "month": "Mois suivant",
+      "week": "Semaine suivante"
+    },
+    "figures": {
+      "sold": "Nuits occupées",
+      "soldDetail_one": "sur {{count}} nuit ouverte",
+      "soldDetail_other": "sur {{count}} nuits ouvertes",
+      "occupancy": "Taux d’occupation",
+      "occupancyDetail": {
+        "month": "ce mois-ci, tous canaux",
+        "week": "cette semaine, tous canaux"
+      },
+      "arrivals": "Arrivées",
+      "arrivalsDetail_one": "dont {{count}} directe",
+      "arrivalsDetail_other": "dont {{count}} directes",
+      "free": "Nuits libres",
+      "freeDetail_one": "dont {{count}} de week-end",
+      "freeDetail_other": "dont {{count}} de week-end"
     }
   },
   "statistics": {
