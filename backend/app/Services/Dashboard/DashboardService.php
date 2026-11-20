@@ -3,6 +3,8 @@
 namespace App\Services\Dashboard;
 
 use App\Enums\BlockType;
+use App\Enums\DashboardPeriod;
+use App\Models\Booking;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
@@ -10,17 +12,21 @@ use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
 use App\Services\Statistics\NightCounter;
+use App\Services\Statistics\RevenueCalculator;
 use Carbon\CarbonImmutable;
 
 /**
- * Tableau de bord de l'hôte (spec « Back-office › Tableau de bord ») : arrivées et départs
- * des 7 prochains jours, occupation et encaissements du mois, alertes (conflits de dates,
+ * Tableau de bord de l'hôte (spec « Back-office › Tableau de bord ») : chiffres de la
+ * semaine, du mois ou de l'année comparés à la période précédente, revenus directs des six
+ * derniers mois, arrivées et départs des 7 prochains jours, alertes (conflits de dates,
  * calendriers en échec ou vides refusés, messages non lus). Les réservations à valider et
  * les paiements échoués s'y ajoutent avec le paiement Stripe.
  */
 class DashboardService
 {
     public const MOVEMENT_DAYS = 7;
+
+    public const REVENUE_MONTHS = 6;
 
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
@@ -29,17 +35,22 @@ class DashboardService
         private readonly AlertCollector $alertCollector,
         private readonly ContactMessageRepositoryInterface $messages,
         private readonly NightCounter $nights,
+        private readonly RevenueCalculator $revenue,
     ) {}
 
     /**
      * @return array<string, mixed>
      */
-    public function summary(CarbonImmutable $today): array
+    public function summary(CarbonImmutable $today, DashboardPeriod $period = DashboardPeriod::Month): array
     {
+        [$from, $to] = $period->current($today);
+
         return [
             'today' => $today->toDateString(),
+            'period' => ['key' => $period->value, 'from' => $from->toDateString(), 'to' => $to->toDateString()],
+            'figures' => $this->figures($period, $today),
+            'revenue_months' => $this->revenueMonths($today),
             'movements' => $this->movements($today),
-            'month' => $this->month($today),
             'alerts' => $this->alerts($today),
         ];
     }
@@ -76,21 +87,66 @@ class DashboardService
     }
 
     /**
-     * @return array{occupancy: float|null, nights: array{direct: int, platform: int, closed: int}, revenue: int}
+     * Chiffres de la période et de la précédente (comparaison) : occupation tous canaux,
+     * revenus directs (au jour d'arrivée, hors taxe de séjour), séjours arrivés dont directs.
+     *
+     * @return array<string, array<string, mixed>>
      */
-    private function month(CarbonImmutable $today): array
+    private function figures(DashboardPeriod $period, CarbonImmutable $today): array
     {
-        $from = $today->startOfMonth();
-        $to = $from->addMonth();
+        $current = $this->periodFigures(...$period->current($today));
+        $previous = $this->periodFigures(...$period->previous($today));
+
+        return [
+            'occupancy' => ['value' => $current['occupancy'], 'previous' => $previous['occupancy']],
+            'revenue' => ['value' => $current['revenue'], 'previous' => $previous['revenue']],
+            'stays' => ['value' => $current['stays'], 'direct' => $current['direct_stays'], 'previous' => $previous['stays']],
+        ];
+    }
+
+    /**
+     * @return array{occupancy: float|null, revenue: int, stays: int, direct_stays: int}
+     */
+    private function periodFigures(CarbonImmutable $from, CarbonImmutable $to): array
+    {
         $apartments = $this->apartments->allOrdered();
-        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $apartments->modelKeys());
+        $ids = $apartments->modelKeys();
+        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
         $nights = $this->nights->count($blocks, $from, $to);
+        $arrivals = $blocks->filter(fn (AvailabilityBlock $block) => $block->starts_on->gte($from) && $block->starts_on->lt($to))
+            ->map(fn (AvailabilityBlock $block) => $this->nights->kind($block))
+            ->filter(fn (?string $kind) => in_array($kind, ['direct', 'platform'], true));
 
         return [
             'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $from->diffInDays($to)),
-            'nights' => $nights,
-            'revenue' => $this->bookings->netPaymentsBetween($from, $to),
+            'revenue' => $this->revenue->of($this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids)),
+            'stays' => $arrivals->count(),
+            'direct_stays' => $arrivals->filter(fn (string $kind) => $kind === 'direct')->count(),
         ];
+    }
+
+    /**
+     * Revenus directs des six derniers mois (mois en cours compris), au mois d'arrivée.
+     *
+     * @return list<array{month: string, revenue: int}>
+     */
+    private function revenueMonths(CarbonImmutable $today): array
+    {
+        $to = $today->startOfMonth()->addMonth();
+        $from = $to->subMonths(self::REVENUE_MONTHS);
+        $ids = $this->apartments->allOrdered()->modelKeys();
+        $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
+
+        $months = [];
+        for ($month = $from; $month->lt($to); $month = $month->addMonth()) {
+            $end = $month->addMonth();
+            $months[] = [
+                'month' => $month->format('Y-m'),
+                'revenue' => $this->revenue->of($sold->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
+            ];
+        }
+
+        return $months;
     }
 
     /**

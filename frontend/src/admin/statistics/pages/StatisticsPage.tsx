@@ -54,7 +54,7 @@ export function StatisticsPage() {
             value={totals.nights_direct + totals.nights_platform}
             detail={t('admin.dashboard.nightsDetail', { direct: totals.nights_direct, platform: totals.nights_platform })}
           />
-          <StatTile label={t('admin.statistics.occupancy')} value={rate(totals.occupancy)} detail={t('admin.dashboard.occupancyDetail')} />
+          <StatTile label={t('admin.statistics.occupancy')} value={rate(totals.occupancy)} detail={t('admin.statistics.occupancyDetail')} />
           <StatTile
             label={t('admin.statistics.averagePrice')}
             value={totals.average_nightly_price === null ? '—' : formatEuros(totals.average_nightly_price)}

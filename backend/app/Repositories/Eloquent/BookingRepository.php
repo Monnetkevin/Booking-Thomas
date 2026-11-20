@@ -118,16 +118,6 @@ class BookingRepository implements BookingRepositoryInterface
         $booking->payments()->create(['type' => PaymentType::Payment, 'amount' => $amount, 'status' => PaymentStatus::Succeeded]);
     }
 
-    public function netPaymentsBetween(CarbonInterface $from, CarbonInterface $to): int
-    {
-        return (int) Payment::query()
-            ->where('status', PaymentStatus::Succeeded)
-            ->where('created_at', '>=', $from)
-            ->where('created_at', '<', $to)
-            ->selectRaw("coalesce(sum(case when type = 'refund' then -amount else amount end), 0) as net")
-            ->value('net');
-    }
-
     public function soldArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection
     {
         return Booking::query()

@@ -30,6 +30,7 @@ class StatisticsService
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly BookingRepositoryInterface $bookings,
         private readonly NightCounter $nights,
+        private readonly RevenueCalculator $revenue,
     ) {}
 
     /**
@@ -54,7 +55,7 @@ class StatisticsService
                 'month' => $month->format('Y-m'),
                 'nights_direct' => $nights['direct'],
                 'nights_platform' => $nights['platform'],
-                'revenue' => $this->revenue($sold->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
+                'revenue' => $this->revenue->of($sold->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
                 'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $month->diffInDays($end)),
             ];
         }
@@ -66,7 +67,7 @@ class StatisticsService
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'totals' => [
-                'revenue' => $this->revenue($sold),
+                'revenue' => $this->revenue->of($sold),
                 'nights_direct' => $total['direct'],
                 'nights_platform' => $total['platform'],
                 'average_nightly_price' => $this->averageNightlyPrice($sold),
@@ -82,7 +83,7 @@ class StatisticsService
                     'name' => $apartment->getTranslation('name', 'fr'),
                     'nights_direct' => $nights['direct'],
                     'nights_platform' => $nights['platform'],
-                    'revenue' => $this->revenue($sold->where('apartment_id', $apartment->id)),
+                    'revenue' => $this->revenue->of($sold->where('apartment_id', $apartment->id)),
                     'occupancy' => $this->nights->occupancy($nights, 1, $days),
                     'rating' => null,
                 ];
@@ -126,14 +127,6 @@ class StatisticsService
         }
 
         return strpbrk($text, ";\"\n\r") !== false ? '"'.str_replace('"', '""', $text).'"' : $text;
-    }
-
-    /**
-     * @param  Collection<int, Booking>  $bookings
-     */
-    private function revenue(Collection $bookings): int
-    {
-        return (int) $bookings->sum(fn (Booking $booking) => $booking->total_amount - $booking->tourist_tax);
     }
 
     /**

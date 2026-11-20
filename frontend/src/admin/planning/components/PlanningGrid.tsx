@@ -1,15 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
-import { blockKind, placeBlock, type BlockKind } from '../planningLayout'
+import { blockKindClasses } from '../blockColors'
+import { blockKind, placeBlock } from '../planningLayout'
 import type { PlanningApartment, PlanningBlock } from '../types'
-
-const kindClasses: Record<BlockKind, string> = {
-  direct: 'bg-accent text-white',
-  manualBooking: 'bg-success text-white',
-  pending: 'border-2 border-dashed border-warning bg-warning-soft text-warning',
-  ical: 'bg-night-soft text-white',
-  closed: 'bg-line text-ink',
-}
 
 interface PlanningGridProps {
   days: string[]
@@ -79,7 +72,7 @@ export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay }: P
                     style={{ gridColumn: `${placement.start + 1} / span ${placement.span}`, gridRow: 1 }}
                     className={cn(
                       'z-10 mx-0.5 my-1.5 truncate rounded-lg px-2 text-left text-xs font-semibold',
-                      kindClasses[blockKind(block)],
+                      blockKindClasses[blockKind(block)],
                       block.has_conflict && 'ring-2 ring-danger ring-offset-1',
                       block.has_conflict && 'self-end',
                       placement.continuesBefore && 'rounded-l-none',

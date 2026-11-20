@@ -39,31 +39,77 @@
   "logout": "Se déconnecter",
   "connectedAs": "Connecté : {{name}}",
   "dashboard": {
-    "title": "Tableau de bord",
-    "welcome": "Bonjour {{name}}, voici l’essentiel des prochains jours.",
-    "conflicts_one": "{{count}} conflit de dates :",
-    "conflicts_other": "{{count}} conflits de dates :",
-    "openPlanning": "Voir le planning",
-    "failingFeed": "Le calendrier {{provider}} du {{apartment}} est en échec ({{count}} lectures de suite).",
-    "emptyRefused": "Le calendrier {{provider}} du {{apartment}} est arrivé vide et a été ignoré par précaution.",
-    "openSync": "Ouvrir la synchronisation",
-    "unreadMessages_one": "{{count}} message non lu.",
-    "unreadMessages_other": "{{count}} messages non lus.",
-    "openMessages": "Lire les messages",
-    "occupancy": "Occupation ce mois-ci",
-    "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements.",
-    "nightsSold": "Nuits vendues ce mois-ci",
+    "occupancy": "Taux d’occupation",
+    "occupancyDetail": {
+      "week": "cette semaine, tous canaux",
+      "month": "ce mois-ci, tous canaux",
+      "year": "cette année, tous canaux"
+    },
     "nightsDetail": "{{direct}} en direct · {{platform}} sur Airbnb",
-    "revenue": "Encaissé ce mois-ci",
-    "revenueDetail": "Paiements reçus moins remboursements (réservations directes).",
-    "movements": "Arrivées et départs des 7 prochains jours",
+    "revenue": "Revenus directs",
+    "revenueDetail": "Réservations du site, hors taxe de séjour.",
+    "movements": "Arrivées et départs",
     "today": "Aujourd’hui",
-    "arrivals": "Arrivées",
-    "departures": "Départs",
-    "platform": "Séjour importé",
     "guests_one": "{{count}} voyageur",
     "guests_other": "{{count}} voyageurs",
-    "noMovement": "Ni arrivée ni départ."
+    "hello": "Bonjour {{name}}",
+    "period": "Période",
+    "periods": {
+      "week": "Semaine",
+      "month": "Mois",
+      "year": "Année"
+    },
+    "periodIntro": {
+      "week": "Voici l’activité de la semaine du {{from}} au {{to}}.",
+      "month": "Voici l’activité du mois, du {{from}} au {{to}}.",
+      "year": "Voici l’activité de l’année, du {{from}} au {{to}}."
+    },
+    "newBooking": "Nouvelle réservation",
+    "stable": "stable",
+    "vsPrevious": "par rapport à la période précédente",
+    "delta": {
+      "points": "{{value}} pts",
+      "percent": "{{value}} %",
+      "count": "{{value}}"
+    },
+    "stays": "Séjours",
+    "staysDetail_one": "dont {{count}} réservé sur le site",
+    "staysDetail_other": "dont {{count}} réservés sur le site",
+    "revenueChart": "Revenus directs",
+    "revenueChartHint": "6 derniers mois, réservations du site, au mois d’arrivée.",
+    "revenueChartLabel": "Revenus directs par mois : {{list}}.",
+    "todoTitle": "À traiter",
+    "nothingToDo": "Rien à traiter pour le moment.",
+    "open": "Ouvrir",
+    "todo": {
+      "conflict": {
+        "title": "Conflit de dates",
+        "text": "{{apartment}} : deux séjours se chevauchent du {{from}} au {{to}}."
+      },
+      "failingFeed": {
+        "title": "Synchronisation iCal en erreur",
+        "text": "{{apartment}} : le calendrier {{provider}} échoue ({{count}} lectures de suite)."
+      },
+      "emptyFeed": {
+        "title": "Calendrier arrivé vide",
+        "text": "{{apartment}} : le calendrier {{provider}} est arrivé vide et a été ignoré par précaution."
+      },
+      "messages": {
+        "title_one": "{{count}} message non lu",
+        "title_other": "{{count}} messages non lus",
+        "text": "Questions envoyées depuis le formulaire de contact."
+      }
+    },
+    "movementsHint": "7 prochains jours",
+    "seeAll": "Tout voir",
+    "noMovementAhead": "Aucune arrivée ni départ dans les 7 prochains jours.",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "sourceDirect": "Direct",
+    "platformGuest": "Voyageur de la plateforme",
+    "occupancyStrip": "Occupation",
+    "occupancyStripHint": "{{days}} prochains jours",
+    "free": "Libre"
   },
   "forbidden": "Votre compte n'a pas accès à cette page.",
   "common": {
@@ -712,7 +758,8 @@
     "occupancyShort": "Occupation",
     "byApartment": "Par logement",
     "platformAmounts": "Les montants Airbnb ne sont pas connus : le calendrier iCal ne transmet que les dates.",
-    "rating": "Note moyenne"
+    "rating": "Note moyenne",
+    "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements."
   },
   "badge": "ADMIN",
   "account": {
