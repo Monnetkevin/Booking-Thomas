@@ -3,6 +3,7 @@
 namespace App\Services\Booking;
 
 use App\Enums\AuditAction;
+use App\Enums\BookingPaymentState;
 use App\Enums\BookingStatus;
 use App\Events\StayScheduleChanged;
 use App\Exceptions\Booking\BookingNotCancellableException;
@@ -59,7 +60,16 @@ class AdminBookingService
      */
     public function list(BookingFilters $filters): LengthAwarePaginator
     {
-        return $this->bookings->paginateForAdmin($filters, self::PER_PAGE);
+        $page = $this->bookings->paginateForAdmin($filters, self::PER_PAGE);
+        // État du règlement, à partir des sommes payées et remboursées chargées par la liste.
+        foreach ($page->items() as $booking) {
+            $booking->setAttribute(
+                'payment_state',
+                BookingPaymentState::of($booking->status, (int) $booking->getAttribute('paid_amount'), (int) $booking->getAttribute('refunded_amount')),
+            );
+        }
+
+        return $page;
     }
 
     /**
@@ -94,6 +104,21 @@ class AdminBookingService
                 $this->csv->euros($booking->tourist_tax),
             ];
         }
+
+        // Export de données personnelles (noms) : tracé, avec les filtres et le nombre de lignes.
+        $this->audit->record(AuditAction::BookingsExported, after: [
+            'rows' => count($rows) - 1,
+            // Filtres sans la recherche saisie (elle peut contenir un nom) : seulement sa présence.
+            'filters' => array_filter([
+                'stage' => $filters->stage?->value,
+                'status' => $filters->status?->value,
+                'source' => $filters->source?->value,
+                'apartment_id' => $filters->apartmentId,
+                'from' => $filters->from,
+                'to' => $filters->to,
+                'search' => $filters->search !== null,
+            ]),
+        ]);
 
         return $this->csv->write($rows);
     }

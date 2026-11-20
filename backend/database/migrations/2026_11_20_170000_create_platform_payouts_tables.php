@@ -20,6 +20,8 @@ return new class extends Migration
             $table->unsignedInteger('rows_created')->default(0);
             $table->unsignedInteger('rows_updated')->default(0);
             $table->unsignedInteger('rows_skipped')->default(0);
+            // Versements retirés : réservations annulées chez la plateforme.
+            $table->unsignedInteger('rows_removed')->default(0);
             $table->timestamps();
         });
 

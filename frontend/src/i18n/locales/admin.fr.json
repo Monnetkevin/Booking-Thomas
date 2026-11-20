@@ -607,7 +607,8 @@
       "user.invited": "Compte invité",
       "user.updated": "Compte modifié",
       "user.password_link_sent": "Lien de mot de passe envoyé",
-      "platform_payouts.imported": "Revenus d’une plateforme importés"
+      "platform_payouts.imported": "Revenus d’une plateforme importés",
+      "bookings.exported": "Réservations exportées (CSV)"
     }
   },
   "notFound": {
@@ -1030,9 +1031,11 @@
     "unmapped_other": "{{count}} annonces ne sont rattachées à aucun logement : leurs séjours ne seront pas importés.",
     "import_one": "Importer {{count}} séjour",
     "import_other": "Importer {{count}} séjours",
-    "done": "Import terminé : {{created}} nouveaux, {{updated}} mis à jour, {{skipped}} ignorés.",
+    "done": "Import terminé : {{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés (annulés), {{skipped}} ignorés.",
     "historyTitle": "Derniers imports",
     "noHistory": "Aucun import pour le moment.",
-    "counts": "{{created}} nouveaux, {{updated}} mis à jour, {{skipped}} ignorés"
+    "counts": "{{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés, {{skipped}} ignorés",
+    "cancelled_one": "{{count}} réservation annulée chez la plateforme sera retirée.",
+    "cancelled_other": "{{count}} réservations annulées chez la plateforme seront retirées."
   }
 }

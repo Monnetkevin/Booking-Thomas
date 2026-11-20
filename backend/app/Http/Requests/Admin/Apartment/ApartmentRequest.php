@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin\Apartment;
 
 use App\Enums\CancellationPolicy;
-use App\Models\Apartment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,18 +41,13 @@ abstract class ApartmentRequest extends FormRequest
             'min_stay' => ['required', 'integer', 'between:1,365'],
             'max_stay' => ['required', 'integer', 'between:1,365', 'gte:min_stay'],
             'turnover_days' => ['required', 'integer', 'between:0,7'],
-            // Prix : l'administrateur seul les fixe ; ceux envoyés par le gestionnaire sont ignorés.
-            'cleaning_fee' => [$this->canManagePricing() ? 'required' : 'sometimes', 'integer', 'between:0,100000'],
+            // Facultatif : ignoré pour le gestionnaire (ApartmentService), 0 par défaut à la création.
+            'cleaning_fee' => ['sometimes', 'integer', 'between:0,100000'],
             'cancellation_policy' => ['required', Rule::enum(CancellationPolicy::class)],
             'registration_number' => ['nullable', 'string', 'max:50'],
             'amenity_ids' => ['sometimes', 'array'],
             'amenity_ids.*' => ['integer', 'distinct', Rule::exists('amenities', 'id')],
         ];
-    }
-
-    private function canManagePricing(): bool
-    {
-        return (bool) $this->user()?->can('managePricing', Apartment::class);
     }
 
     /**
@@ -64,9 +58,6 @@ abstract class ApartmentRequest extends FormRequest
     public function apartmentData(): array
     {
         $data = $this->validated();
-        if (! $this->canManagePricing()) {
-            unset($data['cleaning_fee']);
-        }
 
         foreach (['name', 'tagline', 'description'] as $field) {
             if (isset($data[$field]) && is_array($data[$field])) {

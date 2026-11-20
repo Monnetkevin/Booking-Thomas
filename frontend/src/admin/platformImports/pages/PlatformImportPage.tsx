@@ -157,6 +157,7 @@ export function PlatformImportPage() {
                     </table>
                   </div>
                 )}
+                {data.cancelled > 0 && <p className="mt-3 text-sm text-muted">{t('admin.platformImport.cancelled', { count: data.cancelled })}</p>}
                 {data.skipped.length > 0 && (
                   <p className="mt-3 text-sm text-muted">{t('admin.platformImport.skippedLines', { lines: data.skipped.map((entry) => entry.line).join(', ') })}</p>
                 )}
@@ -177,7 +178,7 @@ export function PlatformImportPage() {
 
           {run.isSuccess && (
             <Alert tone="success">
-              {t('admin.platformImport.done', { created: run.data.rows_created, updated: run.data.rows_updated, skipped: run.data.rows_skipped })}
+              {t('admin.platformImport.done', { created: run.data.rows_created, updated: run.data.rows_updated, skipped: run.data.rows_skipped, removed: run.data.rows_removed })}
             </Alert>
           )}
         </div>
@@ -198,7 +199,7 @@ export function PlatformImportPage() {
                   </p>
                   <p className="text-xs text-muted">
                     {formatDateTime(entry.created_at)}
-                    {entry.by && ` · ${entry.by}`} · {t('admin.platformImport.counts', { created: entry.rows_created, updated: entry.rows_updated, skipped: entry.rows_skipped })}
+                    {entry.by && ` · ${entry.by}`} · {t('admin.platformImport.counts', { created: entry.rows_created, updated: entry.rows_updated, skipped: entry.rows_skipped, removed: entry.rows_removed })}
                   </p>
                 </li>
               ))}

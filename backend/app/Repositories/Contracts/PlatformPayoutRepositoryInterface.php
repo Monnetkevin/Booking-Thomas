@@ -50,6 +50,13 @@ interface PlatformPayoutRepositoryInterface
     public function upsert(PayoutPlatform $platform, string $entryKey, array $attributes): bool;
 
     /**
+     * Supprime ces versements (annulés chez la plateforme) ; renvoie le nombre supprimé.
+     *
+     * @param  list<string>  $keys
+     */
+    public function deleteKeys(PayoutPlatform $platform, array $keys): int;
+
+    /**
      * @return Collection<int, PlatformImport>
      */
     public function recentImports(int $limit): Collection;

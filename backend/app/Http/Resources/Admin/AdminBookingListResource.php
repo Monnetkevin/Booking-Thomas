@@ -30,10 +30,8 @@ class AdminBookingListResource extends JsonResource
             'status' => $this->status->value,
             'source' => $this->source->value,
             'total_amount' => $this->total_amount,
-            // Sommes chargées par la liste (withSum) ; absentes ailleurs, le règlement n'est pas donné.
-            'payment_state' => array_key_exists('paid_amount', $this->resource->getAttributes())
-                ? BookingPaymentState::of($this->status, (int) $this->resource->getAttribute('paid_amount'), (int) $this->resource->getAttribute('refunded_amount'))->value
-                : null,
+            // Calculé par AdminBookingService::list ; absent ailleurs.
+            'payment_state' => ($state = $this->resource->getAttribute('payment_state')) instanceof BookingPaymentState ? $state->value : null,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

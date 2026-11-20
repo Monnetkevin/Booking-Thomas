@@ -205,7 +205,8 @@ it('exporte la liste filtrée en CSV, sans coordonnées et sans formule exécuta
         ->toContain("'=HYPERLINK")
         ->toContain('345,00')
         ->not->toContain('secret@example.com')
-        ->and(substr_count($csv, "\r\n"))->toBe(2);
+        ->and(substr_count($csv, "\r\n"))->toBe(2)
+        ->and(AuditLog::query()->where('action', AuditAction::BookingsExported->value)->sole()->after)->toBe(['rows' => 1, 'filters' => ['stage' => 'upcoming']]);
 });
 
 it('retrace l’historique de la réservation : paiements, corrections avec leur auteur, séjour à venir', function () {

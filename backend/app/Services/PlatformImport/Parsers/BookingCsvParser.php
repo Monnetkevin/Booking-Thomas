@@ -7,7 +7,7 @@ use App\Services\PlatformImport\PlatformRow;
 
 /**
  * Export des réservations de l'extranet Booking.com (CSV, ou Excel enregistré en CSV).
- * Les réservations annulées sont ignorées ; le net est le prix moins la commission. Sans
+ * Les réservations annulées sont retirées si elles avaient été importées ; le net est le prix moins la commission. Sans
  * colonne de logement (un seul établissement), l'annonce s'appelle « Booking.com ».
  * À vérifier sur un vrai export du client : les noms de colonnes peuvent varier.
  */
@@ -37,10 +37,16 @@ class BookingCsvParser implements PlatformCsvParser
 
         $rows = [];
         $skipped = [];
+        $cancelled = [];
         foreach ($table->rows() as ['line' => $line, 'cells' => $cells]) {
             $cell = fn (string $key): ?string => $columns[$key] === null ? null : ($cells[$columns[$key]] ?? null);
             $status = mb_strtolower((string) $cell('status'));
             if (str_contains($status, 'cancel') || str_contains($status, 'annul')) {
+                // Annulée après un import précédent : son revenu doit disparaître.
+                if ((string) $cell('code') !== '') {
+                    $cancelled[] = PlatformRow::key((string) $cell('code'));
+                }
+
                 continue;
             }
             $arrival = CsvTable::date($cell('arrival'), true);
@@ -69,6 +75,6 @@ class BookingCsvParser implements PlatformCsvParser
             );
         }
 
-        return (new ParseResult($rows, $skipped))->withinRange();
+        return (new ParseResult($rows, $skipped, $cancelled))->withinRange();
     }
 }

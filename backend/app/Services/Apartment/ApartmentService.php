@@ -48,9 +48,11 @@ class ApartmentService
      * Un logement naît toujours en brouillon : il n'est publié qu'une fois complet.
      *
      * @param  array<string, mixed>  $data
+     * @param  bool  $canManagePricing  faux pour le gestionnaire : prix ignorés
      */
-    public function create(array $data): Apartment
+    public function create(array $data, bool $canManagePricing = true): Apartment
     {
+        $data = $this->withoutPricesUnlessAllowed($data, $canManagePricing);
         $amenityIds = $data['amenity_ids'] ?? null;
         unset($data['amenity_ids']);
 
@@ -73,9 +75,11 @@ class ApartmentService
 
     /**
      * @param  array<string, mixed>  $data
+     * @param  bool  $canManagePricing  faux pour le gestionnaire : prix ignorés
      */
-    public function update(Apartment $apartment, array $data): Apartment
+    public function update(Apartment $apartment, array $data, bool $canManagePricing = true): Apartment
     {
+        $data = $this->withoutPricesUnlessAllowed($data, $canManagePricing);
         $amenityIds = $data['amenity_ids'] ?? null;
         unset($data['amenity_ids'], $data['status'], $data['position'], $data['slug']);
 
@@ -234,5 +238,21 @@ class ApartmentService
         }
 
         return $slug;
+    }
+
+    /**
+     * Les prix (frais de ménage) ne sont fixés que par qui en a le droit (ApartmentPolicy::
+     * managePricing) : sinon ils sont ignorés, la fiche s'enregistre sans eux.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withoutPricesUnlessAllowed(array $data, bool $canManagePricing): array
+    {
+        if (! $canManagePricing) {
+            unset($data['cleaning_fee']);
+        }
+
+        return $data;
     }
 }

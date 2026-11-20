@@ -34,7 +34,7 @@ class PlatformImportService
     ) {}
 
     /**
-     * @return array{rows: list<array<string, mixed>>, skipped: list<array{line: int, reason: string}>, listings: list<array{listing: string, apartment_id: int|null}>}
+     * @return array{rows: list<array<string, mixed>>, skipped: list<array{line: int, reason: string}>, cancelled: int, listings: list<array{listing: string, apartment_id: int|null}>}
      */
     public function preview(PayoutPlatform $platform, string $contents): array
     {
@@ -62,6 +62,8 @@ class PlatformImportService
                 'already_imported' => in_array($row->entryKey, $existing, true),
             ], $result->rows),
             'skipped' => $result->skipped,
+            // Annulées chez la plateforme et déjà importées : retirées à l'import.
+            'cancelled' => count($this->payouts->existingKeys($platform, $result->cancelledKeys)),
             'listings' => array_values($listings),
         ];
     }
@@ -104,7 +106,9 @@ class PlatformImportService
                 $isNew ? $created++ : $updated++;
             }
 
-            return $this->payouts->updateImport($import, ['rows_created' => $created, 'rows_updated' => $updated, 'rows_skipped' => $skipped]);
+            $removed = $this->payouts->deleteKeys($platform, $result->cancelledKeys);
+
+            return $this->payouts->updateImport($import, ['rows_created' => $created, 'rows_updated' => $updated, 'rows_skipped' => $skipped, 'rows_removed' => $removed]);
         });
 
         $this->audit->record(AuditAction::PlatformPayoutsImported, $import, after: [
@@ -112,6 +116,7 @@ class PlatformImportService
             'created' => $import->rows_created,
             'updated' => $import->rows_updated,
             'skipped' => $import->rows_skipped,
+            'removed' => $import->rows_removed,
         ]);
 
         return $import;

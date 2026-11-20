@@ -137,3 +137,26 @@ it('détache une annonce mise sur « Non rattachée » : ses lignes ne sont plus
     $this->post('/api/admin/platform-imports/preview', ['platform' => 'airbnb', 'file' => platformFile('airbnb-fr.csv')], ['Accept' => 'application/json'])
         ->assertJsonPath('data.listings.0.apartment_id', null);
 });
+
+it('lit le séparateur des milliers, retire une réservation Booking.com annulée depuis, et refuse un fichier trop long', function () {
+    expect(CsvTable::cents('1,234'))->toBe(123400)
+        ->and(CsvTable::cents('1.234'))->toBe(123400)
+        ->and(CsvTable::cents('1,234,567'))->toBe(123456700)
+        ->and(CsvTable::cents('12,34'))->toBe(1234)
+        ->and(CsvTable::cents('1.5'))->toBe(150);
+
+    $mapping = [['listing' => 'Le Cocon', 'apartment_id' => $this->cocon->id]];
+    $ok = UploadedFile::fake()->createWithContent('a.csv', "Book number,Check-in,Check-out,Status,Price,Unit type\n77,2026-12-01,2026-12-03,ok,\"1,234 EUR\",Le Cocon\n");
+    $this->post('/api/admin/platform-imports', ['platform' => 'booking', 'file' => $ok, 'mapping' => $mapping], ['Accept' => 'application/json'])->assertCreated();
+    expect(PlatformPayout::query()->sole()->gross_amount)->toBe(123400);
+
+    $cancelled = UploadedFile::fake()->createWithContent('b.csv', "Book number,Check-in,Check-out,Status,Price,Unit type\n77,2026-12-01,2026-12-03,cancelled_by_guest,\"1,234 EUR\",Le Cocon\n");
+    $this->post('/api/admin/platform-imports/preview', ['platform' => 'booking', 'file' => $cancelled], ['Accept' => 'application/json'])->assertJsonPath('data.cancelled', 1);
+    $this->post('/api/admin/platform-imports', ['platform' => 'booking', 'file' => $cancelled], ['Accept' => 'application/json'])->assertJsonPath('data.rows_removed', 1);
+    expect(PlatformPayout::query()->count())->toBe(0);
+
+    $big = UploadedFile::fake()->createWithContent('c.csv', "Book number,Check-in,Check-out,Price\n".str_repeat("1,2026-12-01,2026-12-03,1\n", CsvTable::MAX_ROWS + 1));
+    $this->post('/api/admin/platform-imports/preview', ['platform' => 'booking', 'file' => $big], ['Accept' => 'application/json'])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'platform_file_too_large');
+});

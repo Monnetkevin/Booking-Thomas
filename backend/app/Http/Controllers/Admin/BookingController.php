@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\Bookings\UpdateBookingRequest;
 use App\Http\Resources\Admin\AdminBookingListResource;
 use App\Http\Resources\Admin\AdminBookingResource;
 use App\Http\Responses\CsvDownload;
+use App\Models\Apartment;
 use App\Models\Booking;
 use App\Services\Booking\AdminBookingService;
 use App\Services\Booking\BookingConfirmationPdf;
@@ -55,6 +56,10 @@ class BookingController extends Controller
     public function store(StoreManualBookingRequest $request): JsonResponse
     {
         Gate::authorize('create', Booking::class);
+        // Un total différent du prix calculé est une modification de prix : administrateur seulement.
+        if ($request->total() !== null) {
+            Gate::authorize('managePricing', Apartment::class);
+        }
 
         $booking = $this->manual->create(
             $request->integer('apartment_id'),

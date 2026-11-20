@@ -37,7 +37,7 @@ class ApartmentController extends Controller
     {
         Gate::authorize('create', Apartment::class);
 
-        $apartment = $this->apartments->create($request->apartmentData());
+        $apartment = $this->apartments->create($request->apartmentData(), Gate::allows('managePricing', Apartment::class));
 
         return (new AdminApartmentResource($apartment))->response()->setStatusCode(201);
     }
@@ -53,7 +53,7 @@ class ApartmentController extends Controller
     {
         Gate::authorize('update', $apartment);
 
-        return new AdminApartmentResource($this->apartments->update($apartment, $request->apartmentData()));
+        return new AdminApartmentResource($this->apartments->update($apartment, $request->apartmentData(), Gate::allows('managePricing', Apartment::class)));
     }
 
     public function publish(Apartment $apartment): AdminApartmentResource

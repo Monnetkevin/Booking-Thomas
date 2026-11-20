@@ -18,9 +18,10 @@ use Illuminate\Support\Carbon;
  * @property int $rows_created
  * @property int $rows_updated
  * @property int $rows_skipped
+ * @property int $rows_removed
  * @property Carbon $created_at
  */
-#[Fillable(['platform', 'filename', 'user_id', 'rows_created', 'rows_updated', 'rows_skipped'])]
+#[Fillable(['platform', 'filename', 'user_id', 'rows_created', 'rows_updated', 'rows_skipped', 'rows_removed'])]
 class PlatformImport extends Model
 {
     /**

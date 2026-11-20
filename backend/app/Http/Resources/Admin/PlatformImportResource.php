@@ -24,6 +24,7 @@ class PlatformImportResource extends JsonResource
             'rows_created' => $this->rows_created,
             'rows_updated' => $this->rows_updated,
             'rows_skipped' => $this->rows_skipped,
+            'rows_removed' => $this->rows_removed,
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

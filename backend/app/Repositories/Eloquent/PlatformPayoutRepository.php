@@ -33,8 +33,13 @@ class PlatformPayoutRepository implements PlatformPayoutRepositoryInterface
 
     public function existingKeys(PayoutPlatform $platform, array $keys): array
     {
-        /** @var list<string> $existing */
-        $existing = PlatformPayout::query()->where('platform', $platform)->whereIn('entry_key', $keys)->pluck('entry_key')->all();
+        $existing = [];
+        // Par paquets : PostgreSQL limite le nombre de paramètres d'une requête.
+        foreach (array_chunk($keys, 1000) as $chunk) {
+            /** @var list<string> $found */
+            $found = PlatformPayout::query()->where('platform', $platform)->whereIn('entry_key', $chunk)->pluck('entry_key')->all();
+            $existing = [...$existing, ...$found];
+        }
 
         return $existing;
     }
@@ -56,6 +61,16 @@ class PlatformPayoutRepository implements PlatformPayoutRepositoryInterface
         $payout = PlatformPayout::query()->updateOrCreate(['platform' => $platform, 'entry_key' => $entryKey], $attributes);
 
         return $payout->wasRecentlyCreated;
+    }
+
+    public function deleteKeys(PayoutPlatform $platform, array $keys): int
+    {
+        $removed = 0;
+        foreach (array_chunk($keys, 1000) as $chunk) {
+            $removed += PlatformPayout::query()->where('platform', $platform)->whereIn('entry_key', $chunk)->delete();
+        }
+
+        return $removed;
     }
 
     public function recentImports(int $limit): Collection

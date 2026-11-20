@@ -18,6 +18,8 @@ export interface PreviewRow {
 export interface ImportPreview {
   rows: PreviewRow[]
   skipped: Array<{ line: number; reason: string }>
+  /** Réservations annulées chez la plateforme, déjà importées : retirées à l'import. */
+  cancelled: number
   /** Annonces du fichier et le logement auquel chacune est déjà rattachée (null : à choisir). */
   listings: Array<{ listing: string; apartment_id: number | null }>
 }
@@ -30,5 +32,6 @@ export interface PlatformImport {
   rows_created: number
   rows_updated: number
   rows_skipped: number
+  rows_removed: number
   created_at: string
 }

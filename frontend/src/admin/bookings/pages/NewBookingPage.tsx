@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useCurrentUser } from '@/admin/auth/useAuth'
 import { Link, useNavigate } from 'react-router'
 import { useApartmentList } from '@/admin/apartments/useApartments'
 import { PageHeader } from '@/admin/components/PageHeader'
@@ -23,6 +24,7 @@ const QUOTE_FIELDS: readonly (keyof ManualBookingFormValues)[] = ['apartmentId',
  */
 export function NewBookingPage() {
   const { t } = useTranslation()
+  const { data: user } = useCurrentUser()
   const navigate = useNavigate()
   const apartments = useApartmentList()
   const [values, setValues] = useState<ManualBookingFormValues>(emptyManualBooking)
@@ -102,7 +104,10 @@ export function NewBookingPage() {
 
         <Section title={t('admin.manual.price')} description={t('admin.manual.priceHint')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextField label={t('admin.manual.total')} inputMode="decimal" suffix="€" value={values.total} error={error('total', 'total_amount')} onChange={(event) => set('total', event.target.value)} />
+            {/* Prix libre : administrateur seulement (le gestionnaire réserve au prix calculé). */}
+            {user?.role === 'admin' && (
+              <TextField label={t('admin.manual.total')} inputMode="decimal" suffix="€" value={values.total} error={error('total', 'total_amount')} onChange={(event) => set('total', event.target.value)} />
+            )}
           </div>
           <Checkbox className="mt-2" label={t('admin.manual.paid')} checked={values.paid} onChange={(event) => set('paid', event.target.checked)} />
         </Section>

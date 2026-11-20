@@ -13,6 +13,9 @@ class CsvTable
     /** @var list<string> */
     private array $headers;
 
+    /** Au-delà, le fichier est refusé (422) : un export réel en compte bien moins. */
+    public const MAX_ROWS = 5000;
+
     /** @var list<array{line: int, cells: list<string>}> */
     private array $rows = [];
 
@@ -32,6 +35,11 @@ class CsvTable
             $line++;
             if ($cells === [null] || implode('', array_map('strval', $cells)) === '') {
                 continue;
+            }
+            if (count($this->rows) >= self::MAX_ROWS) {
+                fclose($stream);
+
+                throw new PlatformFileTooLargeException(self::MAX_ROWS);
             }
             $this->rows[] = ['line' => $line, 'cells' => array_map(fn ($cell) => trim((string) $cell), $cells)];
         }
@@ -72,6 +80,11 @@ class CsvTable
         }
         $lastComma = strrpos($text, ',');
         $lastDot = strrpos($text, '.');
+        // Un seul séparateur suivi d'exactement 3 chiffres : séparateur des milliers (« 1,234 »,
+        // « 1.234 ») ; les montants en euros n'ont jamais 3 décimales.
+        if (($lastComma === false) !== ($lastDot === false) && preg_match('/^-?\d{1,3}([.,]\d{3})+$/', $text)) {
+            return (int) str_replace([',', '.'], '', $text) * 100;
+        }
         $decimal = $lastComma !== false && ($lastDot === false || $lastComma > $lastDot) ? ',' : '.';
         $thousands = $decimal === ',' ? '.' : ',';
         $text = str_replace([$thousands, $decimal], ['', '.'], $text);

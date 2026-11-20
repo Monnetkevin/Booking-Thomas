@@ -8,10 +8,12 @@ final readonly class ParseResult
     /**
      * @param  list<PlatformRow>  $rows
      * @param  list<array{line: int, reason: string}>  $skipped
+     * @param  list<string>  $cancelledKeys  versements annulés chez la plateforme (à retirer)
      */
     public function __construct(
         public array $rows,
         public array $skipped,
+        public array $cancelledKeys = [],
     ) {}
 
     /**
@@ -30,6 +32,6 @@ final readonly class ParseResult
         }
         usort($skipped, fn (array $a, array $b) => $a['line'] <=> $b['line']);
 
-        return new self($rows, $skipped);
+        return new self($rows, $skipped, $this->cancelledKeys);
     }
 }
