@@ -80,8 +80,44 @@ export const router = createBrowserRouter([
             }),
           },
           {
+            path: 'statistiques',
+            lazy: async () => ({ Component: (await import('@/admin/statistics/pages/StatisticsPage')).StatisticsPage }),
+          },
+          {
+            path: 'planning',
+            lazy: async () => ({ Component: (await import('@/admin/planning/pages/PlanningPage')).PlanningPage }),
+          },
+          {
+            path: 'reservations',
+            lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingsPage')).BookingsPage }),
+          },
+          {
+            path: 'reservations/nouvelle',
+            lazy: async () => ({ Component: (await import('@/admin/bookings/pages/NewBookingPage')).NewBookingPage }),
+          },
+          {
+            path: 'reservations/:reference',
+            lazy: async () => ({ Component: (await import('@/admin/bookings/pages/BookingDetailPage')).BookingDetailPage }),
+          },
+          {
+            path: 'messages',
+            lazy: async () => ({ Component: (await import('@/admin/messages/pages/MessagesPage')).MessagesPage }),
+          },
+          {
+            path: 'reglages',
+            lazy: async () => ({ Component: (await import('@/admin/settings/pages/SettingsPage')).SettingsPage }),
+          },
+          {
+            path: 'journal',
+            lazy: async () => ({ Component: (await import('@/admin/audit/pages/AuditLogPage')).AuditLogPage }),
+          },
+          {
             path: 'utilisateurs',
             lazy: async () => ({ Component: (await import('@/admin/users/pages/UsersPage')).UsersPage }),
+          },
+          {
+            path: '*',
+            lazy: async () => ({ Component: (await import('@/admin/pages/AdminNotFoundPage')).AdminNotFoundPage }),
           },
         ],
       },

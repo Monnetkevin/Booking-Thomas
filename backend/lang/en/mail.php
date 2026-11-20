@@ -7,6 +7,13 @@ return [
         'contact' => 'Contact us',
         'legal' => 'Legal notice',
     ],
+    'booking_cancelled' => [
+        'subject' => 'Booking cancelled (:reference)',
+        'title' => 'Your booking has been cancelled',
+        'intro' => 'Hello :name, your booking :reference has been cancelled.',
+        'refund' => 'If a refund is due under the cancellation terms, it will be paid back to the payment method you used.',
+        'questions' => 'Any question? Simply reply to this email.',
+    ],
     'contact' => [
         'subject' => 'New message from :name',
         'title' => 'New message',

@@ -7,8 +7,18 @@ use App\Enums\PaymentType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
-/** Un enregistrement par mouvement d'argent (paiement ou remboursement), en centimes. */
+/**
+ * Un enregistrement par mouvement d'argent (paiement ou remboursement), en centimes.
+ *
+ * @property int $id
+ * @property int $booking_id
+ * @property PaymentType $type
+ * @property int $amount
+ * @property PaymentStatus $status
+ * @property Carbon|null $created_at
+ */
 #[Fillable([
     'booking_id', 'type', 'amount', 'status', 'stripe_payment_intent_id',
     'stripe_charge_id', 'stripe_refund_id',

@@ -5,6 +5,7 @@ import type { AdminNavItem } from '@/admin/navigation'
 import { Logo } from '@/components/Logo'
 import { applyLocale } from '@/i18n'
 import { cn } from '@/lib/cn'
+import './typographie.css'
 
 interface AdminLayoutProps {
   navigation: AdminNavItem[]
@@ -40,13 +41,17 @@ export function AdminLayout({ navigation, headerActions, footer }: AdminLayoutPr
     )
 
   return (
-    <div className="flex min-h-dvh flex-col bg-sand lg:flex-row">
-      <aside className="flex shrink-0 flex-col bg-night text-night-text lg:sticky lg:top-0 lg:h-dvh lg:w-60">
-        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2 text-white lg:px-5 lg:pt-5 lg:pb-5">
+    <div className="admin-typo flex min-h-dvh flex-col bg-sand lg:flex-row">
+      {/* z-30 : la barre (et le panneau des notifications qu'elle contient) passe au-dessus des
+          éléments positionnés de la page, comme la colonne figée du planning. */}
+      <aside className="relative z-30 flex shrink-0 flex-col bg-night text-night-text lg:sticky lg:top-0 lg:h-dvh lg:w-60">
+        <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-4 pb-2 text-white lg:px-5 lg:pt-5 lg:pb-5">
           <Logo />
           {headerActions}
         </div>
-        <nav ref={navRef} aria-label={t('admin.nav.label')} className="px-3 pb-3 lg:flex-1">
+        {/* Sur ordinateur, la barre fait la hauteur de l'écran : le menu y défile s'il est plus
+            long (écran peu haut), logo et déconnexion restant toujours visibles. */}
+        <nav ref={navRef} aria-label={t('admin.nav.label')} className="px-3 pb-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col">
             {navigation.map((item) => (
               <li key={item.to}>
@@ -58,7 +63,7 @@ export function AdminLayout({ navigation, headerActions, footer }: AdminLayoutPr
             ))}
           </ul>
         </nav>
-        {footer && <div className="border-t border-night-soft px-3 py-3">{footer}</div>}
+        {footer && <div className="shrink-0 border-t border-night-soft px-3 py-3">{footer}</div>}
       </aside>
 
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-8">

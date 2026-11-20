@@ -1,3 +1,4 @@
+import '@/admin/i18n'
 import { useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useSearchParams } from 'react-router'

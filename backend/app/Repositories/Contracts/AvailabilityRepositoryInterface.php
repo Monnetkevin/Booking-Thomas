@@ -77,6 +77,9 @@ interface AvailabilityRepositoryInterface
      */
     public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock;
 
+    /** Supprime le bloc ; renvoie false s'il n'existait déjà plus. */
+    public function deleteBlock(AvailabilityBlock $block): bool;
+
     /**
      * Un autre séjour (réservation ou plateforme) actif du logement part le jour d'arrivée
      * ou arrive le jour de départ : ménage entre deux séjours le même jour.
@@ -91,4 +94,19 @@ interface AvailabilityRepositoryInterface
      * @return Collection<int, AvailabilityBlock>
      */
     public function movementsOn(string $date): Collection;
+
+    /**
+     * Blocs actifs de tous les logements qui touchent [from, to[, avec réservation et
+     * calendrier, pour le planning.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function planningBlocks(string $from, string $to): Collection;
+
+    /**
+     * Séjours importés en conflit qui ne sont pas terminés, avec leur logement.
+     *
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function upcomingConflicts(string $today): Collection;
 }

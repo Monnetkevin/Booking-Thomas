@@ -1,0 +1,104 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Bookings\CancelBookingRequest;
+use App\Http\Requests\Admin\Bookings\ListBookingsRequest;
+use App\Http\Requests\Admin\Bookings\StoreManualBookingRequest;
+use App\Http\Requests\Admin\Bookings\UpdateBookingRequest;
+use App\Http\Resources\Admin\AdminBookingListResource;
+use App\Http\Resources\Admin\AdminBookingResource;
+use App\Models\Booking;
+use App\Services\Booking\AdminBookingService;
+use App\Services\Booking\BookingConfirmationPdf;
+use App\Services\Booking\BookingService;
+use App\Services\Booking\ManualBookingService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
+
+/** Réservations dans le back-office : liste, fiche, coordonnées, annulation, confirmation. */
+class BookingController extends Controller
+{
+    public function __construct(
+        private readonly AdminBookingService $bookings,
+        private readonly BookingService $lifecycle,
+        private readonly BookingConfirmationPdf $pdf,
+        private readonly ManualBookingService $manual,
+    ) {}
+
+    public function index(ListBookingsRequest $request): AnonymousResourceCollection
+    {
+        Gate::authorize('viewAny', Booking::class);
+
+        return AdminBookingListResource::collection($this->bookings->list($request->filters()));
+    }
+
+    /** Réservation saisie par l'hôte (téléphone, connaissance), confirmée tout de suite. */
+    public function store(StoreManualBookingRequest $request): JsonResponse
+    {
+        Gate::authorize('create', Booking::class);
+
+        $booking = $this->manual->create(
+            $request->integer('apartment_id'),
+            $request->stay(),
+            $request->guest(),
+            $request->total(),
+            $request->boolean('paid'),
+            $request->boolean('send_confirmation'),
+        );
+
+        return $this->resource($booking)->response()->setStatusCode(201);
+    }
+
+    public function show(Booking $booking): AdminBookingResource
+    {
+        Gate::authorize('view', $booking);
+
+        return $this->resource($booking);
+    }
+
+    public function update(UpdateBookingRequest $request, Booking $booking): AdminBookingResource
+    {
+        Gate::authorize('update', $booking);
+
+        return $this->resource($this->bookings->update($booking, $request->bookingData()));
+    }
+
+    public function cancel(CancelBookingRequest $request, Booking $booking): AdminBookingResource
+    {
+        Gate::authorize('cancel', $booking);
+
+        return $this->resource($this->bookings->cancel($booking, $request->notifyGuest()));
+    }
+
+    public function resendConfirmation(Booking $booking): Response
+    {
+        Gate::authorize('update', $booking);
+
+        $this->bookings->resendConfirmation($booking);
+
+        return response()->noContent();
+    }
+
+    public function pdf(Booking $booking): Response
+    {
+        Gate::authorize('view', $booking);
+        abort_unless($this->lifecycle->hasConfirmation($booking), 404);
+
+        return response($this->pdf->render($booking), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$this->pdf->filename($booking).'"',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    private function resource(Booking $booking): AdminBookingResource
+    {
+        $booking = $this->bookings->details($booking);
+
+        return new AdminBookingResource($booking, $this->bookings->refundProposal($booking));
+    }
+}

@@ -94,11 +94,38 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return AvailabilityBlock::query()->create($attributes);
     }
 
+    public function deleteBlock(AvailabilityBlock $block): bool
+    {
+        return AvailabilityBlock::query()->whereKey($block->id)->delete() === 1;
+    }
+
     public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock
     {
         $block->update($attributes);
 
         return $block;
+    }
+
+    public function upcomingConflicts(string $today): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->where('has_conflict', true)
+            ->where('ends_on', '>', $today)
+            ->with('apartment:id,name')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function planningBlocks(string $from, string $to): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->overlapping($from, $to)
+            ->with(['booking', 'icalFeed'])
+            ->orderBy('apartment_id')
+            ->orderBy('starts_on')
+            ->get();
     }
 
     public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool

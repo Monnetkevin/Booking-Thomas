@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BellIcon, BuildingIcon, HomeIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
+import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
 
 export interface AdminNavItem {
   to: string
@@ -10,8 +10,14 @@ export interface AdminNavItem {
     | 'admin.nav.apartments'
     | 'admin.nav.rates'
     | 'admin.nav.sync'
+    | 'admin.nav.bookings'
+    | 'admin.nav.planning'
+    | 'admin.nav.statistics'
     | 'admin.nav.notifications'
     | 'admin.nav.users'
+    | 'admin.nav.audit'
+    | 'admin.nav.messages'
+    | 'admin.nav.settings'
   icon: ReactNode
   roles: Role[]
   end?: boolean
@@ -23,11 +29,17 @@ export interface AdminNavItem {
  */
 export const adminNavigation: AdminNavItem[] = [
   { to: '/admin', labelKey: 'admin.nav.dashboard', icon: <HomeIcon />, roles: ['admin'], end: true },
+  { to: '/admin/planning', labelKey: 'admin.nav.planning', icon: <GridIcon />, roles: ['admin'] },
+  { to: '/admin/reservations', labelKey: 'admin.nav.bookings', icon: <CalendarIcon />, roles: ['admin'] },
+  { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: ['admin'] },
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: ['admin'] },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'] },
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: ['admin'] },
+  { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: ['admin'] },
   { to: '/admin/notifications', labelKey: 'admin.nav.notifications', icon: <BellIcon />, roles: ['admin', 'housekeeping'] },
   { to: '/admin/utilisateurs', labelKey: 'admin.nav.users', icon: <UsersIcon />, roles: ['admin'] },
+  { to: '/admin/reglages', labelKey: 'admin.nav.settings', icon: <SettingsIcon />, roles: ['admin'] },
+  { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: ['admin'] },
 ]
 
 export function navigationFor(role: Role, items: AdminNavItem[] = adminNavigation): AdminNavItem[] {

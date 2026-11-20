@@ -2,11 +2,13 @@
 
 namespace App\Services\Users;
 
+use App\Enums\AuditAction;
 use App\Enums\UserRole;
 use App\Exceptions\Users\AccountLockoutException;
 use App\Mail\AccountPasswordLink;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Audit\AuditLogger;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Contracts\Auth\PasswordBrokerFactory;
 use Illuminate\Contracts\Mail\Mailer;
@@ -26,6 +28,7 @@ class UserService
         private readonly UserRepositoryInterface $users,
         private readonly PasswordBrokerFactory $brokers,
         private readonly Mailer $mailer,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -47,6 +50,8 @@ class UserService
             'is_active' => true,
         ]);
         $this->sendPasswordLink($user, invitation: true);
+        // Ni nom ni e-mail dans le journal (conservé un an) : le compte visé suffit.
+        $this->audit->record(AuditAction::UserInvited, $user, after: ['role' => $user->role->value]);
 
         return $user;
     }
@@ -68,13 +73,20 @@ class UserService
                 }
             }
 
-            return $this->users->update($user, $data);
+            $before = array_intersect_key(['name' => $user->name, 'is_active' => $user->is_active], $data);
+            $user = $this->users->update($user, $data);
+            if ($before !== $data) {
+                $this->audit->record(AuditAction::UserUpdated, $user, $before, $data);
+            }
+
+            return $user;
         });
     }
 
     public function sendPasswordReset(User $user): void
     {
         $this->sendPasswordLink($user, invitation: false);
+        $this->audit->record(AuditAction::UserPasswordLinkSent, $user);
     }
 
     /**

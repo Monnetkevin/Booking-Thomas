@@ -7,8 +7,8 @@ export const LOCALES = ['fr', 'en'] as const
 export type Locale = (typeof LOCALES)[number]
 export const DEFAULT_LOCALE: Locale = 'fr'
 
-// Le back-office n'existe qu'en français : ses clés (admin.*) ne figurent que dans fr.json,
-// et l'anglais retombe sur le français pour toute clé absente.
+// Le back-office n'existe qu'en français : ses clés (admin.*) sont chargées avec son code
+// (admin/i18n.ts), et l'anglais retombe sur le français pour toute clé absente.
 void i18n.use(initReactI18next).init({
   resources: { fr: { translation: fr }, en: { translation: en } },
   lng: DEFAULT_LOCALE,

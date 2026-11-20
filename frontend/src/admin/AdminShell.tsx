@@ -1,3 +1,4 @@
+import '@/admin/i18n'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { loginPath } from '@/admin/auth/redirect'
 import { useCurrentUser, useLogout } from '@/admin/auth/useAuth'
