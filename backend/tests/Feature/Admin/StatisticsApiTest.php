@@ -194,3 +194,46 @@ it('rapproche nuits et revenus au mois d’arrivée : un séjour à cheval ne si
         ->assertJsonPath('data.months.5.nights_platform', 4)
         ->assertJsonPath('data.months.5.platform_revenue_missing', false);
 });
+
+it('compte les dates fermées sur Airbnb comme fermées, et un bloc Booking.com comme vendu seulement si un versement le confirme', function () {
+    $airbnb = IcalFeed::factory()->for($this->nid)->create();
+    $booking = IcalFeed::factory()->for($this->cocon)->create(['provider' => 'booking', 'import_url' => 'https://admin.booking.com/hotel/ical.ics?t=x']);
+    AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $airbnb->id, 'external_uid' => 'A1', 'note' => 'Reserved']);
+    AvailabilityBlock::factory()->for($this->nid)->between('2026-11-20', '2026-11-30')->create(['type' => BlockType::Ical, 'ical_feed_id' => $airbnb->id, 'external_uid' => 'A2', 'note' => 'Airbnb (Not available)']);
+    // Booking.com : même résumé pour une réservation et une fermeture.
+    AvailabilityBlock::factory()->for($this->cocon)->between('2026-11-03', '2026-11-06')->create(['type' => BlockType::Ical, 'ical_feed_id' => $booking->id, 'external_uid' => 'B1', 'note' => 'CLOSED - Not available']);
+    AvailabilityBlock::factory()->for($this->cocon)->between('2026-11-15', '2026-11-25')->create(['type' => BlockType::Ical, 'ical_feed_id' => $booking->id, 'external_uid' => 'B2', 'note' => 'CLOSED - Not available']);
+    PlatformPayout::query()->create([
+        'platform' => 'airbnb', 'confirmation_code' => 'HMA', 'entry_key' => 'HMA-1', 'apartment_id' => $this->nid->id,
+        'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 20000,
+    ]);
+    PlatformPayout::query()->create([
+        'platform' => 'booking', 'confirmation_code' => 'BKA', 'entry_key' => 'BKA-1', 'apartment_id' => $this->cocon->id,
+        'arrival' => '2026-11-03', 'departure' => '2026-11-06', 'nights' => 3, 'net_amount' => 36000,
+    ]);
+
+    // Novembre : 2 logements × 30 nuits, 20 fermées (10 Airbnb, 10 Booking.com), 5 vendues.
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.5.nights_platform', 5)
+        ->assertJsonPath('data.months.5.occupancy', 12.5)
+        ->assertJsonPath('data.months.5.platform_revenue_missing', false)
+        ->assertJsonPath('data.totals.revenue_per_night', 11200)
+        ->assertJsonPath('data.totals.average_stay', 2.5);
+    // Le tableau de bord ne montre pas une date fermée sur Airbnb comme une arrivée.
+    $arrivals = collect($this->getJson('/api/admin/dashboard')->json('data.movements'))->firstWhere('date', '2026-11-20')['arrivals'] ?? [];
+    expect($arrivals)->toBe([]);
+});
+
+it('calcule le revenu par nuit sur les seuls séjours vendus et payés', function () {
+    soldBooking($this->cocon, '2026-11-02', '2026-11-04', 15500);   // 2 nuits, 19 500 hors taxe
+    // Annulée, 30 000 gardés : un revenu, mais aucune nuit vendue.
+    $cancelled = directBooking($this->nid, '2026-11-10', '2026-11-14', BookingStatus::Cancelled);
+    $cancelled->update(['total_amount' => 30000, 'tourist_tax' => 1000]);
+    recordPayment($cancelled, 30000);
+    // Saisie à la main pas encore payée : des nuits sans revenu encore.
+    directBooking($this->nid, '2026-11-20', '2026-11-25')->update(['total_amount' => 50000, 'tourist_tax' => 1000]);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.totals.revenue', 49500)
+        ->assertJsonPath('data.totals.revenue_per_night', 9750);
+});

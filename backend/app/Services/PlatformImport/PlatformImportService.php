@@ -38,7 +38,7 @@ class PlatformImportService
      */
     public function preview(PayoutPlatform $platform, string $contents): array
     {
-        $result = $this->parser($platform)->parse($contents);
+        $result = $this->parse($platform, $contents);
         $map = $this->validMap($this->payouts->listingMap($platform));
         $existing = $this->payouts->existingKeys($platform, array_map(fn (PlatformRow $row) => $row->entryKey, $result->rows));
 
@@ -73,7 +73,7 @@ class PlatformImportService
      */
     public function import(PayoutPlatform $platform, string $filename, string $contents, array $mapping, ?int $userId): PlatformImport
     {
-        $result = $this->parser($platform)->parse($contents);
+        $result = $this->parse($platform, $contents);
         // array_replace garde les clés : une annonce nommée « 12 » reste « 12 » (le spread
         // renumérote les clés entières et mélangerait les annonces). Une annonce mise à null
         // par l'hôte est détachée : ses lignes ne sont pas importées.
@@ -131,6 +131,31 @@ class PlatformImportService
     public function history(): Collection
     {
         return $this->payouts->recentImports(self::HISTORY);
+    }
+
+    /**
+     * Lit l'export ; une ligne sans dates (ajustement d'un séjour d'un export précédent) reprend
+     * celles du séjour déjà importé, et son annonce si une seule est rattachée à ce logement.
+     */
+    private function parse(PayoutPlatform $platform, string $contents): ParseResult
+    {
+        return $this->parser($platform)->parse($contents, function (array $codes) use ($platform): array {
+            $listings = [];
+            foreach ($this->payouts->listingMap($platform) as $listing => $apartmentId) {
+                $listings[$apartmentId][] = (string) $listing;
+            }
+            $stays = [];
+            foreach ($this->payouts->firstPayoutsByCode($platform, $codes) as $code => $payout) {
+                $names = $listings[$payout['apartment_id']] ?? [];
+                $stays[(string) $code] = [
+                    'start' => $payout['arrival'],
+                    'nights' => $payout['nights'],
+                    'listing' => count($names) === 1 ? $names[0] : '',
+                ];
+            }
+
+            return $stays;
+        });
     }
 
     private function parser(PayoutPlatform $platform): PlatformCsvParser

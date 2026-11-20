@@ -55,6 +55,8 @@ export function PlatformImportPage() {
   const linked = (listing: string) => mapping[listing] !== null && mapping[listing] !== undefined
   const unmapped = data ? data.listings.filter((entry) => !linked(entry.listing)).length : 0
   const importable = data ? data.rows.filter((row) => linked(row.listing)) : []
+  // Versements déjà importés d'une annonce non rattachée : le serveur les retire à l'import.
+  const detachedRemoved = data ? data.rows.filter((row) => !linked(row.listing) && row.already_imported).length : 0
   const errorMessage = (error: unknown) => (error instanceof ApiError && error.serverMessage) || t('common.error')
 
   return (
@@ -143,7 +145,9 @@ export function PlatformImportPage() {
                             <td className="px-3 py-2 text-right tabular-nums">{row.fees === null ? '—' : formatEuros(row.fees)}</td>
                             <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatEuros(row.net_amount)}</td>
                             <td className="px-3 py-2">
-                              {!linked(row.listing) ? (
+                              {!linked(row.listing) && row.already_imported ? (
+                                <Badge tone="danger">{t('admin.platformImport.states.removed')}</Badge>
+                              ) : !linked(row.listing) ? (
                                 <Badge tone="warning">{t('admin.platformImport.states.unlinked')}</Badge>
                               ) : row.already_imported ? (
                                 <Badge tone="neutral">{t('admin.platformImport.states.update')}</Badge>
@@ -162,6 +166,9 @@ export function PlatformImportPage() {
                   <p className="mt-3 text-sm text-muted">{t('admin.platformImport.skippedLines', { lines: data.skipped.map((entry) => entry.line).join(', ') })}</p>
                 )}
                 {unmapped > 0 && <p className="mt-3 text-sm text-warning">{t('admin.platformImport.unmapped', { count: unmapped })}</p>}
+                {detachedRemoved > 0 && (
+                  <div className="mt-3"><Alert tone="warning">{t('admin.platformImport.detachedRemoved', { count: detachedRemoved })}</Alert></div>
+                )}
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <Button
                     disabled={!file || importable.length === 0}

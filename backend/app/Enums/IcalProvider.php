@@ -21,6 +21,28 @@ enum IcalProvider: string
     }
 
     /**
+     * Vrai si l'événement est une date fermée par l'hôte et non un séjour. Airbnb les
+     * distingue (« Reserved » / « Airbnb (Not available) ») ; Booking.com marque tout
+     * « CLOSED - Not available » : voir confirmsStaysByPayout().
+     */
+    public function isClosure(?string $summary): bool
+    {
+        return match ($this) {
+            self::Airbnb => str_contains(mb_strtolower((string) $summary), 'not available'),
+            self::Booking => false,
+        };
+    }
+
+    /**
+     * Vrai si le calendrier ne distingue pas un séjour d'une date fermée : un bloc n'y compte
+     * comme séjour vendu, dans les statistiques, que si un versement importé le confirme.
+     */
+    public function confirmsStaysByPayout(): bool
+    {
+        return $this === self::Booking;
+    }
+
+    /**
      * L'URL d'import doit appartenir à la plateforme : le serveur ne télécharge jamais une
      * adresse quelconque (réseau interne, autre site).
      */

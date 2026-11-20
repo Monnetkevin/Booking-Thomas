@@ -176,3 +176,29 @@ it('ajoute les ajustements Airbnb au séjour : une annulation remboursée ramèn
         ->and(PlatformPayout::query()->where('confirmation_code', 'HMCANCEL1')->where('net_amount', '<', 0)->sole()->arrival->toDateString())->toBe('2026-11-04')
         ->and(PlatformPayout::query()->where('confirmation_code', 'HMKEEP1')->sole()->net_amount)->toBe(40000);
 });
+
+it('rattache un ajustement d’un export ultérieur au séjour déjà importé, garde les doubles et le signe des frais rendus', function () {
+    $mapping = ['mapping' => [['listing' => 'Studio Cocon centre', 'apartment_id' => $this->cocon->id]]];
+    $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => platformFile('airbnb-adjustments.csv'), ...$mapping], ['Accept' => 'application/json'])
+        ->assertCreated();
+
+    // Export de mars : ni la réservation HMCANCEL1 ni HMKEEP1, mais leurs ajustements.
+    $preview = $this->post('/api/admin/platform-imports/preview', ['platform' => 'airbnb', 'file' => platformFile('airbnb-later-adjustments.csv')], ['Accept' => 'application/json'])
+        ->assertOk()
+        ->assertJsonCount(3, 'data.rows')
+        ->assertJsonPath('data.skipped', [['line' => 5, 'reason' => 'unreadable']]);
+    expect(collect($preview->json('data.rows'))->pluck('entry_key')->unique())->toHaveCount(3);
+
+    $this->post('/api/admin/platform-imports', ['platform' => 'airbnb', 'file' => platformFile('airbnb-later-adjustments.csv'), ...$mapping], ['Accept' => 'application/json'])
+        ->assertCreated()
+        ->assertJsonPath('data.rows_created', 3);
+
+    $refund = PlatformPayout::query()->where('confirmation_code', 'HMCANCEL1')->where('net_amount', -50000)->sole();
+    expect($refund->arrival->toDateString())->toBe('2026-11-04')
+        ->and($refund->nights)->toBe(3)
+        ->and($refund->apartment_id)->toBe($this->cocon->id)
+        // Frais rendus par Airbnb : négatifs.
+        ->and($refund->fees)->toBe(-2400)
+        // Deux ajustements identiques : deux versements.
+        ->and(PlatformPayout::query()->where('confirmation_code', 'HMKEEP1')->sum('net_amount'))->toBe(30000);
+});

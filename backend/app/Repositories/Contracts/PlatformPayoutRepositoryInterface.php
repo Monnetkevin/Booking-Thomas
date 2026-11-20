@@ -5,6 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Enums\PayoutPlatform;
 use App\Models\PlatformImport;
 use App\Models\PlatformPayout;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -55,6 +56,15 @@ interface PlatformPayoutRepositoryInterface
      * @param  list<string>  $keys
      */
     public function deleteKeys(PayoutPlatform $platform, array $keys): int;
+
+    /**
+     * Premier versement déjà importé de chacun de ces séjours (codes de confirmation) : son
+     * arrivée, ses nuits et son logement.
+     *
+     * @param  list<string>  $codes
+     * @return array<string, array{arrival: CarbonImmutable, nights: int, apartment_id: int}>
+     */
+    public function firstPayoutsByCode(PayoutPlatform $platform, array $codes): array;
 
     /**
      * @return Collection<int, PlatformImport>

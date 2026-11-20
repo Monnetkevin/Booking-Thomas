@@ -4,6 +4,7 @@ namespace App\Services\PlatformImport\Parsers;
 
 use App\Services\PlatformImport\ParseResult;
 use App\Services\PlatformImport\PlatformRow;
+use Closure;
 
 /**
  * Export des réservations de l'extranet Booking.com (CSV, ou Excel enregistré en CSV).
@@ -26,7 +27,7 @@ class BookingCsvParser implements PlatformCsvParser
 
     private const REQUIRED = ['code', 'arrival', 'departure', 'price'];
 
-    public function parse(string $contents): ParseResult
+    public function parse(string $contents, ?Closure $knownStays = null): ParseResult
     {
         $table = new CsvTable($contents);
         $columns = array_map(fn (array $names) => $table->column($names), self::COLUMNS);

@@ -2,7 +2,7 @@
 
 namespace App\Services\Statistics;
 
-use App\Enums\BlockType;
+use App\Enums\BookingStatus;
 use App\Enums\PayoutPlatform;
 use App\Enums\StatisticsPeriod;
 use App\Models\Apartment;
@@ -53,10 +53,15 @@ class StatisticsService
         // Seuls les logements existants comptent : sinon les nuits d'un logement supprimé
         // gonfleraient l'occupation sans compter parmi les nuits disponibles.
         $ids = $apartments->modelKeys();
-        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
+        $planning = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
         $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
         $earning = $this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
-        $payouts = $this->payouts->arrivingBetween($from, $to)->whereIn('apartment_id', $ids);
+        // Versements depuis le premier bloc (un séjour arrivé avant la période la chevauche) :
+        // ils confirment les séjours Booking.com ; les revenus ne comptent que ceux de la période.
+        $firstStart = $planning->min(fn (AvailabilityBlock $block) => $block->starts_on->toDateString());
+        $allPayouts = $this->payouts->arrivingBetween($firstStart === null ? $from : $from->min(CarbonImmutable::parse($firstStart)), $to)->whereIn('apartment_id', $ids);
+        $payouts = $allPayouts->filter(fn (PlatformPayout $payout) => $payout->arrival->gte($from));
+        $blocks = $this->nights->confirmPlatformStays($planning, $allPayouts);
 
         $months = [];
         for ($month = $from; $month->lt($to); $month = $month->addMonth()) {
@@ -81,12 +86,8 @@ class StatisticsService
         $direct = $this->revenue->of($earning);
         $platform = $this->platformRevenue($payouts);
         $allRevenue = $direct + array_sum($platform);
-        $soldNights = $total['direct'] + $total['platform'];
         $platformNights = $this->nights->platformNightsArriving($blocks, $from, $to);
         $missing = $this->platformRevenueMissing($platformNights, $platform);
-        // Revenu par nuit : seulement les plateformes dont les nuits sont comptées (calendrier
-        // iCal relié) ; sinon leurs revenus s'ajouteraient sans leurs nuits.
-        $countedRevenue = $direct + array_sum(array_intersect_key($platform, array_filter($platformNights)));
 
         return [
             'period' => $period->value,
@@ -98,7 +99,7 @@ class StatisticsService
                 'total_revenue' => $allRevenue,
                 'direct_share' => $allRevenue > 0 ? round($direct / $allRevenue * 100, 1) : null,
                 // Revenu par nuit vendue, seulement si chaque plateforme vendue a ses revenus importés.
-                'revenue_per_night' => $soldNights > 0 && ! $missing ? (int) round($countedRevenue / $soldNights) : null,
+                'revenue_per_night' => $missing ? null : $this->revenuePerNight($earning, $platform, $platformNights),
                 'nights_direct' => $total['direct'],
                 'nights_platform' => $total['platform'],
                 'average_nightly_price' => $this->averageNightlyPrice($sold),
@@ -158,6 +159,26 @@ class StatisticsService
     }
 
     /**
+     * Revenu par nuit vendue, revenus et nuits pris sur les mêmes séjours, arrivés dans la
+     * période : réservations directes vendues et payées (sans les annulations ni les saisies
+     * non encore payées), séjours des plateformes dont le calendrier est relié (sinon leurs
+     * revenus s'ajouteraient sans leurs nuits). Null sans aucune nuit.
+     *
+     * @param  Collection<int, Booking>  $earning
+     * @param  array<string, int>  $platformRevenue  revenus par plateforme
+     * @param  array<string, int>  $platformNights  nuits par plateforme
+     */
+    private function revenuePerNight(Collection $earning, array $platformRevenue, array $platformNights): ?int
+    {
+        $stays = $earning->filter(fn (Booking $booking) => in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::Completed], true)
+            && $this->revenue->ofBooking($booking) > 0);
+        $nights = $stays->sum(fn (Booking $booking) => $booking->nights()) + array_sum($platformNights);
+        $revenue = $this->revenue->of($stays) + array_sum(array_intersect_key($platformRevenue, array_filter($platformNights)));
+
+        return $nights > 0 ? (int) round($revenue / $nights) : null;
+    }
+
+    /**
      * Revenus nets versés par chaque plateforme, en centimes.
      *
      * @param  Collection<int, PlatformPayout>  $payouts
@@ -213,7 +234,7 @@ class StatisticsService
      */
     private function averageStay(Collection $blocks): ?float
     {
-        $stays = $blocks->filter(fn (AvailabilityBlock $block) => $block->type !== BlockType::Manual && $this->nights->kind($block) !== null);
+        $stays = $blocks->filter(fn (AvailabilityBlock $block) => in_array($this->nights->kind($block), ['direct', 'platform'], true));
 
         return $stays->isEmpty() ? null : round($stays->avg(fn (AvailabilityBlock $block) => $block->starts_on->diffInDays($block->ends_on)), 1);
     }

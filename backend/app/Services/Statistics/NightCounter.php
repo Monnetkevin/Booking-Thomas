@@ -5,13 +5,14 @@ namespace App\Services\Statistics;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
 use App\Models\AvailabilityBlock;
+use App\Models\PlatformPayout;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 /**
  * Compte les nuits d'une période [from, to[ à partir des blocs actifs : vendues en direct
  * (réservations confirmées ou terminées), vendues sur une plateforme (séjours importés),
- * fermées (blocages manuels). Une réservation en attente de paiement n'est pas une vente.
+ * fermées (blocages manuels, dates fermées sur une plateforme). Une réservation en attente de paiement n'est pas une vente.
  */
 class NightCounter
 {
@@ -44,13 +45,37 @@ class NightCounter
     {
         $nights = [];
         foreach ($blocks as $block) {
-            $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
+            $provider = $this->kind($block) === 'platform' ? $block->icalFeed?->provider : null;
             if ($provider !== null && $block->starts_on->gte($from) && $block->starts_on->lt($to)) {
                 $nights[$provider->value] = ($nights[$provider->value] ?? 0) + (int) $block->starts_on->diffInDays($block->ends_on);
             }
         }
 
         return $nights;
+    }
+
+    /**
+     * Pour les statistiques : un bloc d'un calendrier qui ne distingue pas séjours et dates
+     * fermées (Booking.com) n'est un séjour vendu que si un versement importé de cette
+     * plateforme arrive le même jour dans le même logement ; sinon il compte comme fermé.
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks
+     * @param  Collection<int, PlatformPayout>  $payouts
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function confirmPlatformStays(Collection $blocks, Collection $payouts): Collection
+    {
+        $paid = $payouts->mapWithKeys(fn (PlatformPayout $payout) => [$payout->platform->value.'|'.$payout->apartment_id.'|'.$payout->arrival->toDateString() => true]);
+
+        return $blocks->map(function (AvailabilityBlock $block) use ($paid): AvailabilityBlock {
+            $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
+            if ($provider === null || ! $provider->confirmsStaysByPayout() || $paid->has($provider->value.'|'.$block->apartment_id.'|'.$block->starts_on->toDateString())) {
+                return $block;
+            }
+
+            // Copie non enregistrée, comptée comme une fermeture.
+            return $block->replicate()->forceFill(['type' => BlockType::Manual]);
+        });
     }
 
     /** Nuits du bloc qui tombent dans [from, to[. */
@@ -66,7 +91,7 @@ class NightCounter
     public function kind(AvailabilityBlock $block): ?string
     {
         return match ($block->type) {
-            BlockType::Ical => 'platform',
+            BlockType::Ical => $block->icalFeed?->provider->isClosure($block->note) ? 'closed' : 'platform',
             BlockType::Manual => 'closed',
             BlockType::Booking => in_array($block->booking?->status, [BookingStatus::Confirmed, BookingStatus::Completed], true) ? 'direct' : null,
         };

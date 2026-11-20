@@ -4,13 +4,15 @@ namespace App\Services\PlatformImport\Parsers;
 
 use App\Services\PlatformImport\ParseResult;
 use App\Services\PlatformImport\PlatformRow;
+use Closure;
 
 /**
  * Export Airbnb « Revenus › Historique des transactions » (CSV, en français ou en anglais).
  * Les lignes « Réservation » sont des séjours. Les ajustements et annulations (remboursement
  * au voyageur, frais d'annulation…) sont des versements du même séjour, souvent négatifs :
  * ils s'ajoutent à son revenu, une annulation remboursée le ramène donc à zéro. Sans dates,
- * ils reprennent celles de la réservation de même code du fichier. Les versements vers le
+ * ils reprennent celles de la réservation de même code du fichier, ou à défaut celles du
+ * séjour déjà importé (le remboursement arrive souvent dans un export ultérieur). Les versements vers le
  * compte bancaire sont ignorés. Le montant net est celui versé à l'hôte, les frais ceux d'Airbnb.
  * À vérifier sur un vrai export du client : les noms de colonnes peuvent varier.
  */
@@ -36,7 +38,7 @@ class AirbnbCsvParser implements PlatformCsvParser
     /** Fragments des types d'ajustement rattachés à un séjour (« Ajustement de la résolution »…). */
     private const ADJUSTMENT_TYPES = ['ajustement', 'adjustment', 'annulation', 'cancellation', 'résolution', 'resolution'];
 
-    public function parse(string $contents): ParseResult
+    public function parse(string $contents, ?Closure $knownStays = null): ParseResult
     {
         $table = new CsvTable($contents);
         $columns = array_map(fn (array $names) => $table->column($names), self::COLUMNS);
@@ -65,6 +67,20 @@ class AirbnbCsvParser implements PlatformCsvParser
             }
         }
 
+        // Ajustements dont la réservation n'est pas dans ce fichier (remboursement publié dans un
+        // export ultérieur) : le séjour déjà importé donne ses dates.
+        $orphans = [];
+        foreach ($entries as ['cell' => $cell, 'adjustment' => $adjustment]) {
+            $code = (string) $cell('code');
+            if ($adjustment && $code !== '' && ! isset($stays[$code])) {
+                $orphans[$code] = true;
+            }
+        }
+        if ($orphans !== [] && $knownStays !== null) {
+            $stays += $knownStays(array_map('strval', array_keys($orphans)));
+        }
+
+        $occurrences = [];
         foreach ($entries as ['line' => $line, 'cell' => $cell, 'type' => $type, 'adjustment' => $adjustment]) {
             $code = (string) $cell('code');
             $start = CsvTable::date($cell('start'), $dayFirst);
@@ -85,6 +101,15 @@ class AirbnbCsvParser implements PlatformCsvParser
                 continue;
             }
             $fee = CsvTable::cents($cell('fee'));
+            // Un versement : code, date du versement, période et montant (un long séjour en a
+            // plusieurs) ; le type distingue un ajustement d'une réservation de même montant.
+            $parts = $adjustment
+                ? [$code, $type, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount]
+                : [$code, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount];
+            // Deux lignes identiques (deux ajustements de même montant le même jour) sont deux
+            // versements : le rang de la ligne parmi ses doubles les distingue, de façon stable.
+            $base = implode('|', $parts);
+            $rank = $occurrences[$base] = ($occurrences[$base] ?? -1) + 1;
             $rows[] = new PlatformRow(
                 line: $line,
                 confirmationCode: $code,
@@ -93,13 +118,11 @@ class AirbnbCsvParser implements PlatformCsvParser
                 arrival: $start,
                 departure: $start->addDays($nights),
                 grossAmount: CsvTable::cents($cell('gross')),
-                fees: $fee === null ? null : abs($fee),
+                // Frais d'Airbnb : positifs sur une réservation ; un ajustement garde son signe
+                // (frais rendus par Airbnb : négatifs).
+                fees: $fee === null ? null : ($adjustment ? $fee : abs($fee)),
                 netAmount: $amount,
-                // Un versement : code, date du versement, période et montant (un long séjour en a
-                // plusieurs) ; le type distingue un ajustement d'une réservation de même montant.
-                entryKey: $adjustment
-                    ? PlatformRow::key($code, $type, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount)
-                    : PlatformRow::key($code, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount),
+                entryKey: PlatformRow::key(...($rank === 0 ? $parts : [...$parts, '#'.$rank])),
             );
         }
 

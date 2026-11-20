@@ -1030,12 +1030,15 @@
     },
     "states": {
       "unlinked": "Annonce non rattachée",
+      "removed": "Déjà importé, sera retiré",
       "update": "Déjà importé (mis à jour)",
       "new": "Nouveau"
     },
     "skippedLines": "Lignes ignorées (illisibles) : {{lines}}.",
     "unmapped_one": "{{count}} annonce n’est rattachée à aucun logement : ses séjours ne seront pas importés.",
     "unmapped_other": "{{count}} annonces ne sont rattachées à aucun logement : leurs séjours ne seront pas importés.",
+    "detachedRemoved_one": "{{count}} versement déjà importé d’une annonce non rattachée sera retiré des revenus.",
+    "detachedRemoved_other": "{{count}} versements déjà importés d’annonces non rattachées seront retirés des revenus.",
     "import_one": "Importer {{count}} séjour",
     "import_other": "Importer {{count}} séjours",
     "done": "Import terminé : {{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés (annulés), {{skipped}} ignorés.",

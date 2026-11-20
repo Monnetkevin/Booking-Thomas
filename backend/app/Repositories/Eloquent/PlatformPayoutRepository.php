@@ -73,6 +73,24 @@ class PlatformPayoutRepository implements PlatformPayoutRepositoryInterface
         return $removed;
     }
 
+    public function firstPayoutsByCode(PayoutPlatform $platform, array $codes): array
+    {
+        $stays = [];
+        foreach (array_chunk($codes, 1000) as $chunk) {
+            $payouts = PlatformPayout::query()->where('platform', $platform)->whereIn('confirmation_code', $chunk)
+                ->orderBy('arrival')->orderBy('id')->get(['confirmation_code', 'arrival', 'nights', 'apartment_id']);
+            foreach ($payouts as $payout) {
+                $stays[$payout->confirmation_code] ??= [
+                    'arrival' => $payout->arrival,
+                    'nights' => (int) $payout->nights,
+                    'apartment_id' => (int) $payout->apartment_id,
+                ];
+            }
+        }
+
+        return $stays;
+    }
+
     public function recentImports(int $limit): Collection
     {
         return PlatformImport::query()->with('user:id,name')->latest('id')->limit($limit)->get();
