@@ -11,9 +11,11 @@ use App\Http\Resources\Admin\AdminBookingListResource;
 use App\Http\Resources\Admin\AdminBookingResource;
 use App\Models\Booking;
 use App\Services\Booking\AdminBookingService;
+use App\Services\Booking\BookingHistory;
 use App\Services\Booking\BookingConfirmationPdf;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\ManualBookingService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -27,6 +29,7 @@ class BookingController extends Controller
         private readonly BookingService $lifecycle,
         private readonly BookingConfirmationPdf $pdf,
         private readonly ManualBookingService $manual,
+        private readonly BookingHistory $history,
     ) {}
 
     public function index(ListBookingsRequest $request): AnonymousResourceCollection
@@ -114,6 +117,6 @@ class BookingController extends Controller
     {
         $booking = $this->bookings->details($booking);
 
-        return new AdminBookingResource($booking, $this->bookings->refundProposal($booking));
+        return new AdminBookingResource($booking, $this->bookings->refundProposal($booking), $this->history->of($booking, CarbonImmutable::today()));
     }
 }

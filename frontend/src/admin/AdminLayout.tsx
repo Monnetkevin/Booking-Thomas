@@ -95,7 +95,7 @@ export function AdminLayout({ navigation, badges = {}, search, account, alerts, 
     <div className="admin-typo flex min-h-dvh flex-col bg-sand">
       {/* z-30 : la barre et ses menus passent au-dessus des éléments positionnés des pages
           (colonne figée du planning, barres d'enregistrement). */}
-      <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-white px-3 sm:gap-6 sm:px-6">
+      <header className="sticky top-0 z-30 flex h-16 print:hidden shrink-0 items-center gap-3 border-b border-line bg-white px-3 sm:gap-6 sm:px-6">
         <button
           type="button"
           onClick={toggle}
@@ -132,7 +132,7 @@ export function AdminLayout({ navigation, badges = {}, search, account, alerts, 
           id="admin-nav"
           aria-label={t('admin.nav.label')}
           className={cn(
-            'flex shrink-0 flex-col gap-5 border-r border-line bg-white px-3.5 py-5',
+            'flex shrink-0 flex-col gap-5 border-r border-line bg-white px-3.5 py-5 print:hidden',
             // Ordinateur : colonne collée sous la barre, défilante si l'écran est peu haut.
             'lg:sticky lg:top-16 lg:h-[calc(100dvh-4rem)] lg:overflow-y-auto',
             reduced ? 'lg:w-[76px]' : 'lg:w-64',

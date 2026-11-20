@@ -16,7 +16,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class AdminBookingResource extends JsonResource
 {
-    public function __construct(Booking $booking, private readonly ?RefundProposal $refund = null)
+    /**
+     * @param  list<array<string, mixed>>  $history
+     */
+    public function __construct(Booking $booking, private readonly ?RefundProposal $refund = null, private readonly array $history = [])
     {
         parent::__construct($booking);
     }
@@ -53,6 +56,7 @@ class AdminBookingResource extends JsonResource
             'confirmed_at' => $this->confirmed_at?->toIso8601String(),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
             'refund_proposal' => $this->refund?->toArray(),
+            'history' => $this->history,
         ];
     }
 }

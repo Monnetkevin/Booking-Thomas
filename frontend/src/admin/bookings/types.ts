@@ -56,6 +56,17 @@ export interface BookingDetail extends BookingListItem {
   confirmed_at: string | null
   cancelled_at: string | null
   refund_proposal: RefundProposal | null
+  history: BookingHistoryEvent[]
+}
+
+export interface BookingHistoryEvent {
+  event: 'created' | 'paid' | 'refunded' | 'payment_failed' | 'confirmed' | 'updated' | 'cancelled' | 'arrival' | 'departure'
+  at: string
+  /** Auteur (compte du back-office), si l'action vient de l'administration. */
+  by: string | null
+  amount: number | null
+  /** Arrivée ou départ pas encore arrivés. */
+  upcoming: boolean
 }
 
 export interface BookingFilters {

@@ -207,3 +207,15 @@ it('exporte la liste filtrée en CSV, sans coordonnées et sans formule exécuta
         ->not->toContain('secret@example.com')
         ->and(substr_count($csv, "\r\n"))->toBe(2);
 });
+
+it('retrace l’historique de la réservation : paiements, corrections avec leur auteur, séjour à venir', function () {
+    $booking = paidBooking($this->apartment, '2026-12-10', '2026-12-12');
+    $this->patchJson("/api/admin/bookings/{$booking->reference}", ['housekeeping_notes' => 'Lit bébé'])->assertOk();
+
+    $history = $this->getJson("/api/admin/bookings/{$booking->reference}")->assertOk()->json('data.history');
+
+    expect(array_column($history, 'event'))->toBe(['created', 'paid', 'updated', 'arrival', 'departure'])
+        ->and($history[1]['amount'])->toBe(34500)
+        ->and($history[2]['by'])->toBe(auth()->user()->name)
+        ->and($history[3]['upcoming'])->toBeTrue();
+});
