@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Services\Export\CsvWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -31,6 +32,7 @@ class StatisticsService
         private readonly BookingRepositoryInterface $bookings,
         private readonly NightCounter $nights,
         private readonly RevenueCalculator $revenue,
+        private readonly CsvWriter $csvWriter,
     ) {}
 
     /**
@@ -97,7 +99,7 @@ class StatisticsService
     public function csv(CarbonImmutable $today): string
     {
         $report = $this->report($today);
-        $euros = fn (int $cents) => number_format($cents / 100, 2, ',', '');
+        $euros = $this->csvWriter->euros(...);
         $rate = fn (?float $value) => $value === null ? '' : number_format($value, 1, ',', '');
         $rows = [['Mois', 'Nuits en direct', 'Nuits plateformes', 'Revenus directs (€)', 'Occupation (%)']];
         foreach ($report['months'] as $month) {
@@ -109,24 +111,7 @@ class StatisticsService
             $rows[] = [$apartment['name'], $apartment['nights_direct'], $apartment['nights_platform'], $euros($apartment['revenue']), $rate($apartment['occupancy'])];
         }
 
-        // BOM : Excel ouvre le fichier en UTF-8 (accents des noms de logements).
-        return "\u{FEFF}".implode("\r\n", array_map(fn (array $row) => implode(';', array_map($this->cell(...), $row)), $rows))."\r\n";
-    }
-
-    /**
-     * Cellule CSV échappée. Un texte (nom de logement) qui commence par =, +, -, @, une
-     * tabulation ou un retour chariot est neutralisé pour le tableur ; un nombre (montant
-     * négatif compris) reste un nombre.
-     */
-    private function cell(mixed $value): string
-    {
-        $text = (string) $value;
-        $isNumber = is_int($value) || preg_match('/^-?\d+(,\d+)?$/', $text) === 1;
-        if (! $isNumber && $text !== '' && in_array($text[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-            $text = "'".$text;
-        }
-
-        return strpbrk($text, ";\"\n\r") !== false ? '"'.str_replace('"', '""', $text).'"' : $text;
+        return $this->csvWriter->write($rows);
     }
 
     /**

@@ -33,7 +33,22 @@ class BookingController extends Controller
     {
         Gate::authorize('viewAny', Booking::class);
 
-        return AdminBookingListResource::collection($this->bookings->list($request->filters()));
+        $filters = $request->filters();
+
+        return AdminBookingListResource::collection($this->bookings->list($filters))
+            ->additional(['meta' => ['counts' => $this->bookings->stageCounts($filters)]]);
+    }
+
+    /** Liste filtrée au format CSV (tableur). */
+    public function csv(ListBookingsRequest $request): Response
+    {
+        Gate::authorize('viewAny', Booking::class);
+
+        return response($this->bookings->csv($request->filters()), 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="reservations-'.now()->format('Y-m-d').'.csv"',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     /** Réservation saisie par l'hôte (téléphone, connaissance), confirmée tout de suite. */

@@ -117,6 +117,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager'])->grou
 
     // Réservations : liste, fiche, coordonnées, annulation, confirmation (référence BT-…)
     Route::get('bookings', [AdminBookingController::class, 'index']);
+    Route::get('bookings.csv', [AdminBookingController::class, 'csv']);
     Route::post('bookings', [AdminBookingController::class, 'store'])->middleware('throttle:20,1');
     Route::get('bookings/{booking}', [AdminBookingController::class, 'show']);
     Route::patch('bookings/{booking}', [AdminBookingController::class, 'update']);

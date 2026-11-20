@@ -48,6 +48,21 @@ interface BookingRepositoryInterface
     public function paginateForAdmin(BookingFilters $filters, int $perPage): LengthAwarePaginator;
 
     /** Charge ce qu'affiche la fiche d'une réservation (logement, paiements). */
+    /**
+     * Même liste sans pagination (export), limitée.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function allForAdmin(BookingFilters $filters, int $limit): Collection;
+
+    /**
+     * Nombre de réservations par onglet (toutes, à venir, en cours, terminées, annulées),
+     * avec les autres filtres.
+     *
+     * @return array<string, int>
+     */
+    public function countByStage(BookingFilters $filters): array;
+
     public function loadDetails(Booking $booking): Booking;
 
     /**

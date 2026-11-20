@@ -26,6 +26,8 @@ describe('service des réservations (admin)', () => {
       ['/admin/bookings/BT-ABCD2345/resend-confirmation', { method: 'POST' }],
     ])
     await service.downloadPdf('BT-ABCD2345')
+    await service.downloadCsv({ stage: 'upcoming' })
+    expect(client.download).toHaveBeenCalledWith('/admin/bookings.csv?page=1&stage=upcoming')
     expect(client.download).toHaveBeenCalledWith('/admin/bookings/BT-ABCD2345/pdf')
   })
 })

@@ -617,8 +617,8 @@
   "bookings": {
     "title": "Réservations",
     "subtitle": "Réservations du site et saisies à la main. Les séjours Airbnb sont dans le planning.",
-    "create": "Saisir une réservation",
-    "search": "Rechercher (nom, e-mail, référence)",
+    "create": "Nouvelle réservation",
+    "search": "Voyageur ou référence",
     "status": "Statut",
     "allStatuses": "Tous les statuts",
     "apartment": "Logement",
@@ -679,7 +679,41 @@
     "refundPaid": "Encaissé : {{amount}}.",
     "refundOffline": "Le remboursement en ligne arrive avec le paiement Stripe ; en attendant, remboursez le voyageur hors ligne.",
     "notifyGuest": "Prévenir le voyageur par e-mail",
-    "cancelConfirm": "Annuler la réservation"
+    "cancelConfirm": "Annuler la réservation",
+    "subtitleCount_one": "{{count}} réservation avec ces filtres.",
+    "subtitleCount_other": "{{count}} réservations avec ces filtres.",
+    "stagesLabel": "Afficher",
+    "stages": {
+      "all": "Toutes",
+      "upcoming": "À venir",
+      "ongoing": "En cours",
+      "past": "Terminées",
+      "cancelled": "Annulées"
+    },
+    "filters": "Filtres",
+    "export": "Exporter",
+    "from": "Séjours à partir du",
+    "to": "Séjours jusqu’au",
+    "columns": {
+      "reference": "Référence",
+      "guest": "Voyageur",
+      "apartment": "Appartement",
+      "stay": "Séjour",
+      "nights": "Nuits",
+      "total": "Total",
+      "source": "Source",
+      "status": "Statut",
+      "payment": "Paiement"
+    },
+    "guestsCount_one": "{{count}} voyageur",
+    "guestsCount_other": "{{count}} voyageurs",
+    "paymentStates": {
+      "awaiting": "En attente",
+      "unpaid": "Non réglée",
+      "paid": "Payé",
+      "partially_refunded": "Remboursé en partie",
+      "refunded": "Remboursé"
+    }
   },
   "manual": {
     "title": "Saisir une réservation",

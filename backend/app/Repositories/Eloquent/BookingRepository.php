@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Enums\BookingStage;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
@@ -60,8 +61,51 @@ class BookingRepository implements BookingRepositoryInterface
 
     public function paginateForAdmin(BookingFilters $filters, int $perPage): LengthAwarePaginator
     {
-        return Booking::query()
+        return $this->adminQuery($filters)->paginate($perPage);
+    }
+
+    public function allForAdmin(BookingFilters $filters, int $limit): Collection
+    {
+        return $this->adminQuery($filters)->limit($limit)->get();
+    }
+
+    public function countByStage(BookingFilters $filters): array
+    {
+        $base = $filters->withoutStage();
+        $counts = ['all' => $this->filtered($base)->count()];
+        foreach (BookingStage::cases() as $stage) {
+            $counts[$stage->value] = $this->filtered($base->withStage($stage))->count();
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Liste du back-office : filtres, sommes payées et remboursées, arrivées les plus proches d'abord.
+     *
+     * @return Builder<Booking>
+     */
+    private function adminQuery(BookingFilters $filters): Builder
+    {
+        $succeeded = fn (PaymentType $type) => fn (Builder $query) => $query->where('status', PaymentStatus::Succeeded)->where('type', $type);
+
+        return $this->filtered($filters)
             ->with('apartment:id,name')
+            ->withSum(['payments as paid_amount' => $succeeded(PaymentType::Payment)], 'amount')
+            ->withSum(['payments as refunded_amount' => $succeeded(PaymentType::Refund)], 'amount')
+            ->orderBy('arrival')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return Builder<Booking>
+     */
+    private function filtered(BookingFilters $filters): Builder
+    {
+        $sold = [BookingStatus::Confirmed->value, BookingStatus::Completed->value];
+        $today = $filters->today ?? now()->toDateString();
+
+        return Booking::query()
             ->when($filters->status, fn (Builder $query, $status) => $query->where('status', $status->value))
             ->when($filters->apartmentId, fn (Builder $query, $id) => $query->where('apartment_id', $id))
             ->when($filters->source, fn (Builder $query, $source) => $query->where('source', $source->value))
@@ -69,9 +113,12 @@ class BookingRepository implements BookingRepositoryInterface
             ->when($filters->to, fn (Builder $query, $to) => $query->where('arrival', '<', $to))
             ->when($filters->from, fn (Builder $query, $from) => $query->where('departure', '>', $from))
             ->when($filters->search, fn (Builder $query, string $search) => $query->where(fn (Builder $q) => $this->matching($q, $search)))
-            ->orderBy('arrival')
-            ->orderBy('id')
-            ->paginate($perPage);
+            ->when($filters->stage, fn (Builder $query, BookingStage $stage) => match ($stage) {
+                BookingStage::Upcoming => $query->where('status', BookingStatus::Confirmed)->where('arrival', '>', $today),
+                BookingStage::Ongoing => $query->whereIn('status', $sold)->where('arrival', '<=', $today)->where('departure', '>', $today),
+                BookingStage::Past => $query->whereIn('status', $sold)->where('departure', '<=', $today),
+                BookingStage::Cancelled => $query->where('status', BookingStatus::Cancelled),
+            });
     }
 
     public function search(string $term, int $limit): Collection

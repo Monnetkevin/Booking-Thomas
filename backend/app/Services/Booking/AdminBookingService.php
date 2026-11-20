@@ -14,6 +14,7 @@ use App\Models\Booking;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Audit\AuditLogger;
+use App\Services\Export\CsvWriter;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Availability\BlockConflictService;
 use App\Services\Housekeeping\StayChange;
@@ -36,6 +37,8 @@ class AdminBookingService
 {
     public const PER_PAGE = 25;
 
+    public const EXPORT_LIMIT = 5000;
+
     /** Champs du voyageur que l'hôte peut corriger. */
     private const GUEST_FIELDS = ['guest_name', 'guest_email', 'guest_phone', 'guest_country', 'housekeeping_notes'];
 
@@ -48,6 +51,7 @@ class AdminBookingService
         private readonly HostNotifier $host,
         private readonly Mailer $mailer,
         private readonly AuditLogger $audit,
+        private readonly CsvWriter $csv,
     ) {}
 
     /**
@@ -56,6 +60,42 @@ class AdminBookingService
     public function list(BookingFilters $filters): LengthAwarePaginator
     {
         return $this->bookings->paginateForAdmin($filters, self::PER_PAGE);
+    }
+
+    /**
+     * Compteurs des onglets de la liste, avec les autres filtres.
+     *
+     * @return array<string, int>
+     */
+    public function stageCounts(BookingFilters $filters): array
+    {
+        return $this->bookings->countByStage($filters);
+    }
+
+    /**
+     * Liste filtrée en CSV (au plus EXPORT_LIMIT lignes) : ni coordonnées ni notes, seulement
+     * ce qui sert à un suivi dans un tableur.
+     */
+    public function csv(BookingFilters $filters): string
+    {
+        $rows = [['Référence', 'Voyageur', 'Logement', 'Arrivée', 'Départ', 'Nuits', 'Voyageurs', 'Source', 'Statut', 'Total (€)', 'Taxe de séjour (€)']];
+        foreach ($this->bookings->allForAdmin($filters, self::EXPORT_LIMIT) as $booking) {
+            $rows[] = [
+                $booking->reference,
+                $booking->guest_name,
+                $booking->apartment?->getTranslation('name', 'fr') ?? '',
+                $booking->arrival->toDateString(),
+                $booking->departure->toDateString(),
+                $booking->nights(),
+                $booking->adults + $booking->children,
+                __('booking.sources.'.$booking->source->value, [], 'fr'),
+                __('booking.statuses.'.$booking->status->value, [], 'fr'),
+                $this->csv->euros($booking->total_amount),
+                $this->csv->euros($booking->tourist_tax),
+            ];
+        }
+
+        return $this->csv->write($rows);
     }
 
     public function details(Booking $booking): Booking
