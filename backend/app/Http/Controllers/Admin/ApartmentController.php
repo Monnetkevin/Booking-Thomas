@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Services\Apartment\ApartmentListMeta;
+use Carbon\CarbonImmutable;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Apartment\IndexApartmentsRequest;
 use App\Http\Requests\Admin\Apartment\ReorderApartmentsRequest;
@@ -18,13 +20,17 @@ use Illuminate\Support\Facades\Gate;
 
 class ApartmentController extends Controller
 {
-    public function __construct(private readonly ApartmentService $apartments) {}
+    public function __construct(
+        private readonly ApartmentService $apartments,
+        private readonly ApartmentListMeta $listMeta,
+    ) {}
 
     public function index(IndexApartmentsRequest $request): AnonymousResourceCollection
     {
         Gate::authorize('viewAny', Apartment::class);
 
-        return AdminApartmentListResource::collection($this->apartments->list($request->status()));
+        return AdminApartmentListResource::collection($this->apartments->list($request->status()))
+            ->additional(['meta' => $this->listMeta->compute(CarbonImmutable::today())]);
     }
 
     public function store(StoreApartmentRequest $request): JsonResponse

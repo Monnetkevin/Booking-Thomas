@@ -204,3 +204,19 @@ describe('droits', function () {
         $this->getJson('/api/admin/apartments')->assertUnauthorized();
     });
 });
+
+test('la liste donne le nombre de logements par statut et l’occupation du mois des logements publiés', function () {
+    Illuminate\Support\Facades\Date::setTestNow('2026-11-20 10:00:00');
+    $published = Apartment::factory()->create(['status' => ApartmentStatus::Published, 'bedrooms' => 2, 'city' => 'Le Mans']);
+    $draft = Apartment::factory()->create(['status' => ApartmentStatus::Draft]);
+    // 6 nuits sur 30 en novembre.
+    directBooking($published, '2026-11-10', '2026-11-16');
+
+    $this->getJson('/api/admin/apartments')
+        ->assertOk()
+        ->assertJsonPath('meta.counts', ['all' => 2, 'draft' => 1, 'published' => 1])
+        ->assertJsonPath("meta.occupancy.{$published->id}", 20.0)
+        ->assertJsonPath("meta.occupancy.{$draft->id}", null)
+        ->assertJsonPath('data.0.bedrooms', 2)
+        ->assertJsonPath('data.0.city', 'Le Mans');
+});

@@ -26,11 +26,14 @@ class AdminApartmentListResource extends JsonResource
             'name' => $this->getTranslation('name', 'fr'),
             'status' => $this->status->value,
             'capacity' => $this->capacity,
+            'bedrooms' => $this->bedrooms,
+            'city' => $this->city,
             'min_stay' => $this->min_stay,
             'position' => $this->position,
             // Prix de la période en cours ou de la prochaine, en centimes (relation filtrée).
             'base_price' => $this->ratePeriods->first()?->nightly_price,
             'cover_url' => $cover?->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : null,
+            'card_url' => $cover?->hasGeneratedConversion('card') ? $cover->getUrl('card') : null,
         ];
     }
 }

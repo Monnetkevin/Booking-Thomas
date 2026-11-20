@@ -1,8 +1,10 @@
 import { http, type HttpClient } from '@/lib/http'
-import type { Apartment, ApartmentInput, ApartmentListItem, ApartmentStatus } from './types'
+import type { Apartment, ApartmentInput, ApartmentListItem, ApartmentListMeta, ApartmentStatus } from './types'
 
 export interface ApartmentService {
   list(status?: ApartmentStatus): Promise<ApartmentListItem[]>
+  /** Liste avec ses compléments (nombre par statut, occupation du mois). */
+  overview(status?: ApartmentStatus): Promise<{ data: ApartmentListItem[]; meta: ApartmentListMeta }>
   get(id: number): Promise<Apartment>
   create(input: ApartmentInput): Promise<Apartment>
   update(id: number, input: ApartmentInput): Promise<Apartment>
@@ -19,6 +21,7 @@ export function createApartmentService(client: HttpClient): ApartmentService {
 
   return {
     list: (status) => unwrap(client.request(status ? `${base}?status=${status}` : base)),
+    overview: (status) => client.request(status ? `${base}?status=${status}` : base),
     get: (id) => unwrap(client.request(`${base}/${id}`)),
     create: (input) => unwrap(client.request(base, { method: 'POST', body: input })),
     update: (id, input) => unwrap(client.request(`${base}/${id}`, { method: 'PUT', body: input })),

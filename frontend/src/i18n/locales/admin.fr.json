@@ -131,8 +131,8 @@
     "filters": {
       "label": "Filtrer par statut",
       "all": "Tous",
-      "published": "Publiés",
-      "draft": "Brouillons"
+      "published": "En ligne",
+      "draft": "Brouillon"
     },
     "columns": {
       "apartment": "Appartement",
@@ -258,6 +258,29 @@
       "pending": "Calcul en cours d'après l'adresse…",
       "found": "Trouvée d'après l'adresse.",
       "not_found": "Adresse introuvable : vérifiez le numéro, la rue et le code postal."
+    },
+    "summary_one": "{{count}} logement, dont {{published}} en ligne.",
+    "summary_other": "{{count}} logements, dont {{published}} en ligne.",
+    "bedrooms_one": "{{count}} chambre",
+    "bedrooms_other": "{{count}} chambres",
+    "occupancy": "Occupation {{value}}",
+    "view": "Voir",
+    "viewOnSite": "Voir sur le site",
+    "lastUpdated": "Dernière modification : {{when}}.",
+    "errorsElsewhere": "Certains champs à corriger sont dans un autre onglet.",
+    "showErrors": "Les afficher",
+    "tabs": {
+      "label": "Parties de la fiche",
+      "informations": "Informations",
+      "photos": "Photos",
+      "equipements": "Équipements",
+      "regles": "Règles du séjour",
+      "calendrier": "Calendrier"
+    },
+    "calendar": {
+      "title": "Calendrier",
+      "hint": "{{days}} prochaines nuits.",
+      "openPlanning": "Ouvrir le planning"
     }
   },
   "rates": {

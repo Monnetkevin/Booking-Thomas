@@ -5,6 +5,9 @@ import { SelectField, TextArea, TextField } from '@/components/ui/Field'
 import { Section } from '@/components/ui/Section'
 import {
   apartmentInputFromForm,
+  APARTMENT_FORM_SECTIONS,
+  formSectionOf,
+  type ApartmentFormSection,
   type ApartmentFormErrors,
   type ApartmentFormValues,
 } from '../apartmentForm'
@@ -19,7 +22,12 @@ interface ApartmentFormProps {
   /** Informations calculées affichées sous l'adresse (adresse de la page, position). */
   addressInfo?: ReactNode
   onSubmit: (input: ApartmentInput) => void
+  /** Sections affichées (onglets de la fiche) ; toutes par défaut. Les autres restent dans le formulaire, masquées. */
+  visibleSections?: ApartmentFormSection[]
+  /** Appelé avec la section de la première erreur, pour y amener l'hôte. */
+  onErrorsIn?: (section: ApartmentFormSection) => void
 }
+
 
 const policies: CancellationPolicy[] = ['flexible', 'moderate', 'strict']
 
@@ -27,7 +35,16 @@ const policies: CancellationPolicy[] = ['flexible', 'moderate', 'strict']
  * Informations, adresse et règles du séjour d'un logement. Ne fait que saisir et
  * convertir ; l'enregistrement est confié au parent.
  */
-export function ApartmentForm({ initialValues, submitLabel, pending, serverErrors = {}, addressInfo, onSubmit }: ApartmentFormProps) {
+export function ApartmentForm({
+  initialValues,
+  submitLabel,
+  pending,
+  serverErrors = {},
+  addressInfo,
+  onSubmit,
+  visibleSections = APARTMENT_FORM_SECTIONS,
+  onErrorsIn,
+}: ApartmentFormProps) {
   const { t } = useTranslation()
   const [values, setValues] = useState(initialValues)
   const [localErrors, setLocalErrors] = useState<ApartmentFormErrors>({})
@@ -57,6 +74,8 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
     const result = apartmentInputFromForm(values)
     if (result.errors) {
       setLocalErrors(result.errors)
+      const first = Object.keys(result.errors)[0] as keyof ApartmentFormValues | undefined
+      if (first) onErrorsIn?.(formSectionOf(first))
       return
     }
     onSubmit(result.input)
@@ -66,7 +85,7 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-      <Section title={t('admin.apartments.sections.info')}>
+      <Section title={t('admin.apartments.sections.info')} className={visibleSections.includes('info') ? undefined : 'hidden'}>
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label={f('nameFr')} required maxLength={120} {...bind('nameFr')} />
           <TextField label={f('nameEn')} hint={f('translationHint')} maxLength={120} {...bind('nameEn')} />
@@ -93,7 +112,7 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
         </div>
       </Section>
 
-      <Section title={t('admin.apartments.sections.location')}>
+      <Section title={t('admin.apartments.sections.location')} className={visibleSections.includes('location') ? undefined : 'hidden'}>
         <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
           <TextField label={f('address')} hint={f('addressHint')} required autoComplete="street-address" {...bind('address')} />
           <TextField label={f('postalCode')} required inputMode="numeric" maxLength={5} autoComplete="postal-code" {...bind('postalCode')} />
@@ -102,7 +121,7 @@ export function ApartmentForm({ initialValues, submitLabel, pending, serverError
         {addressInfo && <div className="mt-4">{addressInfo}</div>}
       </Section>
 
-      <Section title={t('admin.apartments.sections.rules')}>
+      <Section title={t('admin.apartments.sections.rules')} className={visibleSections.includes('rules') ? undefined : 'hidden'}>
         <div className="grid gap-4 sm:grid-cols-3">
           <TextField
             label={f('minStay')}
