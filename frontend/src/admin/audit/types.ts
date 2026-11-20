@@ -12,6 +12,7 @@ export type AuditAction =
   | 'user.invited'
   | 'user.updated'
   | 'user.password_link_sent'
+  | 'platform_payouts.imported'
 
 export const AUDIT_ACTIONS: AuditAction[] = [
   'booking.created',
@@ -27,6 +28,7 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'user.invited',
   'user.updated',
   'user.password_link_sent',
+  'platform_payouts.imported',
 ]
 
 export type AuditValues = Record<string, unknown>

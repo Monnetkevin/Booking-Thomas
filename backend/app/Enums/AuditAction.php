@@ -18,4 +18,5 @@ enum AuditAction: string
     case UserInvited = 'user.invited';
     case UserUpdated = 'user.updated';
     case UserPasswordLinkSent = 'user.password_link_sent';
+    case PlatformPayoutsImported = 'platform_payouts.imported';
 }

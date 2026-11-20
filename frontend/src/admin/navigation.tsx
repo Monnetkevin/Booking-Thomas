@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon } from '@/components/icons'
+import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UploadIcon, UsersIcon } from '@/components/icons'
 
 /** Compteur affiché à côté d'une entrée, lu dans les compteurs de la barre. */
 export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages'
@@ -19,6 +19,7 @@ export interface AdminNavItem {
     | 'admin.nav.bookings'
     | 'admin.nav.planning'
     | 'admin.nav.statistics'
+    | 'admin.nav.platformImport'
     | 'admin.nav.notifications'
     | 'admin.nav.notificationPreferences'
     | 'admin.nav.users'
@@ -51,6 +52,7 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'], group: 'catalogue' },
   { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: STAFF, group: 'suivi', badge: 'unreadMessages' },
   { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: STAFF, group: 'suivi' },
+  { to: '/admin/revenus-plateformes', labelKey: 'admin.nav.platformImport', icon: <UploadIcon />, roles: ['admin'], group: 'suivi' },
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: STAFF, group: 'suivi', badge: 'failingFeeds' },
   { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: STAFF, group: 'suivi' },
   // Le ménage n'a pas le bouton « Alertes » : ses notifications restent une entrée du menu.

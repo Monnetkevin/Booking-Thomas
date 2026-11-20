@@ -25,7 +25,8 @@
       "pilotage": "Pilotage",
       "catalogue": "Catalogue",
       "suivi": "Suivi"
-    }
+    },
+    "platformImport": "Revenus des plateformes"
   },
   "login": {
     "title": "Connexion",
@@ -571,7 +572,8 @@
       "settings.updated": "Réglages modifiés",
       "user.invited": "Compte invité",
       "user.updated": "Compte modifié",
-      "user.password_link_sent": "Lien de mot de passe envoyé"
+      "user.password_link_sent": "Lien de mot de passe envoyé",
+      "platform_payouts.imported": "Revenus d’une plateforme importés"
     }
   },
   "notFound": {
@@ -917,5 +919,50 @@
       "apartment": "Appartement",
       "page": "Page de l’administration"
     }
+  },
+  "platformImport": {
+    "title": "Revenus des plateformes",
+    "subtitle": "Airbnb et Booking.com ne transmettent aucun montant par le calendrier : importez leurs exports pour suivre les revenus par canal.",
+    "fileTitle": "Fichier à importer",
+    "platform": "Plateforme",
+    "platforms": {
+      "airbnb": "Airbnb",
+      "booking": "Booking.com"
+    },
+    "where": {
+      "airbnb": "Sur Airbnb : Revenus › Historique des transactions › Télécharger le fichier CSV.",
+      "booking": "Sur l’extranet Booking.com : Réservations › Exporter (CSV ; un fichier Excel s’enregistre en CSV)."
+    },
+    "file": "Fichier CSV",
+    "preview": "Prévisualiser",
+    "listingsTitle": "Annonces et logements",
+    "listingsHint": "Rattachez chaque annonce du fichier à un logement. Le choix est retenu pour les prochains imports.",
+    "notLinked": "Non rattachée",
+    "previewTitle": "Aperçu",
+    "previewSummary_one": "{{count}} séjour reconnu, {{skipped}} ligne illisible.",
+    "previewSummary_other": "{{count}} séjours reconnus, {{skipped}} lignes illisibles.",
+    "noRow": "Aucun séjour reconnu dans ce fichier.",
+    "columns": {
+      "code": "Code",
+      "listing": "Annonce",
+      "stay": "Séjour",
+      "fees": "Frais",
+      "net": "Net versé",
+      "state": "État"
+    },
+    "states": {
+      "unlinked": "Annonce non rattachée",
+      "update": "Déjà importé (mis à jour)",
+      "new": "Nouveau"
+    },
+    "skippedLines": "Lignes ignorées (illisibles) : {{lines}}.",
+    "unmapped_one": "{{count}} annonce n’est rattachée à aucun logement : ses séjours ne seront pas importés.",
+    "unmapped_other": "{{count}} annonces ne sont rattachées à aucun logement : leurs séjours ne seront pas importés.",
+    "import_one": "Importer {{count}} séjour",
+    "import_other": "Importer {{count}} séjours",
+    "done": "Import terminé : {{created}} nouveaux, {{updated}} mis à jour, {{skipped}} ignorés.",
+    "historyTitle": "Derniers imports",
+    "noHistory": "Aucun import pour le moment.",
+    "counts": "{{created}} nouveaux, {{updated}} mis à jour, {{skipped}} ignorés"
   }
 }

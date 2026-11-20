@@ -13,6 +13,7 @@ use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Repositories\Contracts\PlatformPayoutRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\AmenityRepository;
 use App\Repositories\Eloquent\ApartmentPhotoRepository;
@@ -25,6 +26,7 @@ use App\Repositories\Eloquent\IcalFeedRepository;
 use App\Repositories\Eloquent\NotificationRepository;
 use App\Repositories\Eloquent\RatePeriodRepository;
 use App\Repositories\Eloquent\SettingRepository;
+use App\Repositories\Eloquent\PlatformPayoutRepository;
 use App\Repositories\Eloquent\UserRepository;
 use App\Services\AuthService;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
@@ -39,6 +41,7 @@ class RepositoryServiceProvider extends ServiceProvider
     /** @var array<class-string, class-string> */
     public array $singletons = [
         UserRepositoryInterface::class => UserRepository::class,
+        PlatformPayoutRepositoryInterface::class => PlatformPayoutRepository::class,
         BookingRepositoryInterface::class => BookingRepository::class,
         ApartmentRepositoryInterface::class => ApartmentRepository::class,
         ApartmentPhotoRepositoryInterface::class => ApartmentPhotoRepository::class,
