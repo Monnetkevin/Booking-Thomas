@@ -53,13 +53,7 @@ class ApartmentController extends Controller
     {
         Gate::authorize('update', $apartment);
 
-        $data = $request->apartmentData();
-        // Le gestionnaire n'a pas la main sur les prix : ses frais de ménage sont ignorés.
-        if (Gate::denies('managePricing', Apartment::class)) {
-            unset($data['cleaning_fee']);
-        }
-
-        return new AdminApartmentResource($this->apartments->update($apartment, $data));
+        return new AdminApartmentResource($this->apartments->update($apartment, $request->apartmentData()));
     }
 
     public function publish(Apartment $apartment): AdminApartmentResource

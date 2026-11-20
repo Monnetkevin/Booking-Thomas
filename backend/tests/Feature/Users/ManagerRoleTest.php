@@ -109,24 +109,25 @@ it('donne la dernière connexion dans la liste des comptes', function () {
         ->and($accounts[$this->admin->id]['last_login_at'])->toBeNull();
 });
 
-it('cache les prix au gestionnaire et ignore ses frais de ménage', function () {
+it('laisse le gestionnaire voir les prix sans pouvoir les changer, ni à la création ni ensuite', function () {
     $this->apartment->update(['cleaning_fee' => 4000]);
-    RatePeriod::factory()->for($this->apartment)->create(['starts_on' => now()->toDateString(), 'ends_on' => now()->addMonth()->toDateString(), 'nightly_price' => 9500]);
-
-    $this->actingAs($this->manager)->getJson('/api/admin/apartments')
-        ->assertJsonPath('data.0.current_rate', null)
-        ->assertJsonPath('data.0.base_price', null)
-        ->assertJsonPath('data.0.cleaning_fee', null);
-    $this->getJson("/api/admin/apartments/{$this->apartment->id}")->assertJsonMissingPath('data.base_price');
-
-    $this->putJson("/api/admin/apartments/{$this->apartment->id}", [
+    $fields = [
         'name' => ['fr' => 'Le Cocon'], 'address' => '1 rue de la Paix', 'postal_code' => '72000', 'city' => 'Le Mans',
         'capacity' => 2, 'bedrooms' => 1, 'beds' => 1, 'bathrooms' => 1, 'check_in_time' => '16:00', 'check_out_time' => '11:00',
-        'min_stay' => 2, 'max_stay' => 30, 'turnover_days' => 0, 'cleaning_fee' => 0, 'cancellation_policy' => 'moderate',
-    ])->assertOk();
+        'min_stay' => 2, 'max_stay' => 30, 'turnover_days' => 0, 'cancellation_policy' => 'moderate',
+    ];
+    $this->actingAs($this->manager);
+
+    $this->getJson('/api/admin/apartments')->assertJsonPath('data.0.cleaning_fee', 4000);
+    $this->putJson("/api/admin/apartments/{$this->apartment->id}", [...$fields, 'cleaning_fee' => 0])->assertOk();
     expect($this->apartment->fresh()->cleaning_fee)->toBe(4000);
 
-    $this->actingAs($this->admin)->getJson('/api/admin/apartments')->assertJsonPath('data.0.current_rate.nightly_price', 9500);
+    $created = $this->postJson('/api/admin/apartments', [...$fields, 'name' => ['fr' => 'Nouveau'], 'cleaning_fee' => 50000])->assertCreated()->json('data.id');
+    expect(Apartment::find($created)->cleaning_fee)->toBe(0);
+    $this->postJson('/api/admin/apartments', [...$fields, 'name' => ['fr' => 'Sans prix']])->assertCreated();
+
+    $this->actingAs($this->admin)->putJson("/api/admin/apartments/{$this->apartment->id}", [...$fields, 'cleaning_fee' => 5000])->assertOk();
+    expect($this->apartment->fresh()->cleaning_fee)->toBe(5000);
 });
 
 it('efface les notifications de l’ancien rôle quand un gestionnaire passe au ménage', function () {

@@ -30,8 +30,8 @@ class AdminApartmentListResource extends JsonResource
             'city' => $this->city,
             'min_stay' => $this->min_stay,
             'position' => $this->position,
-            // Prix : visibles par l'administrateur seulement (le gestionnaire n'a pas les tarifs).
-            ...($request->user()?->can('managePricing', Apartment::class) ? $this->prices() : ['base_price' => null, 'cleaning_fee' => null, 'current_rate' => null]),
+            // Prix en lecture (publics sur le site) ; seul l'administrateur les modifie.
+            ...$this->prices(),
             'cover_url' => $cover?->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : null,
             'card_url' => $cover?->hasGeneratedConversion('card') ? $cover->getUrl('card') : null,
         ];

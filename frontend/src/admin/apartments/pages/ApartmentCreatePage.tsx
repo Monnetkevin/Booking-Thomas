@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useCurrentUser } from '@/admin/auth/useAuth'
 import { Link, useNavigate } from 'react-router'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ArrowLeftIcon } from '@/components/icons'
@@ -9,6 +10,7 @@ import { ApartmentForm } from '../components/ApartmentForm'
 import { useCreateApartment } from '../useApartments'
 
 export function ApartmentCreatePage() {
+  const { data: user } = useCurrentUser()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const create = useCreateApartment()
@@ -23,6 +25,7 @@ export function ApartmentCreatePage() {
         initialValues={emptyApartmentForm}
         submitLabel={t('admin.apartments.create')}
         pending={create.isPending}
+        canEditPricing={user?.role === 'admin'}
         serverErrors={apiError ? formErrorsFromApi(apiError.fieldErrors) : undefined}
         onSubmit={(input) =>
           create.mutate(input, { onSuccess: (apartment) => navigate(`/admin/appartements/${apartment.id}`, { replace: true }) })

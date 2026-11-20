@@ -36,8 +36,8 @@ class ApartmentPolicy
     }
 
     /**
-     * Prix d'un logement (frais de ménage, période en cours) : administrateur seulement,
-     * comme les tarifs. Le gestionnaire modifie le reste de la fiche.
+     * Modifier les prix d'un logement (frais de ménage) : administrateur seulement, comme les
+     * tarifs. Le gestionnaire les voit (ils sont publics sur le site) et modifie le reste.
      */
     public function managePricing(User $user): bool
     {
