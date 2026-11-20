@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ApartmentStatus;
 use App\Models\Apartment;
 use App\Models\User;
 
@@ -42,6 +43,15 @@ class ApartmentPolicy
     public function managePricing(User $user): bool
     {
         return $user->isActiveAdmin();
+    }
+
+    /**
+     * Aperçu du prix d'un séjour (réservation saisie à la main) : l'administrateur pour tout
+     * logement ; le gestionnaire seulement pour un logement publié (prix déjà publics).
+     */
+    public function previewQuote(User $user, Apartment $apartment): bool
+    {
+        return $user->isActiveAdmin() || ($user->canOperate() && $apartment->status === ApartmentStatus::Published);
     }
 
     public function reorder(User $user): bool

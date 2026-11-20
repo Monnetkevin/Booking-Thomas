@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { BellIcon } from '@/components/icons'
@@ -12,6 +12,22 @@ import { useOpenNotification } from './useOpenNotification'
 
 /** Dernières notifications montrées dans le panneau de la cloche. */
 const PANEL_SIZE = 6
+
+const GAP = 12
+const DESKTOP_WIDTH = 1024
+
+/**
+ * Position du panneau à partir du bouton : à droite du menu sur ordinateur, dessous sur
+ * tablette et téléphone ; hauteur limitée à ce qui reste de l'écran.
+ */
+function panelPlacement(button: HTMLElement | null): CSSProperties {
+  if (!button) return {}
+  const rect = button.getBoundingClientRect()
+  if (window.innerWidth >= DESKTOP_WIDTH) {
+    return { top: rect.top, left: rect.right + GAP, maxHeight: `calc(100dvh - ${rect.top + GAP}px)` }
+  }
+  return { top: rect.bottom + 8, left: 16, maxHeight: `calc(100dvh - ${rect.bottom + 8 + GAP}px)` }
+}
 
 interface AlertsButtonProps {
   /** Résumé des situations à traiter (« 1 conflit · 1 erreur iCal »), null s'il n'y en a pas. */
@@ -28,11 +44,20 @@ interface AlertsButtonProps {
 export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const [placement, setPlacement] = useState<CSSProperties>({})
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
   const close = useCallback(() => setOpen(false), [])
   useDismiss(open, rootRef, close, buttonRef)
+
+  // Panneau en position fixe (le menu latéral défile et le couperait) : replacé si la fenêtre change.
+  useEffect(() => {
+    if (!open) return
+    const place = () => setPlacement(panelPlacement(buttonRef.current))
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [open])
 
   const unread = useUnreadCount()
   const latest = useNotificationList(1, false, open)
@@ -52,7 +77,10 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
         aria-controls={panelId}
         aria-label={collapsed ? label : undefined}
         title={collapsed ? label : undefined}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (!open) setPlacement(panelPlacement(buttonRef.current))
+          setOpen(!open)
+        }}
         className={cn(
           'flex w-full items-center gap-3 rounded-2xl border text-left transition-colors',
           collapsed ? 'justify-center border-transparent p-1.5' : 'px-3 py-2.5',
@@ -85,7 +113,8 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
           id={panelId}
           role="dialog"
           aria-label={t('admin.notifications.title')}
-          className="absolute top-full left-0 z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl lg:top-0 lg:left-full lg:mt-0 lg:ml-3"
+          style={placement}
+          className="fixed z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col rounded-[var(--radius-card)] border border-border bg-white p-1.5 font-sans text-ink shadow-xl"
         >
           <div className="flex items-center justify-between gap-2 px-2.5 py-1">
             <h2 className="font-sans text-sm font-bold tracking-normal">{t('admin.notifications.title')}</h2>
@@ -99,7 +128,7 @@ export function AlertsButton({ summary, collapsed = false }: AlertsButtonProps) 
               </button>
             )}
           </div>
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {latest.isPending ? (
               <Spinner label={t('common.loading')} />
             ) : latest.isError ? (

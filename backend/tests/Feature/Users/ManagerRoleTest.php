@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ApartmentStatus;
 use App\Enums\AuditAction;
 use App\Enums\NotificationType;
 use App\Enums\UserRole;
@@ -140,4 +141,15 @@ it('efface les notifications de l’ancien rôle quand un gestionnaire passe au 
     expect($this->manager->notifications()->count())->toBe(0)
         ->and($this->admin->notifications()->count())->toBe(1);
     $this->actingAs($this->manager->fresh())->getJson('/api/admin/notifications')->assertJsonCount(0, 'data');
+});
+
+it('donne l’aperçu du prix au gestionnaire pour un logement publié seulement', function () {
+    $published = Apartment::factory()->create(['status' => ApartmentStatus::Published]);
+    $draft = Apartment::factory()->create(['status' => ApartmentStatus::Draft]);
+    $stay = ['arrival' => now()->addDays(10)->toDateString(), 'departure' => now()->addDays(12)->toDateString(), 'adults' => 2];
+    $this->actingAs($this->manager);
+
+    $this->postJson("/api/admin/apartments/{$published->id}/quote-preview", $stay)->assertOk();
+    $this->postJson("/api/admin/apartments/{$draft->id}/quote-preview", $stay)->assertForbidden();
+    $this->actingAs($this->admin)->postJson("/api/admin/apartments/{$draft->id}/quote-preview", $stay)->assertOk();
 });

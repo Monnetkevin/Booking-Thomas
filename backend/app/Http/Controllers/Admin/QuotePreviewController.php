@@ -17,7 +17,7 @@ class QuotePreviewController extends Controller
 
     public function __invoke(QuotePreviewRequest $request, Apartment $apartment): JsonResponse
     {
-        Gate::authorize('view', $apartment);
+        Gate::authorize('previewQuote', $apartment);
 
         ['quote' => $quote, 'warnings' => $warnings] = $this->quotes->preview($apartment, $request->stay());
 
