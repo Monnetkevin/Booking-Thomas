@@ -82,11 +82,13 @@ export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay, den
                       placement.continuesBefore && 'rounded-l-none',
                       placement.continuesAfter && 'rounded-r-none',
                     )}
-                    title={`${label} · ${block.starts_on} → ${block.ends_on}${block.has_conflict ? ` · ${t('admin.planning.conflict')}` : ''}${block.redundant_closure ? ` · ${t('admin.planning.redundantClosure')}` : ''}`}
+                    title={`${label} · ${block.starts_on} → ${block.ends_on}${block.has_conflict ? ` · ${t('admin.planning.conflict')}` : ''}${block.redundant_closure ? ` · ${t('admin.planning.redundantClosure')}` : ''}${block.needs_cleaning ? ` · ${t('admin.planning.needsCleaning')}` : ''}`}
                     onClick={() => onBlock(block, apartment)}
                   >
                     {block.has_conflict && <span aria-hidden="true">⚠ </span>}
+                    {block.needs_cleaning && <span aria-hidden="true">🧹 </span>}
                     {label}
+                    {block.needs_cleaning && <span className="sr-only"> ({t('admin.planning.needsCleaning')})</span>}
                     {block.has_conflict && <span className="sr-only"> ({t('admin.planning.conflict')})</span>}
                     {block.redundant_closure && <span className="sr-only"> ({t('admin.planning.redundantClosure')})</span>}
                   </button>

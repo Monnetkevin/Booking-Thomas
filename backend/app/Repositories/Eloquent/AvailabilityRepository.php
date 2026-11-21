@@ -142,11 +142,13 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return AvailabilityBlock::query()
             ->where('apartment_id', $apartmentId)
             ->where('is_active', true)
-            ->whereIn('type', [BlockType::Booking->value, BlockType::Ical->value])
             ->whereKeyNot($exceptBlockId)
             ->where(fn (Builder $query) => $this->realStay($query))
             ->where(fn (Builder $query) => $query->whereDate('ends_on', $startsOn)->orWhereDate('starts_on', $endsOn))
-            ->exists();
+            ->with('icalFeed')
+            ->get()
+            // Séjour ou logement occupé : pas une simple date fermée.
+            ->contains(fn (AvailabilityBlock $block) => $block->concernsHousekeeping());
     }
 
     public function movementsOn(string $date): Collection
@@ -156,7 +158,8 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->where(fn (Builder $query) => $query->whereDate('starts_on', $date)->orWhereDate('ends_on', $date))
             ->whereHas('apartment', fn (Builder $query) => $query->whereNull('deleted_at'))
             ->where(fn (Builder $query) => $this->realStay($query))
-            ->with(['apartment', 'booking'])
+            ->withoutRedundantClosures()
+            ->with(['apartment', 'booking', 'icalFeed'])
             ->orderBy('apartment_id')
             ->orderBy('starts_on')
             ->get();

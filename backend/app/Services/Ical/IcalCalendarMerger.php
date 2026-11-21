@@ -33,7 +33,8 @@ use Illuminate\Support\Facades\DB;
  * l'hôte est alerté ; un blocage manuel ou un autre calendrier : conflit, sans alerte ; une
  * fermeture posée sur des nuits déjà fermées (site et plateforme) : pas un conflit.
  * Des nuits libérées lèvent les conflits qu'elles portaient. Chaque séjour ajouté, déplacé
- * ou annulé est signalé au ménage (StayScheduleChanged, après la transaction).
+ * ou annulé est signalé au ménage (StayScheduleChanged, après la transaction), pas une
+ * simple date fermée.
  */
 class IcalCalendarMerger
 {
@@ -116,7 +117,9 @@ class IcalCalendarMerger
             ...$this->details($event),
         ]);
         $this->alertIfDoubleBooked($block, $overlap);
-        StayScheduleChanged::dispatch(StayChange::added($block));
+        if ($block->concernsHousekeeping()) {
+            StayScheduleChanged::dispatch(StayChange::added($block));
+        }
 
         return $block;
     }
@@ -146,8 +149,11 @@ class IcalCalendarMerger
             if ($previous !== null) {
                 $this->conflicts->release($block->apartment_id, ...$previous);
             }
-            // Ménage prévenu : séjour déplacé, ou de nouveau attendu s'il avait été annulé.
-            StayScheduleChanged::dispatch($previous === null ? StayChange::added($block) : StayChange::moved($block, ...$previous));
+            // Ménage prévenu : séjour déplacé, ou de nouveau attendu s'il avait été annulé
+            // (pas une simple date fermée).
+            if ($block->concernsHousekeeping()) {
+                StayScheduleChanged::dispatch($previous === null ? StayChange::added($block) : StayChange::moved($block, ...$previous));
+            }
         }
 
         return $moved;
@@ -156,9 +162,12 @@ class IcalCalendarMerger
     /** Séjour annulé chez la plateforme : nuits libérées, conflits qu'elles portaient levés. */
     private function deactivate(AvailabilityBlock $block): void
     {
+        $concernsHousekeeping = $block->concernsHousekeeping();
         $this->availability->updateBlock($block, ['is_active' => false, 'has_conflict' => false, 'is_redundant_closure' => false]);
         $this->conflicts->release($block->apartment_id, $block->starts_on, $block->ends_on);
-        StayScheduleChanged::dispatch(StayChange::cancelled($block));
+        if ($concernsHousekeeping) {
+            StayScheduleChanged::dispatch(StayChange::cancelled($block));
+        }
     }
 
     /**

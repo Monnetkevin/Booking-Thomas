@@ -102,6 +102,89 @@ it('prévient le ménage d’une réservation directe confirmée, sans nom ni mo
         ->not->toContain('Camille')->not->toContain('485')->not->toContain('@')->not->toContain('Airbnb');
 });
 
+it('ne prévient pas le ménage d’une date fermée sur Airbnb, ni de sa disparition', function () {
+    app(IcalCalendarMerger::class)->merge($this->feed, [new ImportedEvent('NA1', CarbonImmutable::parse('2026-11-25'), CarbonImmutable::parse('2026-11-28'), 'Airbnb (Not available)', null)]);
+    app(IcalCalendarMerger::class)->merge($this->feed, [], acceptEmpty: true);
+
+    expect(stayNotifications($this->cleaner))->toBe([]);
+});
+
+it('ne prévient pas le ménage d’une date Booking.com posée sur une fermeture du site', function () {
+    $booking = IcalFeed::factory()->for($this->apartment)->create(['provider' => 'booking', 'import_url' => 'https://admin.booking.com/hotel/ical.ics?t=x']);
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-25', '2026-11-28')->create(['type' => BlockType::Manual]);
+
+    app(IcalCalendarMerger::class)->merge($booking, [new ImportedEvent('B1', CarbonImmutable::parse('2026-11-25'), CarbonImmutable::parse('2026-11-28'), 'CLOSED - Not available', null)]);
+
+    expect(stayNotifications($this->cleaner))->toBe([]);
+});
+
+it('prévient le ménage d’une fermeture d’un logement occupé, à la création comme au retrait', function () {
+    $this->actingAs($this->host);
+
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/blocks", ['starts_on' => '2026-11-25', 'ends_on' => '2026-11-28', 'note' => 'Famille', 'needs_cleaning' => true])
+        ->assertCreated()
+        ->assertJsonPath('data.needs_cleaning', true);
+    $block = AvailabilityBlock::query()->where('type', BlockType::Manual)->sole();
+    $this->deleteJson("/api/admin/blocks/{$block->id}")->assertNoContent();
+
+    [$added, $cancelled] = stayNotifications($this->cleaner);
+    expect($added->title())->toBe('Nouveau séjour : Le Cocon')
+        ->and($added->body())->toContain('départ sam. 28 nov.')->not->toContain('Famille')
+        ->and($cancelled->title())->toBe('Séjour annulé : Le Cocon');
+});
+
+it('ne prévient pas le ménage d’une fermeture sans occupant', function () {
+    $this->actingAs($this->host);
+
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/blocks", ['starts_on' => '2026-11-25', 'ends_on' => '2026-11-28'])
+        ->assertCreated()
+        ->assertJsonPath('data.needs_cleaning', false);
+
+    expect(stayNotifications($this->cleaner))->toBe([]);
+});
+
+it('signale un séjour qui arrive le jour où des proches libèrent le logement', function () {
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-22', '2026-11-25')->create(['type' => BlockType::Manual, 'needs_cleaning' => true]);
+
+    airbnbStays(['HM1' => ['2026-11-25', '2026-11-28']]);
+
+    expect(stayNotifications($this->cleaner)[0]->body())->toContain('Départ et arrivée le même jour');
+});
+
+it('ne voit pas de ménage entre deux séjours après une simple fermeture', function () {
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-22', '2026-11-25')->create(['type' => BlockType::Manual]);
+
+    airbnbStays(['HM1' => ['2026-11-25', '2026-11-28']]);
+
+    expect(stayNotifications($this->cleaner)[0]->body())->not->toContain('Départ et arrivée le même jour');
+});
+
+describe('récapitulatif du lendemain : fermetures', function () {
+    it('annonce l’occupation par des proches et le ménage à leur départ, et une date Airbnb fermée comme une fermeture', function () {
+        $nest = Apartment::factory()->create(['name' => ['fr' => 'Le Nid', 'en' => 'The Nest']]);
+        AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-17', '2026-11-20')->create(['type' => BlockType::Manual, 'needs_cleaning' => true]);
+        AvailabilityBlock::factory()->for($nest)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual, 'needs_cleaning' => true]);
+        $nestFeed = IcalFeed::factory()->for($nest)->create();
+        AvailabilityBlock::factory()->for($nest)->between('2026-11-15', '2026-11-20')->create(['type' => BlockType::Ical, 'ical_feed_id' => $nestFeed->id, 'external_uid' => 'NA', 'note' => 'Airbnb (Not available)']);
+        $other = Apartment::factory()->create(['name' => ['fr' => 'La Cabane', 'en' => 'Hut']]);
+        $otherFeed = IcalFeed::factory()->for($other)->create();
+        AvailabilityBlock::factory()->for($other)->between('2026-11-20', '2026-11-24')->create(['type' => BlockType::Ical, 'ical_feed_id' => $otherFeed->id, 'external_uid' => 'NB', 'note' => 'Airbnb (Not available)']);
+        Date::setTestNow('2026-11-19 18:00:00');
+
+        $this->artisan('notifications:housekeeping-summary')->assertSuccessful();
+
+        Notification::assertSentTo($this->cleaner, DailySummaryNotification::class, function (DailySummaryNotification $summary) {
+            expect($summary->details())->toEqualCanonicalizing([
+                'Le Cocon : fin d’occupation par des proches, ménage à prévoir',
+                'Le Nid : occupé par des proches à partir de demain',
+                'La Cabane : fermé à partir de demain, pas d’arrivée',
+            ]);
+
+            return true;
+        });
+    });
+});
+
 describe('récapitulatif du lendemain', function () {
     beforeEach(function () {
         // Demain (20 nov.) : un départ, une arrivée directe de 3 voyageurs, une fermeture.

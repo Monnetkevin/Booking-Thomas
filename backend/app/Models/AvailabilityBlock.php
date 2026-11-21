@@ -29,11 +29,12 @@ use Illuminate\Support\Facades\DB;
  * @property string|null $note
  * @property bool $is_active
  * @property bool $has_conflict
+ * @property bool $needs_cleaning fermeture manuelle, logement occupé : ménage à prévoir à la fin
  * @property bool $is_redundant_closure fermeture posée sur des nuits déjà fermées : pas un conflit
  */
 #[Fillable([
     'apartment_id', 'starts_on', 'ends_on', 'type', 'booking_id', 'ical_feed_id',
-    'external_uid', 'external_url', 'note', 'is_active', 'has_conflict', 'is_redundant_closure',
+    'external_uid', 'external_url', 'note', 'needs_cleaning', 'is_active', 'has_conflict', 'is_redundant_closure',
 ])]
 class AvailabilityBlock extends Model
 {
@@ -51,6 +52,7 @@ class AvailabilityBlock extends Model
             'type' => BlockType::class,
             'is_active' => 'boolean',
             'has_conflict' => 'boolean',
+            'needs_cleaning' => 'boolean',
             'is_redundant_closure' => 'boolean',
             'confirmed_by_payout' => 'boolean',
         ];
@@ -79,6 +81,33 @@ class AvailabilityBlock extends Model
         return $this->has_conflict && $this->is_redundant_closure && ! $this->getAttribute('confirmed_by_payout');
     }
 
+    /**
+     * Fermeture certaine : blocage manuel, ou date fermée sur une plateforme qui les distingue
+     * (Airbnb « Not available »). Un bloc Booking.com peut être un séjour : jamais certain.
+     */
+    public function isClosure(): bool
+    {
+        return match ($this->type) {
+            BlockType::Manual => true,
+            BlockType::Booking => false,
+            BlockType::Ical => $this->icalFeed?->provider->isClosure($this->note) ?? false,
+        };
+    }
+
+    /**
+     * Le ménage doit passer à la fin : réservation, séjour importé (ou possible séjour
+     * Booking.com), fermeture manuelle d'un logement occupé. Pas une date fermée sans
+     * occupant, ni une fermeture posée sur des nuits déjà fermées.
+     */
+    public function concernsHousekeeping(): bool
+    {
+        if ($this->type === BlockType::Manual) {
+            return (bool) $this->needs_cleaning;
+        }
+
+        return ! $this->isClosure() && ! $this->isRedundantClosure();
+    }
+
     /** Conflit à montrer et à signaler. */
     public function isRealConflict(): bool
     {
@@ -103,8 +132,17 @@ class AvailabilityBlock extends Model
      */
     public function scopeRealConflicts(Builder $query): void
     {
-        $query->where('has_conflict', true)
-            ->where(fn (Builder $query) => $query->where('is_redundant_closure', false)->orWhereExists($this->payoutExists()));
+        $query->where('has_conflict', true)->withoutRedundantClosures();
+    }
+
+    /**
+     * Sans les fermetures posées sur des nuits déjà fermées (sauf si un versement en fait un séjour).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithoutRedundantClosures(Builder $query): void
+    {
+        $query->where(fn (Builder $query) => $query->where('is_redundant_closure', false)->orWhereExists($this->payoutExists()));
     }
 
     /** Sous-requête : versement de la plateforme du calendrier arrivé le premier jour du bloc. */

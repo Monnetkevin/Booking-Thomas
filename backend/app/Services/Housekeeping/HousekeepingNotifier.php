@@ -105,8 +105,12 @@ class HousekeepingNotifier
         $apartment = $block->apartment->getTranslation('name', 'fr');
         $departing = $block->ends_on->isSameDay($date);
 
-        if ($block->type === BlockType::Manual) {
-            // Une fermeture qui se termine ne demande rien au ménage.
+        if ($block->type === BlockType::Manual && $block->needs_cleaning) {
+            // Logement occupé pendant la fermeture (famille, amis) : ménage à la fin.
+            return __('notifications.daily_summary.'.($departing ? 'occupied_end' : 'occupied'), ['apartment' => $apartment], 'fr');
+        }
+        if ($block->isClosure()) {
+            // Une fermeture (ici ou sur une plateforme) qui se termine ne demande rien au ménage.
             return $departing ? null : __('notifications.daily_summary.blocked', ['apartment' => $apartment], 'fr');
         }
 

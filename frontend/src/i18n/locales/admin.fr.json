@@ -699,6 +699,9 @@
     "endsOn": "Réouverture le",
     "note": "Motif",
     "noteHint": "Travaux, usage personnel… Visible de l’hôte seulement.",
+    "needsCleaning": "Logement occupé (famille, amis…) : ménage à prévoir à la fin",
+    "needsCleaningHint": "L’équipe ménage est prévenue comme pour un séjour, avec un passage le jour de réouverture.",
+    "removeCleaning": "L’équipe ménage sera prévenue de l’annulation.",
     "submit": "Fermer ces dates",
     "conflict": "Ces nuits sont déjà occupées (réservation, séjour importé ou autre fermeture).",
     "remove": "Retirer la fermeture",
@@ -871,6 +874,7 @@
     "closeFrom": "{{apartment}} : fermer à partir du {{day}}",
     "conflict": "Conflit de dates",
     "redundantClosure": "Déjà fermé sur ces dates",
+    "needsCleaning": "Ménage à prévoir à la fin",
     "kinds": {
       "direct": "Réservation du site",
       "manualBooking": "Saisie à la main",

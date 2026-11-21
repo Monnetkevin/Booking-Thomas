@@ -41,5 +41,7 @@ return [
         'arrival' => ':apartment : arrivée à partir de :time:guests',
         'arrival_guests' => ', :count voyageur(s)',
         'blocked' => ':apartment : fermé à partir de demain, pas d’arrivée',
+        'occupied' => ':apartment : occupé par des proches à partir de demain',
+        'occupied_end' => ':apartment : fin d’occupation par des proches, ménage à prévoir',
     ],
 ];

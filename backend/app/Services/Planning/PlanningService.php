@@ -63,6 +63,8 @@ class PlanningService
             'has_conflict' => $block->isRealConflict(),
             // Fermeture posée sur des nuits déjà fermées : affichée en retrait, sans alerte.
             'redundant_closure' => $block->isRedundantClosure(),
+            // Fermeture d'un logement occupé : ménage à prévoir à la fin.
+            'needs_cleaning' => $block->needs_cleaning,
             'label' => match ($block->type) {
                 BlockType::Booking => $booking?->guest_name,
                 BlockType::Ical => $block->icalFeed?->provider->label(),

@@ -210,6 +210,7 @@ export function PlanningPage() {
         onConfirm={() => removing && removeBlock.mutate(removing.id, { onSuccess: () => setRemoving(null) })}
       >
         {removing && `${removing.label ?? t('admin.planning.kinds.closed')} · ${removing.starts_on} → ${removing.ends_on}. `}
+        {removing?.needs_cleaning && `${t('admin.blocks.removeCleaning')} `}
         {t('admin.blocks.removeConfirm')}
         {removeBlock.isError && (
           <span role="alert" className="mt-3 block font-semibold text-danger">
