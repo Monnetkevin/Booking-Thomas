@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\DatesUnavailableException;
+use App\Http\Middleware\EnsureFeatureEnabled;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\SetLocaleFromRequest;
 use Illuminate\Database\QueryException;
@@ -22,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Pas de route « login » côté Laravel : un visiteur non connecté reçoit un 401 JSON
         // sur l'API (même pour un téléchargement PDF ou CSV), la SPA l'envoie vers sa connexion.
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/admin/connexion');
-        $middleware->alias(['role' => EnsureUserHasRole::class]);
+        $middleware->alias(['role' => EnsureUserHasRole::class, 'feature' => EnsureFeatureEnabled::class]);
         $middleware->api(append: [SetLocaleFromRequest::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -202,3 +202,12 @@ it('rattache un ajustement d’un export ultérieur au séjour déjà importé, 
         // Deux ajustements identiques : deux versements.
         ->and(PlatformPayout::query()->where('confirmation_code', 'HMKEEP1')->sum('net_amount'))->toBe(30000);
 });
+
+it('ferme la page et l’API quand l’import des revenus est désactivé', function () {
+    config(['features.platform_import' => false]);
+    $this->actingAs(User::factory()->create());
+
+    $this->getJson('/api/admin/platform-imports')->assertNotFound();
+    $this->postJson('/api/admin/platform-imports/preview', ['platform' => 'airbnb'])->assertNotFound();
+    $this->postJson('/api/admin/platform-imports', ['platform' => 'airbnb'])->assertNotFound();
+});

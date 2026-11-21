@@ -952,6 +952,7 @@
     },
     "platformMissing": "Certains mois ont des nuits vendues sur les plateformes sans revenus importés : leurs montants manquent dans les totaux.",
     "importLink": "Importer les revenus des plateformes",
+    "platformNotTracked": "Les revenus Airbnb et Booking.com ne sont pas encore suivis : les montants ne comptent que les réservations du site. Les nuits vendues sur les plateformes sont bien comptées.",
     "totalRevenue": "Revenus totaux",
     "totalRevenueDetail": "Site et plateformes (revenus importés), hors taxe de séjour.",
     "revenuePerNight": "Revenu par nuit",

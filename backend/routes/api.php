@@ -177,8 +177,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('settings', [SettingsController::class, 'show']);
     Route::put('settings', [SettingsController::class, 'update']);
 
-    // Revenus Airbnb et Booking.com importés de leurs fichiers CSV : aperçu, puis import
-    Route::get('platform-imports', [PlatformImportController::class, 'index']);
-    Route::post('platform-imports/preview', [PlatformImportController::class, 'preview'])->middleware('throttle:20,1');
-    Route::post('platform-imports', [PlatformImportController::class, 'store'])->middleware('throttle:10,1');
+    // Revenus Airbnb et Booking.com importés de leurs fichiers CSV : aperçu, puis import.
+    // Mis de côté jusqu'à la fin du projet (config/features.php).
+    Route::middleware('feature:platform_import')->group(function () {
+        Route::get('platform-imports', [PlatformImportController::class, 'index']);
+        Route::post('platform-imports/preview', [PlatformImportController::class, 'preview'])->middleware('throttle:20,1');
+        Route::post('platform-imports', [PlatformImportController::class, 'store'])->middleware('throttle:10,1');
+    });
 });
