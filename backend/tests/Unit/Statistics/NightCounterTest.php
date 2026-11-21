@@ -72,6 +72,16 @@ it('compte les nuits des séjours de plateforme au mois d’arrivée, par platef
     expect($this->counter->platformNightsArriving($blocks, $this->from, $this->to))->toBe(['airbnb' => 6, 'booking' => 2]);
 });
 
+it('ne compte qu’une fois, par plateforme, les nuits de deux séjours en conflit', function () {
+    $blocks = collect([
+        memoryIcalBlock(1, '2026-11-05', '2026-11-08'),                                     // Airbnb, retenu le premier
+        memoryIcalBlock(1, '2026-11-06', '2026-11-09', 'booking', 'CLOSED - Not available'), // seul le 8 lui revient
+    ]);
+
+    expect($this->counter->platformNightsArriving($blocks, $this->from, $this->to))->toBe(['airbnb' => 3, 'booking' => 1])
+        ->and($this->counter->count($blocks, $this->from, $this->to)['platform'])->toBe(4);
+});
+
 it('confirme un séjour Booking.com par un versement du même logement arrivé le même jour, sinon le compte fermé', function () {
     $confirmed = memoryIcalBlock(1, '2026-11-03', '2026-11-06', 'booking', 'CLOSED - Not available');
     $closed = memoryIcalBlock(1, '2026-11-15', '2026-11-25', 'booking', 'CLOSED - Not available');

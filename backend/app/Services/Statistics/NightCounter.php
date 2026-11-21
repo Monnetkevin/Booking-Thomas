@@ -62,18 +62,30 @@ class NightCounter
 
     /**
      * Nuits des séjours importés par iCal qui arrivent dans [from, to[, par plateforme
-     * (« airbnb », « booking »), comptées comme leurs revenus : au mois d'arrivée.
+     * (« airbnb », « booking »), comptées comme leurs revenus : au mois d'arrivée. Une nuit
+     * tenue par deux séjours en conflit ne compte qu'une fois, comme dans count().
      *
      * @param  Collection<int, AvailabilityBlock>  $blocks  blocs actifs (calendrier chargé)
      * @return array<string, int>
      */
     public function platformNightsArriving(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
     {
+        $arriving = $blocks->filter(fn (AvailabilityBlock $block) => $this->kind($block) === 'platform'
+            && $block->icalFeed !== null && $block->starts_on->gte($from) && $block->starts_on->lt($to));
+        if ($arriving->isEmpty()) {
+            return [];
+        }
+        // Propriétaires des nuits jusqu'au dernier départ : un séjour arrivé dans la période
+        // compte toutes ses nuits, même celles d'après.
+        $owners = $this->nightOwners($blocks, $from, $arriving->max(fn (AvailabilityBlock $block) => $block->ends_on));
+
         $nights = [];
-        foreach ($blocks as $block) {
-            $provider = $this->kind($block) === 'platform' ? $block->icalFeed?->provider : null;
-            if ($provider !== null && $block->starts_on->gte($from) && $block->starts_on->lt($to)) {
-                $nights[$provider->value] = ($nights[$provider->value] ?? 0) + (int) $block->starts_on->diffInDays($block->ends_on);
+        foreach ($arriving as $block) {
+            $provider = $block->icalFeed->provider->value;
+            for ($day = $block->starts_on; $day->lt($block->ends_on); $day = $day->addDay()) {
+                if ($owners[$block->apartment_id.'|'.$day->toDateString()]['block'] === spl_object_id($block)) {
+                    $nights[$provider] = ($nights[$provider] ?? 0) + 1;
+                }
             }
         }
 

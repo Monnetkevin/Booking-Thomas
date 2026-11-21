@@ -28,9 +28,10 @@ final readonly class StayChange
         return new self(StayChangeKind::Added, $block->id, $block->apartment_id, $block->starts_on, $block->ends_on, guests: $guests);
     }
 
-    public static function cancelled(AvailabilityBlock $block): self
+    /** Séjour annulé, sur ses nuits ou sur celles qu'il occupait avant d'être déplacé. */
+    public static function cancelled(AvailabilityBlock $block, ?CarbonImmutable $startsOn = null, ?CarbonImmutable $endsOn = null): self
     {
-        return new self(StayChangeKind::Cancelled, $block->id, $block->apartment_id, $block->starts_on, $block->ends_on);
+        return new self(StayChangeKind::Cancelled, $block->id, $block->apartment_id, $startsOn ?? $block->starts_on, $endsOn ?? $block->ends_on);
     }
 
     public static function moved(AvailabilityBlock $block, CarbonImmutable $previousStartsOn, CarbonImmutable $previousEndsOn): self

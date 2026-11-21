@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BlockType;
+use App\Enums\IcalProvider;
 use Carbon\CarbonImmutable;
 use Database\Factories\AvailabilityBlockFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -108,6 +109,19 @@ class AvailabilityBlock extends Model
         return ! $this->isClosure() && ! $this->isRedundantClosure();
     }
 
+    /**
+     * Ce que le ménage sait de ce bloc : son état enregistré, sans la confirmation par
+     * versement chargée à la lecture. Un versement importé depuis (l'import ne touche pas
+     * aux blocs) n'a pas encore été annoncé : il le sera au prochain recalcul du bloc.
+     */
+    public function knownToHousekeeping(): bool
+    {
+        $stored = clone $this;
+        $stored->offsetUnset('confirmed_by_payout');
+
+        return $stored->is_active && $stored->concernsHousekeeping();
+    }
+
     /** Conflit à montrer et à signaler. */
     public function isRealConflict(): bool
     {
@@ -145,13 +159,23 @@ class AvailabilityBlock extends Model
         $query->where(fn (Builder $query) => $query->where('is_redundant_closure', false)->orWhereExists($this->payoutExists()));
     }
 
-    /** Sous-requête : versement de la plateforme du calendrier arrivé le premier jour du bloc. */
+    /**
+     * Sous-requête : versement de la plateforme du calendrier arrivé le premier jour du bloc,
+     * pour les seuls calendriers qui confondent séjours et dates fermées (Booking.com), comme
+     * BlockConflictService::isRedundantClosure.
+     */
     private function payoutExists(): QueryBuilder
     {
+        $providers = array_map(
+            fn (IcalProvider $provider) => $provider->value,
+            array_filter(IcalProvider::cases(), fn (IcalProvider $provider) => $provider->confirmsStaysByPayout()),
+        );
+
         return DB::table('platform_payouts')
             ->selectRaw('1')
             ->join('ical_feeds', 'ical_feeds.provider', '=', 'platform_payouts.platform')
             ->whereColumn('ical_feeds.id', 'availability_blocks.ical_feed_id')
+            ->whereIn('ical_feeds.provider', array_values($providers))
             ->whereColumn('platform_payouts.apartment_id', 'availability_blocks.apartment_id')
             ->whereColumn('platform_payouts.arrival', 'availability_blocks.starts_on')
             ->limit(1);

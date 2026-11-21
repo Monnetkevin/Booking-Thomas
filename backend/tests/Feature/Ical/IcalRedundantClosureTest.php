@@ -1,15 +1,19 @@
 <?php
 
 use App\Enums\BlockType;
+use App\Enums\StayChangeKind;
+use App\Events\StayScheduleChanged;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Models\PlatformPayout;
 use App\Models\User;
+use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Services\Ical\IcalCalendarMerger;
 use App\Services\Ical\ImportedEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -193,4 +197,82 @@ it('signale une seule fois un séjour Airbnb posé sur une fermeture du site, au
 
     expect(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeTrue();
     $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
+});
+
+/** Versement Booking.com ou Airbnb importé pour ce logement. */
+function payoutOn(Apartment $apartment, string $platform, string $arrival, string $departure): void
+{
+    PlatformPayout::query()->create([
+        'platform' => $platform, 'confirmation_code' => 'X'.$arrival, 'entry_key' => $platform.$arrival, 'apartment_id' => $apartment->id,
+        'arrival' => $arrival, 'departure' => $departure, 'nights' => 3, 'net_amount' => 30000,
+    ]);
+}
+
+it('ne refait pas un conflit d’une date fermée sur Airbnb pour un versement Airbnb du même jour', function () {
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
+    feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-23', 'Airbnb (Not available)']]);
+
+    // Airbnb distingue ses séjours de ses dates fermées : un versement ne change rien.
+    payoutOn($this->apartment, 'airbnb', '2026-11-20', '2026-11-23');
+
+    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
+    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.alerts.conflicts', []);
+    $this->getJson('/api/admin/planning?from=2026-11-13&days=30')
+        ->assertJsonPath('data.apartments.0.blocks.1.has_conflict', false)
+        ->assertJsonPath('data.apartments.0.blocks.1.redundant_closure', true);
+});
+
+it('prévient le ménage du séjour Booking.com caché sous une fermeture du site retirée', function () {
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/blocks", ['starts_on' => '2026-11-20', 'ends_on' => '2026-11-23', 'needs_cleaning' => true])->assertCreated();
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
+    $manual = AvailabilityBlock::query()->where('type', BlockType::Manual)->sole();
+    Event::fake([StayScheduleChanged::class]);
+
+    $this->deleteJson("/api/admin/blocks/{$manual->id}")->assertSuccessful();
+
+    $changes = Event::dispatched(StayScheduleChanged::class)->map(fn (array $args) => [$args[0]->change->kind, $args[0]->change->blockId])->all();
+    expect($changes)->toEqualCanonicalizing([
+        [StayChangeKind::Added, importedBlock('B1')->id],   // la date Booking.com redevient un séjour possible
+        [StayChangeKind::Cancelled, $manual->id],           // fin de l'occupation par des proches
+    ]);
+});
+
+it('prévient le ménage quand un versement révèle un séjour Booking.com, à la synchronisation suivante', function () {
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
+    payoutOn($this->apartment, 'booking', '2026-11-20', '2026-11-23');
+    Event::fake([StayScheduleChanged::class]);
+
+    $result = app(IcalCalendarMerger::class)->merge($this->booking, [new ImportedEvent('B1', CarbonImmutable::parse('2026-11-20'), CarbonImmutable::parse('2026-11-23'), 'CLOSED - Not available', null)]);
+
+    expect($result->conflicts)->toBe(1)
+        ->and(importedBlock('B1')->is_redundant_closure)->toBeFalse();
+    Event::assertDispatchedTimes(StayScheduleChanged::class, 1);
+    Event::assertDispatched(StayScheduleChanged::class, fn (StayScheduleChanged $event) => $event->change->kind === StayChangeKind::Added);
+});
+
+it('retire du planning du ménage un séjour Booking.com déplacé sur une fermeture du site', function () {
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-12-01', '2026-12-04')->create(['type' => BlockType::Manual]);
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
+    Event::fake([StayScheduleChanged::class]);
+
+    feedNow($this->booking, ['B1' => ['2026-12-01', '2026-12-04', 'CLOSED - Not available']]);
+
+    expect(importedBlock('B1')->is_redundant_closure)->toBeTrue();
+    Event::assertDispatchedTimes(StayScheduleChanged::class, 1);
+    Event::assertDispatched(StayScheduleChanged::class, fn (StayScheduleChanged $event) => $event->change->kind === StayChangeKind::Cancelled
+        && $event->change->startsOn->toDateString() === '2026-11-20' && $event->change->endsOn->toDateString() === '2026-11-23');
+});
+
+it('signale l’enchaînement départ-arrivée d’un séjour Booking.com confirmé par versement', function () {
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
+    $stay = AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-23', '2026-11-25')->create(['type' => BlockType::Ical, 'ical_feed_id' => $this->airbnb->id, 'note' => 'Reserved']);
+    $repository = app(AvailabilityRepositoryInterface::class);
+
+    expect($repository->hasSameDayTurnover($this->apartment->id, '2026-11-23', '2026-11-25', $stay->id))->toBeFalse();
+
+    payoutOn($this->apartment, 'booking', '2026-11-20', '2026-11-23');
+
+    expect($repository->hasSameDayTurnover($this->apartment->id, '2026-11-23', '2026-11-25', $stay->id))->toBeTrue();
 });
