@@ -50,6 +50,22 @@ class IcalFeedController extends Controller
         return new IcalSyncLogResource($this->feeds->syncNow($icalFeed, $request->acceptsEmpty()));
     }
 
+    /** Dernières lectures de tous les calendriers. */
+    public function latestLogs(): AnonymousResourceCollection
+    {
+        Gate::authorize('viewAny', IcalFeed::class);
+
+        return IcalSyncLogResource::collection($this->feeds->latestLogs());
+    }
+
+    /** « Tout synchroniser » : lectures mises en file d'attente. */
+    public function syncAll(): JsonResponse
+    {
+        Gate::authorize('syncAll', IcalFeed::class);
+
+        return response()->json(['data' => ['queued' => $this->feeds->syncAll()]], 202);
+    }
+
     public function logs(IcalFeed $icalFeed): AnonymousResourceCollection
     {
         Gate::authorize('view', $icalFeed);

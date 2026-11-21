@@ -20,14 +20,14 @@ class RatePeriodController extends Controller
 
     public function index(IndexRatePeriodsRequest $request, Apartment $apartment): AnonymousResourceCollection
     {
-        Gate::authorize('view', $apartment);
+        Gate::authorize('viewAny', RatePeriod::class);
 
         return RatePeriodResource::collection($this->periods->list($apartment, $request->boolean('include_past')));
     }
 
     public function store(RatePeriodRequest $request, Apartment $apartment): JsonResponse
     {
-        Gate::authorize('update', $apartment);
+        Gate::authorize('create', RatePeriod::class);
 
         $period = $this->periods->create($apartment, $request->periodData());
 

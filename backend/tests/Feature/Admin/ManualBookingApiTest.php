@@ -75,8 +75,24 @@ it('répartit une forte remise sur l’hébergement puis le ménage : aucun mont
         ->and($booking->accommodation_amount + $booking->cleaning_fee + $booking->tourist_tax - $booking->discount_amount)->toBe(1000);
 
     $this->getJson("/api/admin/bookings/{$booking->reference}")->assertJsonPath('data.refund_proposal.paid', 1000);
-    $this->postJson('/api/admin/bookings', manualBooking(['arrival' => '2026-12-01', 'departure' => '2026-12-03', 'total_amount' => 0, 'paid' => false, 'send_confirmation' => false]))->assertCreated();
-    expect(Booking::query()->latest('id')->first())->cleaning_fee->toBe(0)->discount_amount->toBe(18000);
+    // 1 € : la remise prend tout l'hébergement et presque tout le ménage.
+    $this->postJson('/api/admin/bookings', manualBooking(['arrival' => '2026-12-01', 'departure' => '2026-12-03', 'total_amount' => 100, 'paid' => false, 'send_confirmation' => false]))->assertCreated();
+    expect(Booking::query()->latest('id')->first())->cleaning_fee->toBe(100)->discount_amount->toBe(18000);
+});
+
+it('refuse une réservation à 0 € : un séjour sans montant se saisit comme une fermeture', function () {
+    $this->postJson('/api/admin/bookings', manualBooking(['total_amount' => 0]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['total_amount' => 'fermez plutôt les dates']);
+
+    // Prix calculé à 0 € (tarif nul, sans ménage) : même refus.
+    $free = Apartment::factory()->create(['capacity' => 4, 'cleaning_fee' => 0, 'min_stay' => 1]);
+    RatePeriod::factory()->for($free)->create(['starts_on' => '2026-11-01', 'ends_on' => '2026-12-31', 'nightly_price' => 0, 'min_stay' => 1, 'weekend_supplement' => 0]);
+    $this->postJson('/api/admin/bookings', manualBooking(['apartment_id' => $free->id]))
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'free_stay');
+
+    expect(Booking::query()->count())->toBe(0);
 });
 
 it('accepte un prix convenu quand aucun tarif ne couvre les nuits, et un voyageur sans e-mail', function () {

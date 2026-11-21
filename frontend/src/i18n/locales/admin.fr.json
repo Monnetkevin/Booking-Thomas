@@ -5,15 +5,28 @@
     "dashboard": "Tableau de bord",
     "apartments": "Appartements",
     "rates": "Tarifs",
-    "sync": "Synchronisation",
+    "sync": "Synchronisation iCal",
     "notifications": "Notifications",
-    "users": "Utilisateurs",
+    "users": "Utilisateurs et rôles",
     "audit": "Journal",
     "messages": "Messages",
-    "settings": "Réglages",
+    "settings": "Réglages du site",
     "bookings": "Réservations",
     "planning": "Planning",
-    "statistics": "Statistiques"
+    "statistics": "Statistiques",
+    "notificationPreferences": "E-mails et notifications",
+    "toggle": "Ouvrir ou réduire le menu",
+    "close": "Fermer le menu",
+    "viewSite": "Voir le site",
+    "badge_one": "{{count}} à traiter",
+    "badge_other": "{{count}} à traiter",
+    "withBadge": "{{label}} ({{count}})",
+    "groups": {
+      "pilotage": "Pilotage",
+      "catalogue": "Catalogue",
+      "suivi": "Suivi"
+    },
+    "platformImport": "Revenus des plateformes"
   },
   "login": {
     "title": "Connexion",
@@ -27,31 +40,77 @@
   "logout": "Se déconnecter",
   "connectedAs": "Connecté : {{name}}",
   "dashboard": {
-    "title": "Tableau de bord",
-    "welcome": "Bonjour {{name}}, voici l’essentiel des prochains jours.",
-    "conflicts_one": "{{count}} conflit de dates :",
-    "conflicts_other": "{{count}} conflits de dates :",
-    "openPlanning": "Voir le planning",
-    "failingFeed": "Le calendrier {{provider}} du {{apartment}} est en échec ({{count}} lectures de suite).",
-    "emptyRefused": "Le calendrier {{provider}} du {{apartment}} est arrivé vide et a été ignoré par précaution.",
-    "openSync": "Ouvrir la synchronisation",
-    "unreadMessages_one": "{{count}} message non lu.",
-    "unreadMessages_other": "{{count}} messages non lus.",
-    "openMessages": "Lire les messages",
-    "occupancy": "Occupation ce mois-ci",
-    "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements.",
-    "nightsSold": "Nuits vendues ce mois-ci",
-    "nightsDetail": "{{direct}} en direct · {{platform}} sur Airbnb",
-    "revenue": "Encaissé ce mois-ci",
-    "revenueDetail": "Paiements reçus moins remboursements (réservations directes).",
-    "movements": "Arrivées et départs des 7 prochains jours",
+    "occupancy": "Taux d’occupation",
+    "occupancyDetail": {
+      "week": "cette semaine, tous canaux",
+      "month": "ce mois-ci, tous canaux",
+      "year": "cette année, tous canaux"
+    },
+    "nightsDetail": "{{direct}} en direct · {{platform}} sur les plateformes",
+    "revenue": "Revenus directs",
+    "revenueDetail": "Encaissé (moins les remboursements), hors taxe de séjour, au mois d’arrivée.",
+    "movements": "Arrivées et départs",
     "today": "Aujourd’hui",
-    "arrivals": "Arrivées",
-    "departures": "Départs",
-    "platform": "Séjour importé",
     "guests_one": "{{count}} voyageur",
     "guests_other": "{{count}} voyageurs",
-    "noMovement": "Ni arrivée ni départ."
+    "hello": "Bonjour {{name}}",
+    "period": "Période",
+    "periods": {
+      "week": "Semaine",
+      "month": "Mois",
+      "year": "Année"
+    },
+    "periodIntro": {
+      "week": "Voici l’activité de la semaine du {{from}} au {{to}}.",
+      "month": "Voici l’activité du mois, du {{from}} au {{to}}.",
+      "year": "Voici l’activité de l’année, du {{from}} au {{to}}."
+    },
+    "newBooking": "Nouvelle réservation",
+    "stable": "stable",
+    "vsPrevious": "par rapport à la période précédente",
+    "delta": {
+      "points": "{{value}} pts",
+      "percent": "{{value}} %",
+      "count": "{{value}}"
+    },
+    "stays": "Séjours",
+    "staysDetail_one": "dont {{count}} réservé sur le site",
+    "staysDetail_other": "dont {{count}} réservés sur le site",
+    "revenueChart": "Revenus directs",
+    "revenueChartHint": "6 derniers mois, montants encaissés, au mois d’arrivée.",
+    "revenueChartLabel": "Revenus directs par mois : {{list}}.",
+    "todoTitle": "À traiter",
+    "nothingToDo": "Rien à traiter pour le moment.",
+    "open": "Ouvrir",
+    "todo": {
+      "conflict": {
+        "title": "Conflit de dates",
+        "text": "{{apartment}} : deux séjours se chevauchent du {{from}} au {{to}}."
+      },
+      "failingFeed": {
+        "title": "Synchronisation iCal en erreur",
+        "text": "{{apartment}} : le calendrier {{provider}} échoue ({{count}} lectures de suite)."
+      },
+      "emptyFeed": {
+        "title": "Calendrier arrivé vide",
+        "text": "{{apartment}} : le calendrier {{provider}} est arrivé vide et a été ignoré par précaution."
+      },
+      "messages": {
+        "title_one": "{{count}} message non lu",
+        "title_other": "{{count}} messages non lus",
+        "text": "Questions envoyées depuis le formulaire de contact."
+      }
+    },
+    "movementsHint": "7 prochains jours",
+    "seeAll": "Tout voir",
+    "noMovementAhead": "Aucune arrivée ni départ dans les 7 prochains jours.",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "sourceDirect": "Direct",
+    "platformGuest": "Voyageur de la plateforme",
+    "occupancyStrip": "Occupation",
+    "occupancyStripHint": "{{days}} prochains jours",
+    "free": "Libre"
   },
   "forbidden": "Votre compte n'a pas accès à cette page.",
   "common": {
@@ -73,8 +132,8 @@
     "filters": {
       "label": "Filtrer par statut",
       "all": "Tous",
-      "published": "Publiés",
-      "draft": "Brouillons"
+      "published": "En ligne",
+      "draft": "Brouillon"
     },
     "columns": {
       "apartment": "Appartement",
@@ -133,7 +192,8 @@
       "registrationHint": "Affiché sur la fiche si la commune l'exige.",
       "taglineFr": "Accroche (français)",
       "taglineEn": "Accroche (anglais)",
-      "taglineHint": "Une phrase courte affichée sur les cartes, par ex. « Bohème, rotin et lumière »."
+      "taglineHint": "Une phrase courte affichée sur les cartes, par ex. « Bohème, rotin et lumière ».",
+      "cleaningFeeAdminOnly": "Les prix sont gérés par l’administrateur."
     },
     "units": {
       "nights": "nuits",
@@ -200,11 +260,34 @@
       "pending": "Calcul en cours d'après l'adresse…",
       "found": "Trouvée d'après l'adresse.",
       "not_found": "Adresse introuvable : vérifiez le numéro, la rue et le code postal."
+    },
+    "summary_one": "{{count}} logement, dont {{published}} en ligne.",
+    "summary_other": "{{count}} logements, dont {{published}} en ligne.",
+    "bedrooms_one": "{{count}} chambre",
+    "bedrooms_other": "{{count}} chambres",
+    "occupancy": "Occupation {{value}}",
+    "view": "Voir",
+    "viewOnSite": "Voir sur le site",
+    "lastUpdated": "Dernière modification : {{when}}.",
+    "errorsElsewhere": "Certains champs à corriger sont dans un autre onglet.",
+    "showErrors": "Les afficher",
+    "tabs": {
+      "label": "Parties de la fiche",
+      "informations": "Informations",
+      "photos": "Photos",
+      "equipements": "Équipements",
+      "regles": "Règles du séjour",
+      "calendrier": "Calendrier"
+    },
+    "calendar": {
+      "title": "Calendrier",
+      "hint": "{{days}} prochaines nuits.",
+      "openPlanning": "Ouvrir le planning"
     }
   },
   "rates": {
     "title": "Tarifs",
-    "subtitle": "Prix par période et par logement",
+    "subtitle": "Chaque logement a ses périodes de prix (saisons), saisies en euros.",
     "add": "Ajouter une période",
     "chooseApartment": "Choisir un logement",
     "tableTitle": "Périodes tarifaires · {{name}}",
@@ -264,14 +347,34 @@
       "children": "Enfants",
       "submit": "Calculer",
       "noRate": "Pas de prix : certaines nuits n'ont pas de tarif."
+    },
+    "base": {
+      "title": "Tarifs de base",
+      "hint": "Période de prix en cours (ou prochaine) de chaque logement. Choisissez un logement pour gérer ses périodes.",
+      "columns": {
+        "apartment": "Appartement",
+        "period": "Période en cours",
+        "nightly": "Nuit",
+        "weekend": "Supplément week-end",
+        "minStay": "Séjour minimum",
+        "cleaning": "Ménage"
+      },
+      "unnamed": "Période",
+      "none": "Aucune période à venir",
+      "nights_one": "{{count}} nuit",
+      "nights_other": "{{count}} nuits"
     }
   },
   "sync": {
     "title": "Synchronisation des calendriers",
-    "subtitle": "Calendriers Airbnb lus toutes les 15 minutes",
-    "howTitle": "Mise en place, une fois par logement",
-    "howImport": "Dans Airbnb (Calendrier › Disponibilités › Associer des calendriers › Exporter le calendrier), copiez le lien et collez-le dans « URL d’import ».",
-    "howExport": "Copiez « URL d’export » et collez-la dans Airbnb (Importer le calendrier). Airbnb la relit à son rythme, souvent toutes les quelques heures.",
+    "providers": {
+      "airbnb": "Airbnb",
+      "booking": "Booking.com"
+    },
+    "subtitle": "Les calendriers Airbnb et Booking.com sont lus automatiquement toutes les 15 minutes.",
+    "howTitle": "Mise en place, une fois par logement et par plateforme",
+    "howImport": "Copiez le lien d’export de la plateforme et collez-le dans « URL d’import » : dans Airbnb, Calendrier › Disponibilités › Associer des calendriers › Exporter le calendrier ; dans l’extranet Booking.com, Tarifs et disponibilités › Synchroniser les calendriers › Exporter le calendrier.",
+    "howExport": "Copiez « URL d’export » et collez-la chez la plateforme (Importer le calendrier). Chaque plateforme la relit à son rythme, souvent toutes les quelques heures.",
     "noApartment": "Créez d’abord un logement.",
     "health": {
       "not_configured": "Non configuré",
@@ -287,9 +390,12 @@
     "failures_one": "Échec de la dernière lecture : {{error}}",
     "failures_other": "{{count}} échecs consécutifs : {{error}} Les nuits déjà connues restent bloquées.",
     "import": {
-      "title": "Airbnb → site (import)",
-      "label": "URL d’import (calendrier exporté par Airbnb)",
-      "placeholder": "https://www.airbnb.fr/calendar/ical/…",
+      "title": "{{provider}} → site (import)",
+      "label": "URL d’import (calendrier exporté par {{provider}})",
+      "placeholder": {
+        "airbnb": "https://www.airbnb.fr/calendar/ical/…",
+        "booking": "https://admin.booking.com/hotel/hoteladmin/ical.html?t=…"
+      },
       "hint": "Laissez vide pour ne rien importer : le site publie quand même son calendrier.",
       "save": "Enregistrer l’URL",
       "saved": "URL enregistrée, lecture lancée.",
@@ -297,12 +403,12 @@
       "inactiveHint": "Import arrêté : les nuits déjà importées restent bloquées."
     },
     "export": {
-      "title": "Site → Airbnb (export)",
-      "label": "URL d’export (à coller dans Airbnb)",
+      "title": "Site → {{provider}} (export)",
+      "label": "URL d’export (à coller dans {{provider}})",
       "missing": "Cliquez sur « Enregistrer l’URL » (même sans URL d’import) pour obtenir l’URL d’export du site.",
       "regenerate": "Changer l’URL d’export",
       "confirmTitle": "Changer l’URL d’export ?",
-      "confirm": "L’ancienne URL cessera aussitôt de fonctionner : il faudra coller la nouvelle dans Airbnb, sinon Airbnb ne verra plus les réservations du site.",
+      "confirm": "L’ancienne URL cessera aussitôt de fonctionner : il faudra coller la nouvelle dans {{provider}}, sinon {{provider}} ne verra plus les réservations du site.",
       "confirmAction": "Changer l’URL"
     },
     "syncNow": "Synchroniser maintenant",
@@ -344,6 +450,38 @@
       "status": {
         "success": "Lu",
         "unchanged": "Inchangé",
+        "failed": "Erreur"
+      }
+    },
+    "overview": {
+      "title": "Calendriers connectés",
+      "never": "jamais",
+      "copy": "Copier le lien d’export",
+      "copied": "Lien copié",
+      "syncAll": "Tout synchroniser",
+      "queued_one": "{{count}} calendrier en cours de lecture.",
+      "queued_other": "{{count}} calendriers en cours de lecture.",
+      "tooSoon": "Lecture déjà demandée il y a peu : réessayez dans une minute.",
+      "failingTitle": "{{apartment}} : l’import {{provider}} échoue (dernière lecture réussie : {{since}}).",
+      "failingHint": "Le lien d’import a peut-être été régénéré : vérifiez-le sur {{provider}}.",
+      "fixLink": "Corriger le lien",
+      "columns": {
+        "apartment": "Appartement",
+        "channel": "Canal",
+        "export": "Lien d’export",
+        "lastSync": "Dernière synchro",
+        "state": "État",
+        "actions": "Actions"
+      },
+      "sync": "Synchroniser",
+      "syncOne": "Synchroniser le calendrier de {{apartment}}",
+      "logTitle": "Journal récent",
+      "noLog": "Aucune lecture pour le moment.",
+      "logFailed": "Erreur : {{error}}",
+      "logOk": "Lecture réussie · {{created}} ajoutés, {{updated}} déplacés, {{removed}} libérés",
+      "logStatus": {
+        "success": "OK",
+        "unchanged": "OK",
         "failed": "Erreur"
       }
     }
@@ -398,10 +536,11 @@
   },
   "users": {
     "title": "Utilisateurs",
-    "subtitle": "Votre compte et les comptes ménage, limités au planning et à leurs notifications.",
-    "listTitle": "Comptes",
+    "subtitle": "Les personnes qui ont accès à l’administration, et ce que chaque rôle peut faire.",
+    "listTitle": "Équipe",
     "roles": {
       "admin": "Administrateur",
+      "manager": "Gestionnaire",
       "housekeeping": "Ménage"
     },
     "inactive": "Désactivé",
@@ -410,14 +549,38 @@
     "deactivate": "Désactiver",
     "deactivateTitle": "Désactiver le compte de {{name}} ?",
     "deactivateConfirm": "Le compte perd aussitôt l’accès au back-office et ne reçoit plus de notifications. Vous pourrez le réactiver.",
-    "sendReset": "Envoyer un lien de mot de passe",
-    "resetSent": "Lien envoyé à {{email}}, valable 24 heures.",
-    "inviteTitle": "Inviter un compte ménage",
-    "inviteHint": "La personne reçoit un e-mail pour choisir son mot de passe (lien valable 24 heures). Elle ne verra ni noms, ni coordonnées, ni montants.",
+    "sendReset": "Réinitialiser le mot de passe",
+    "resetSent": "Lien de réinitialisation envoyé à {{email}}, valable 24 heures.",
+    "inviteTitle": "Inviter un utilisateur",
+    "inviteHint": "La personne reçoit un e-mail pour choisir son mot de passe (lien valable 24 heures).",
     "name": "Nom",
     "email": "Adresse e-mail",
     "invite": "Envoyer l’invitation",
-    "invited": "Invitation envoyée à {{email}}."
+    "invited": "Invitation envoyée à {{email}}.",
+    "role": "Rôle",
+    "roleHints": {
+      "manager": "Réservations, planning, logements, calendriers, messages et statistiques.",
+      "housekeeping": "Planning du ménage et ses notifications, sans noms, coordonnées ni montants."
+    },
+    "lastLogin": "Dernière connexion : {{when}}",
+    "neverLoggedIn": "Jamais connecté",
+    "changeRole": "Rôle de {{name}}",
+    "rights": {
+      "title": "Droits par rôle",
+      "description": "Ce que chaque rôle peut faire dans l’administration.",
+      "right": "Droit",
+      "yes": "Oui",
+      "no": "Non",
+      "rows": {
+        "bookings": "Réservations et planning",
+        "apartments": "Appartements et calendriers",
+        "messages": "Messages, alertes et statistiques",
+        "rates": "Tarifs et coupons",
+        "settings": "Réglages et utilisateurs",
+        "housekeeping": "Planning du ménage",
+        "audit": "Journal des actions"
+      }
+    }
   },
   "password": {
     "title": "Choisir mon mot de passe",
@@ -450,7 +613,9 @@
       "settings.updated": "Réglages modifiés",
       "user.invited": "Compte invité",
       "user.updated": "Compte modifié",
-      "user.password_link_sent": "Lien de mot de passe envoyé"
+      "user.password_link_sent": "Lien de mot de passe envoyé",
+      "platform_payouts.imported": "Revenus d’une plateforme importés",
+      "bookings.exported": "Réservations exportées (CSV)"
     }
   },
   "notFound": {
@@ -517,7 +682,15 @@
       "duplicateDay": "Deux paliers ne peuvent pas tomber le même jour.",
       "noEmail": "Indiquez au moins une adresse.",
       "fix": "Corrigez les champs signalés avant d’enregistrer."
-    }
+    },
+    "tabsLabel": "Parties des réglages",
+    "tabs": {
+      "reservation": "Réservation",
+      "paiement": "Paiement",
+      "notifications": "Notifications"
+    },
+    "personalHint": "Ces adresses reçoivent les e-mails du site. Vos propres alertes (dans le back-office et par e-mail) se règlent ici :",
+    "personalLink": "mes notifications"
   },
   "blocks": {
     "title": "Fermer des dates",
@@ -534,9 +707,9 @@
   },
   "bookings": {
     "title": "Réservations",
-    "subtitle": "Réservations du site et saisies à la main. Les séjours Airbnb sont dans le planning.",
-    "create": "Saisir une réservation",
-    "search": "Rechercher (nom, e-mail, référence)",
+    "subtitle": "Réservations du site et saisies à la main. Les séjours des plateformes sont dans le planning.",
+    "create": "Nouvelle réservation",
+    "search": "Voyageur ou référence",
     "status": "Statut",
     "allStatuses": "Tous les statuts",
     "apartment": "Logement",
@@ -597,7 +770,69 @@
     "refundPaid": "Encaissé : {{amount}}.",
     "refundOffline": "Le remboursement en ligne arrive avec le paiement Stripe ; en attendant, remboursez le voyageur hors ligne.",
     "notifyGuest": "Prévenir le voyageur par e-mail",
-    "cancelConfirm": "Annuler la réservation"
+    "cancelConfirm": "Annuler la réservation",
+    "subtitleCount_one": "{{count}} réservation avec ces filtres.",
+    "subtitleCount_other": "{{count}} réservations avec ces filtres.",
+    "stagesLabel": "Afficher",
+    "stages": {
+      "all": "Toutes",
+      "upcoming": "À venir",
+      "ongoing": "En cours",
+      "past": "Terminées",
+      "cancelled": "Annulées"
+    },
+    "filters": "Filtres",
+    "export": "Exporter",
+    "from": "Séjours à partir du",
+    "to": "Séjours jusqu’au",
+    "columns": {
+      "reference": "Référence",
+      "guest": "Voyageur",
+      "apartment": "Appartement",
+      "stay": "Séjour",
+      "nights": "Nuits",
+      "total": "Total",
+      "source": "Source",
+      "status": "Statut",
+      "payment": "Paiement"
+    },
+    "guestsCount_one": "{{count}} voyageur",
+    "guestsCount_other": "{{count}} voyageurs",
+    "paymentStates": {
+      "awaiting": "En attente",
+      "unpaid": "Non réglée",
+      "paid": "Payé",
+      "partially_refunded": "Remboursé en partie",
+      "refunded": "Remboursé"
+    },
+    "detailTitle": "Réservation {{reference}}",
+    "createdOn": "Créée le {{date}}.",
+    "print": "Imprimer",
+    "arrival": "Arrivée",
+    "departure": "Départ",
+    "duration": "Durée",
+    "nightsCount_one": "{{count}} nuit",
+    "nightsCount_other": "{{count}} nuits",
+    "editGuest": "Corriger",
+    "noContact": "Aucune coordonnée.",
+    "write": "Écrire",
+    "copyEmail": "Copier l’e-mail",
+    "copied": "E-mail copié",
+    "history": "Historique",
+    "payment": "Paiement",
+    "actions": "Actions",
+    "eventBy": "par {{name}}",
+    "events": {
+      "created": "Réservation créée",
+      "paid": "Paiement reçu",
+      "refunded": "Remboursement",
+      "payment_failed": "Paiement refusé",
+      "confirmed": "Réservation confirmée",
+      "updated": "Coordonnées ou notes corrigées",
+      "cancelled": "Réservation annulée",
+      "arrival": "Arrivée",
+      "departure": "Départ"
+    }
   },
   "manual": {
     "title": "Saisir une réservation",
@@ -612,7 +847,7 @@
     "noRate": "Aucun tarif ne couvre toutes ces nuits : indiquez le prix total convenu.",
     "warnings": "À savoir : {{list}} (ne bloque pas une saisie à la main).",
     "price": "Prix et règlement",
-    "priceHint": "Laissez le total vide pour garder le prix calculé, ou indiquez le total convenu (l’écart est noté comme ajustement).",
+    "priceHint": "Laissez le total vide pour garder le prix calculé, ou indiquez le total convenu (l’écart est noté comme ajustement). Un séjour sans montant se saisit comme une fermeture de dates.",
     "total": "Total convenu",
     "paid": "Réglé hors ligne (espèces, virement…)",
     "emailHint": "Facultatif : sans e-mail, rien n’est envoyé au voyageur.",
@@ -622,19 +857,15 @@
     "errors": {
       "required": "Champ obligatoire.",
       "invalidNumber": "Nombre attendu.",
-      "invalidAmount": "Montant invalide."
+      "invalidAmount": "Montant invalide.",
+      "freeStay": "Une réservation a toujours un montant : pour un séjour sans montant (usage personnel, logement prêté), fermez plutôt les dates depuis le planning."
     }
   },
   "planning": {
     "title": "Planning",
-    "subtitle": "Tous les logements, nuit par nuit. Cliquez une réservation pour l’ouvrir, une case libre pour fermer des dates.",
+    "subtitle": "Toutes les réservations, tous canaux confondus.",
     "apartment": "Logement",
-    "previous": "Période précédente",
-    "next": "Période suivante",
     "today": "Aujourd’hui",
-    "span": "Durée affichée",
-    "days_one": "{{count}} jour",
-    "days_other": "{{count}} jours",
     "noApartment": "Aucun logement pour le moment.",
     "legend": "Légende",
     "closeFrom": "{{apartment}} : fermer à partir du {{day}}",
@@ -643,39 +874,179 @@
       "direct": "Réservation du site",
       "manualBooking": "Saisie à la main",
       "pending": "Paiement en cours",
-      "ical": "Séjour importé (Airbnb)",
+      "ical": "Séjour importé (plateforme)",
       "closed": "Fermé"
+    },
+    "view": "Affichage",
+    "views": {
+      "month": "Mois",
+      "week": "Semaine"
+    },
+    "weekTitle": "Semaine du {{from}} au {{to}}",
+    "previousPeriod": {
+      "month": "Mois précédent",
+      "week": "Semaine précédente"
+    },
+    "nextPeriod": {
+      "month": "Mois suivant",
+      "week": "Semaine suivante"
+    },
+    "figures": {
+      "sold": "Nuits occupées",
+      "soldDetail_one": "sur {{count}} nuit ouverte",
+      "soldDetail_other": "sur {{count}} nuits ouvertes",
+      "occupancy": "Taux d’occupation",
+      "occupancyDetail": {
+        "month": "ce mois-ci, tous canaux",
+        "week": "cette semaine, tous canaux"
+      },
+      "arrivals": "Arrivées",
+      "arrivalsDetail_one": "dont {{count}} directe",
+      "arrivalsDetail_other": "dont {{count}} directes",
+      "free": "Nuits libres",
+      "freeDetail_one": "dont {{count}} de week-end",
+      "freeDetail_other": "dont {{count}} de week-end"
     }
   },
   "statistics": {
     "title": "Statistiques",
-    "subtitle": "12 derniers mois, du {{from}} au {{to}} (exclu).",
+    "subtitle": "Du {{from}} au {{to}}.",
     "export": "Exporter en CSV",
     "revenue": "Revenus directs",
-    "revenueDetail": "Réservations du site et saisies à la main, hors taxe de séjour, au mois d’arrivée.",
+    "revenueDetail": "Réservations du site et saisies à la main : encaissé moins les remboursements, hors taxe de séjour, au mois d’arrivée.",
     "nights": "Nuits vendues",
     "occupancy": "Occupation",
     "averagePrice": "Prix moyen d’une nuit",
     "averagePriceDetail": "Hébergement seul, réservations directes.",
     "averageStay": "Durée moyenne d’un séjour",
-    "averageStayDetail": "Séjours directs et Airbnb.",
+    "averageStayDetail": "Séjours directs et des plateformes.",
     "nightsValue": "{{value}} nuits",
     "chartTitle": "Nuits vendues par mois",
     "chartHint": "Survolez une colonne pour le détail ; le tableau dessous donne toutes les valeurs.",
     "legend": "Légende",
     "direct": "En direct",
-    "platform": "Airbnb",
-    "barLabel": "{{month}} : {{direct}} nuits en direct, {{platform}} sur Airbnb",
+    "platform": "Plateformes",
+    "barLabel": "{{month}} : {{direct}} nuits en direct, {{platform}} sur les plateformes",
     "directNights_one": "{{count}} nuit en direct",
     "directNights_other": "{{count}} nuits en direct",
-    "platformNights_one": "{{count}} nuit sur Airbnb",
-    "platformNights_other": "{{count}} nuits sur Airbnb",
+    "platformNights_one": "{{count}} nuit sur les plateformes",
+    "platformNights_other": "{{count}} nuits sur les plateformes",
     "monthsTable": "Nuits, revenus et occupation par mois",
     "month": "Mois",
     "revenueShort": "Revenus directs",
     "occupancyShort": "Occupation",
     "byApartment": "Par logement",
-    "platformAmounts": "Les montants Airbnb ne sont pas connus : le calendrier iCal ne transmet que les dates.",
-    "rating": "Note moyenne"
+    "platformAmounts": "Revenus des plateformes : montants nets importés de leurs fichiers, au mois d’arrivée.",
+    "rating": "Note moyenne",
+    "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements.",
+    "period": "Période",
+    "periods": {
+      "six_months": "6 mois",
+      "year": "12 mois",
+      "all": "Tout"
+    },
+    "platformMissing": "Certains mois ont des nuits vendues sur les plateformes sans revenus importés : leurs montants manquent dans les totaux.",
+    "importLink": "Importer les revenus des plateformes",
+    "totalRevenue": "Revenus totaux",
+    "totalRevenueDetail": "Site et plateformes (revenus importés), hors taxe de séjour.",
+    "revenuePerNight": "Revenu par nuit",
+    "revenuePerNightDetail_one": "sur {{count}} nuit vendue",
+    "revenuePerNightDetail_other": "sur {{count}} nuits vendues",
+    "directShare": "Part du direct",
+    "occupancyLine": "Occupation : {{value}}",
+    "revenueChart": "Revenus par mois",
+    "revenueChartHint": "Direct et plateformes, au mois d’arrivée.",
+    "revenueChartLabel": "Revenus par mois : {{list}}.",
+    "channels": {
+      "direct": "Direct",
+      "airbnb": "Airbnb",
+      "booking": "Booking.com"
+    },
+    "missingMark": "* revenus des plateformes non importés",
+    "channelsTitle": "Répartition par canal",
+    "noRevenue": "Aucun revenu sur la période.",
+    "occupancyByApartment": "Taux d’occupation par appartement",
+    "platformRevenueShort": "Plateformes"
+  },
+  "badge": "ADMIN",
+  "account": {
+    "label": "Compte : {{name}}"
+  },
+  "alerts": {
+    "title": "Alertes",
+    "none": "Rien à signaler",
+    "unread_one": "{{count}} notification non lue",
+    "unread_other": "{{count}} notifications non lues",
+    "conflicts_one": "{{count}} conflit",
+    "conflicts_other": "{{count}} conflits",
+    "failingFeeds_one": "{{count}} erreur iCal",
+    "failingFeeds_other": "{{count}} erreurs iCal"
+  },
+  "syncStatus": {
+    "label": "Synchro des calendriers",
+    "never": "jamais"
+  },
+  "search": {
+    "open": "Rechercher (Ctrl K)",
+    "title": "Rechercher",
+    "placeholder": "Rechercher une réservation, un voyageur…",
+    "results": "Résultats",
+    "hint": "Tapez au moins 2 caractères : référence, nom ou e-mail d’un voyageur, logement ou page.",
+    "empty": "Aucun résultat.",
+    "kinds": {
+      "booking": "Réservation",
+      "apartment": "Appartement",
+      "page": "Page de l’administration"
+    }
+  },
+  "platformImport": {
+    "title": "Revenus des plateformes",
+    "subtitle": "Airbnb et Booking.com ne transmettent aucun montant par le calendrier : importez leurs exports pour suivre les revenus par canal.",
+    "fileTitle": "Fichier à importer",
+    "platform": "Plateforme",
+    "platforms": {
+      "airbnb": "Airbnb",
+      "booking": "Booking.com"
+    },
+    "where": {
+      "airbnb": "Sur Airbnb : Revenus › Historique des transactions › Télécharger le fichier CSV.",
+      "booking": "Sur l’extranet Booking.com : Réservations › Exporter (CSV ; un fichier Excel s’enregistre en CSV)."
+    },
+    "file": "Fichier CSV",
+    "preview": "Prévisualiser",
+    "listingsTitle": "Annonces et logements",
+    "listingsHint": "Rattachez chaque annonce du fichier à un logement. Le choix est retenu pour les prochains imports.",
+    "notLinked": "Non rattachée",
+    "previewTitle": "Aperçu",
+    "previewSummary_one": "{{count}} séjour reconnu, {{skipped}} ligne illisible.",
+    "previewSummary_other": "{{count}} séjours reconnus, {{skipped}} lignes illisibles.",
+    "noRow": "Aucun séjour reconnu dans ce fichier.",
+    "columns": {
+      "code": "Code",
+      "listing": "Annonce",
+      "stay": "Séjour",
+      "fees": "Frais",
+      "net": "Net versé",
+      "state": "État"
+    },
+    "states": {
+      "unlinked": "Annonce non rattachée",
+      "removed": "Déjà importé, sera retiré",
+      "update": "Déjà importé (mis à jour)",
+      "new": "Nouveau"
+    },
+    "skippedLines": "Lignes ignorées (illisibles) : {{lines}}.",
+    "unmapped_one": "{{count}} annonce n’est rattachée à aucun logement : ses séjours ne seront pas importés.",
+    "unmapped_other": "{{count}} annonces ne sont rattachées à aucun logement : leurs séjours ne seront pas importés.",
+    "detachedRemoved_one": "{{count}} versement déjà importé d’une annonce non rattachée sera retiré des revenus.",
+    "detachedRemoved_other": "{{count}} versements déjà importés d’annonces non rattachées seront retirés des revenus.",
+    "import_one": "Importer {{count}} séjour",
+    "import_other": "Importer {{count}} séjours",
+    "done": "Import terminé : {{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés (annulés), {{skipped}} ignorés.",
+    "historyTitle": "Derniers imports",
+    "noHistory": "Aucun import pour le moment.",
+    "counts": "{{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés, {{skipped}} ignorés",
+    "cancelled_one": "{{count}} réservation annulée chez la plateforme sera retirée.",
+    "cancelled_other": "{{count}} réservations annulées chez la plateforme seront retirées."
   }
 }

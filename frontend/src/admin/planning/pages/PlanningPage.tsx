@@ -1,23 +1,27 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { BlockDialog } from '@/admin/blocks/components/BlockDialog'
 import { useRemoveBlock } from '@/admin/blocks/useBlocks'
+import { KpiCard } from '@/admin/components/KpiCard'
+import { countDelta, pointsDelta } from '@/admin/components/delta'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { CalendarIcon, GridIcon, HomeIcon, PlusIcon } from '@/components/icons'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
+import { buttonClasses } from '@/components/ui/buttonClasses'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { FilterChips } from '@/components/ui/FilterChips'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api'
 import { toIso } from '@/lib/dates'
 import { PlanningGrid } from '../components/PlanningGrid'
 import { addDays, planningDays, type BlockKind } from '../planningLayout'
+import { periodContaining, periodIncludes, shiftPeriod, type PlanningView } from '../planningPeriod'
 import type { PlanningBlock } from '../types'
 import { usePlanning } from '../usePlanning'
 
-type Span = '14' | '31'
 const LEGEND: BlockKind[] = ['direct', 'manualBooking', 'pending', 'ical', 'closed']
 const legendClasses: Record<BlockKind, string> = {
   direct: 'bg-accent',
@@ -27,15 +31,48 @@ const legendClasses: Record<BlockKind, string> = {
   closed: 'bg-line',
 }
 
-/** Planning de tous les logements, 14 ou 31 jours, avec fermeture de dates en un clic. */
+const VIEW_PARAM: Record<string, PlanningView> = { mois: 'month', semaine: 'week' }
+const VIEW_SLUG: Record<PlanningView, string> = { month: 'mois', week: 'semaine' }
+const monthTitle = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+const shortDay = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+const percent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
+const asDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
+
+/**
+ * Planning de tous les logements, au mois ou à la semaine (gardés dans l'adresse), avec les
+ * chiffres de la période et la fermeture de dates en un clic.
+ */
 export function PlanningPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
   const [today] = useState(() => toIso(new Date()))
-  const [from, setFrom] = useState(today)
-  const [span, setSpan] = useState<Span>('14')
-  const days = Number(span)
+  const view = VIEW_PARAM[params.get('vue') ?? ''] ?? 'month'
+  const anchor = /^\d{4}-\d{2}-\d{2}$/.test(params.get('date') ?? '') ? (params.get('date') as string) : today
+  const period = periodContaining(view, anchor)
+  const { from, days } = period
+  const previous = shiftPeriod(period, -1)
   const planning = usePlanning(from, days)
+  const previousPlanning = usePlanning(previous.from, previous.days)
+  // Pendant le chargement d'une autre période, pas de chiffres d'une période voisine.
+  const figures = planning.isPlaceholderData ? null : (planning.data?.figures ?? null)
+  const previousFigures = previousPlanning.isPlaceholderData ? null : (previousPlanning.data?.figures ?? null)
+
+  const go = (nextView: PlanningView, day: string) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current)
+        next.set('vue', VIEW_SLUG[nextView])
+        if (periodIncludes(periodContaining(nextView, today), day)) next.delete('date')
+        else next.set('date', day)
+        return next
+      },
+      { replace: true },
+    )
+  const title =
+    view === 'month'
+      ? monthTitle.format(asDate(from))
+      : t('admin.planning.weekTitle', { from: shortDay.format(asDate(from)), to: shortDay.format(asDate(addDays(from, days - 1))) })
   const removeBlock = useRemoveBlock()
   const [closing, setClosing] = useState<{ apartmentId?: number; startsOn?: string; endsOn?: string } | null>(null)
   const [removing, setRemoving] = useState<PlanningBlock | null>(null)
@@ -53,29 +90,71 @@ export function PlanningPage() {
       <PageHeader
         title={t('admin.planning.title')}
         subtitle={t('admin.planning.subtitle')}
-        actions={<Button onClick={() => setClosing({})}>{t('admin.blocks.title')}</Button>}
+        actions={
+          <>
+            <SegmentedControl
+              label={t('admin.planning.view')}
+              value={view}
+              onChange={(value) => go(value, from)}
+              options={(['month', 'week'] as const).map((value) => ({ value, label: t(`admin.planning.views.${value}`) }))}
+            />
+            <Button variant="secondary" onClick={() => setClosing({})}>
+              {t('admin.blocks.title')}
+            </Button>
+            <Link to="/admin/reservations/nouvelle" className={buttonClasses('primary')}>
+              <PlusIcon />
+              {t('admin.dashboard.newBooking')}
+            </Link>
+          </>
+        }
       />
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          icon={<HomeIcon />}
+          label={t('admin.planning.figures.sold')}
+          value={figures?.sold_nights ?? '—'}
+          detail={figures ? t('admin.planning.figures.soldDetail', { count: figures.open_nights }) : undefined}
+          delta={null}
+        />
+        <KpiCard
+          icon={<GridIcon />}
+          label={t('admin.planning.figures.occupancy')}
+          value={figures?.occupancy == null ? '—' : `${percent.format(figures.occupancy)} %`}
+          detail={t(`admin.planning.figures.occupancyDetail.${view}`)}
+          delta={figures && previousFigures ? pointsDelta(figures.occupancy, previousFigures.occupancy) : null}
+        />
+        <KpiCard
+          icon={<CalendarIcon />}
+          label={t('admin.planning.figures.arrivals')}
+          value={figures?.arrivals ?? '—'}
+          detail={figures ? t('admin.planning.figures.arrivalsDetail', { count: figures.direct_arrivals }) : undefined}
+          delta={figures && previousFigures ? countDelta(figures.arrivals, previousFigures.arrivals) : null}
+        />
+        <KpiCard
+          icon={<GridIcon />}
+          label={t('admin.planning.figures.free')}
+          value={figures?.free_nights ?? '—'}
+          detail={figures ? t('admin.planning.figures.freeDetail', { count: figures.free_weekend_nights }) : undefined}
+          delta={null}
+        />
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold first-letter:uppercase" aria-live="polite">
+          {title}
+        </h2>
         <div className="flex gap-2">
-          <Button variant="secondary" aria-label={t('admin.planning.previous')} onClick={() => setFrom(addDays(from, -days))}>
+          <Button variant="secondary" aria-label={t(`admin.planning.previousPeriod.${view}`)} onClick={() => go(view, previous.from)}>
             ←
           </Button>
-          <Button variant="secondary" onClick={() => setFrom(today)} disabled={from === today}>
+          <Button variant="secondary" onClick={() => go(view, today)} disabled={periodIncludes(period, today)}>
             {t('admin.planning.today')}
           </Button>
-          <Button variant="secondary" aria-label={t('admin.planning.next')} onClick={() => setFrom(addDays(from, days))}>
+          <Button variant="secondary" aria-label={t(`admin.planning.nextPeriod.${view}`)} onClick={() => go(view, shiftPeriod(period, 1).from)}>
             →
           </Button>
         </div>
-        <FilterChips
-          label={t('admin.planning.span')}
-          value={span}
-          onChange={setSpan}
-          options={[
-            { value: '14', label: t('admin.planning.days', { count: 14 }) },
-            { value: '31', label: t('admin.planning.days', { count: 31 }) },
-          ]}
-        />
       </div>
 
       {planning.isPending ? (
@@ -87,6 +166,7 @@ export function PlanningPage() {
       ) : (
         <PlanningGrid
           days={planningDays(from, days)}
+          dense={view === 'month'}
           today={today}
           apartments={apartments}
           onBlock={openBlock}

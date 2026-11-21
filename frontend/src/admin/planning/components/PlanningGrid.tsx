@@ -1,15 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
-import { blockKind, placeBlock, type BlockKind } from '../planningLayout'
+import { blockKindClasses } from '../blockColors'
+import { shortGuestName } from '../planningFigures'
+import { blockKind, placeBlock } from '../planningLayout'
 import type { PlanningApartment, PlanningBlock } from '../types'
-
-const kindClasses: Record<BlockKind, string> = {
-  direct: 'bg-accent text-white',
-  manualBooking: 'bg-success text-white',
-  pending: 'border-2 border-dashed border-warning bg-warning-soft text-warning',
-  ical: 'bg-night-soft text-white',
-  closed: 'bg-line text-ink',
-}
 
 interface PlanningGridProps {
   days: string[]
@@ -17,6 +11,8 @@ interface PlanningGridProps {
   apartments: PlanningApartment[]
   onBlock: (block: PlanningBlock, apartment: PlanningApartment) => void
   onEmptyDay: (apartment: PlanningApartment, day: string) => void
+  /** Colonnes plus étroites (vue au mois). */
+  dense?: boolean
 }
 
 const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', timeZone: 'UTC' })
@@ -29,12 +25,12 @@ const asDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
  * est une barre cliquable ; une case libre ouvre la fermeture de dates. Défile à
  * l'horizontale sur téléphone, la colonne des logements restant visible.
  */
-export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay }: PlanningGridProps) {
+export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay, dense = false }: PlanningGridProps) {
   const { t } = useTranslation()
-  const columns = { gridTemplateColumns: `repeat(${days.length}, minmax(2.75rem, 1fr))` }
+  const columns = { gridTemplateColumns: `repeat(${days.length}, minmax(${dense ? '2.25rem' : '2.75rem'}, 1fr))` }
 
   return (
-    <div className="overflow-x-auto rounded-[var(--radius-card)] border border-border bg-white">
+    <div className="relative overflow-x-auto rounded-[var(--radius-card)] border border-border bg-white">
       <div className="min-w-max">
         <div className="flex border-b border-border">
           <div className="sticky left-0 z-20 w-36 shrink-0 bg-white px-3 py-2 text-sm font-semibold sm:w-44">{t('admin.planning.apartment')}</div>
@@ -71,7 +67,7 @@ export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay }: P
               {apartment.blocks.map((block) => {
                 const placement = days[0] ? placeBlock(block, days[0], days.length) : null
                 if (!placement) return null
-                const label = block.label ?? t(`admin.planning.kinds.${blockKind(block)}`)
+                const label = block.booking && block.label ? shortGuestName(block.label) : (block.label ?? t(`admin.planning.kinds.${blockKind(block)}`))
                 return (
                   <button
                     key={block.id}
@@ -79,7 +75,7 @@ export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay }: P
                     style={{ gridColumn: `${placement.start + 1} / span ${placement.span}`, gridRow: 1 }}
                     className={cn(
                       'z-10 mx-0.5 my-1.5 truncate rounded-lg px-2 text-left text-xs font-semibold',
-                      kindClasses[blockKind(block)],
+                      blockKindClasses[blockKind(block)],
                       block.has_conflict && 'ring-2 ring-danger ring-offset-1',
                       block.has_conflict && 'self-end',
                       placement.continuesBefore && 'rounded-l-none',

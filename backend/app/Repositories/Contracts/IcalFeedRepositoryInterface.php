@@ -52,4 +52,11 @@ interface IcalFeedRepositoryInterface
      * @return Collection<int, IcalSyncLog>
      */
     public function recentLogs(IcalFeed $feed, int $limit): Collection;
+
+    /**
+     * Dernières lectures de tous les calendriers, les plus récentes d'abord.
+     *
+     * @return Collection<int, IcalSyncLog>
+     */
+    public function latestLogs(int $limit): Collection;
 }

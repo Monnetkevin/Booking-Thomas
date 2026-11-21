@@ -17,12 +17,21 @@ class UserRepository implements UserRepositoryInterface
 
     public function all(): Collection
     {
-        return User::query()->orderByRaw('role = ? desc', [UserRole::Admin->value])->orderBy('name')->get();
+        // Administrateurs, puis gestionnaires, puis ménage ; par nom dans chaque rôle.
+        return User::query()
+            ->orderByRaw('case role when ? then 0 when ? then 1 else 2 end', [UserRole::Admin->value, UserRole::Manager->value])
+            ->orderBy('name')
+            ->get();
     }
 
     public function activeByRole(UserRole $role): Collection
     {
         return User::query()->where('role', $role->value)->where('is_active', true)->get();
+    }
+
+    public function activeByRoles(array $roles): Collection
+    {
+        return User::query()->whereIn('role', array_map(fn (UserRole $role) => $role->value, $roles))->where('is_active', true)->get();
     }
 
     public function countActiveAdminsForUpdate(): int
@@ -41,6 +50,13 @@ class UserRepository implements UserRepositoryInterface
         $user->update($attributes);
 
         return $user;
+    }
+
+    public function touchLastLogin(User $user): void
+    {
+        $user->timestamps = false;
+        $user->forceFill(['last_login_at' => now()])->save();
+        $user->timestamps = true;
     }
 
     public function updatePassword(User $user, string $password): User

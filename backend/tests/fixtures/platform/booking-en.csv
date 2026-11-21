@@ -1,0 +1,3 @@
+Book number,Booked by,Guest name(s),Check-in,Check-out,Booked on,Status,Price,Commission %,Commission amount,Unit type
+4001234567,Paul Martin,Paul Martin,2026-11-20,2026-11-23,2026-10-01,ok,330.00 EUR,15,49.50 EUR,Le Cocon
+4001234568,Ana Lopez,Ana Lopez,2026-12-01,2026-12-03,2026-10-02,cancelled_by_guest,200.00 EUR,15,30.00 EUR,Le Cocon

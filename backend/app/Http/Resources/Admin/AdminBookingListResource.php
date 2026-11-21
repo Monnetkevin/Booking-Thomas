@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Enums\BookingPaymentState;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,6 +30,8 @@ class AdminBookingListResource extends JsonResource
             'status' => $this->status->value,
             'source' => $this->source->value,
             'total_amount' => $this->total_amount,
+            // Calculé par AdminBookingService::list ; absent ailleurs.
+            'payment_state' => ($state = $this->resource->getAttribute('payment_state')) instanceof BookingPaymentState ? $state->value : null,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

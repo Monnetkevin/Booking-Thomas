@@ -42,7 +42,7 @@ class IcalConflictAlert extends TransactionalMail
     protected function viewData(): array
     {
         return [
-            'provider' => $this->block->icalFeed?->provider->label() ?? 'Airbnb',
+            'provider' => $this->block->icalFeed?->provider->label() ?? 'la plateforme',
             'apartment' => $this->block->apartment->getTranslation('name', 'fr'),
             'dates' => StayDates::range($this->block->starts_on, $this->block->ends_on, 'fr'),
             'externalUrl' => $this->block->external_url,

@@ -3,10 +3,12 @@
 namespace App\Services\Users;
 
 use App\Enums\AuditAction;
+use App\Enums\NotificationType;
 use App\Enums\UserRole;
 use App\Exceptions\Users\AccountLockoutException;
 use App\Mail\AccountPasswordLink;
 use App\Models\User;
+use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Auth\Passwords\PasswordBroker;
@@ -29,6 +31,7 @@ class UserService
         private readonly PasswordBrokerFactory $brokers,
         private readonly Mailer $mailer,
         private readonly AuditLogger $audit,
+        private readonly NotificationRepositoryInterface $notifications,
     ) {}
 
     /**
@@ -39,14 +42,14 @@ class UserService
         return $this->users->all();
     }
 
-    /** Nouveau compte ménage, actif, sans mot de passe utilisable avant l'invitation. */
-    public function invite(string $name, string $email): User
+    /** Nouveau compte (gestionnaire ou ménage), actif, sans mot de passe utilisable avant l'invitation. */
+    public function invite(string $name, string $email, UserRole $role = UserRole::Housekeeping): User
     {
         $user = $this->users->create([
             'name' => $name,
             'email' => $email,
             'password' => Str::password(40),
-            'role' => UserRole::Housekeeping,
+            'role' => $role,
             'is_active' => true,
         ]);
         $this->sendPasswordLink($user, invitation: true);
@@ -57,9 +60,9 @@ class UserService
     }
 
     /**
-     * @param  array{name?: string, is_active?: bool}  $data
+     * @param  array{name?: string, is_active?: bool, role?: UserRole}  $data
      *
-     * @throws AccountLockoutException son propre compte, ou le dernier administrateur actif
+     * @throws AccountLockoutException son propre compte, le dernier administrateur actif, ou le rôle d'un administrateur
      */
     public function update(User $actor, User $user, array $data): User
     {
@@ -73,10 +76,23 @@ class UserService
                 }
             }
 
-            $before = array_intersect_key(['name' => $user->name, 'is_active' => $user->is_active], $data);
+            if (isset($data['role']) && $data['role'] !== $user->role && $user->isAdmin()) {
+                throw AccountLockoutException::adminRole();
+            }
+
+            $before = array_intersect_key(['name' => $user->name, 'is_active' => $user->is_active, 'role' => $user->role->value], $data);
+            $after = array_map(fn (mixed $value) => $value instanceof UserRole ? $value->value : $value, $data);
+            $roleChanged = isset($data['role']) && $data['role'] !== $user->role;
             $user = $this->users->update($user, $data);
-            if ($before !== $data) {
-                $this->audit->record(AuditAction::UserUpdated, $user, $before, $data);
+            if ($roleChanged) {
+                // Les notifications reçues sous l'ancien rôle ne restent pas visibles : un compte
+                // passé au ménage ne doit jamais voir noms, coordonnées ou montants.
+                $types = NotificationType::for($user->role);
+                $this->notifications->deleteOtherTypes($user, $types);
+                $this->users->update($user, ['notification_preferences' => null]);
+            }
+            if ($before !== $after) {
+                $this->audit->record(AuditAction::UserUpdated, $user, $before, $after);
             }
 
             return $user;

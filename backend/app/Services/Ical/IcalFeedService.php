@@ -111,6 +111,28 @@ class IcalFeedService
     }
 
     /**
+     * Dernières lectures de tous les calendriers (journal de la page Synchronisation).
+     *
+     * @return Collection<int, IcalSyncLog>
+     */
+    public function latestLogs(): Collection
+    {
+        return $this->feeds->latestLogs(self::LOG_LIMIT);
+    }
+
+    /**
+     * « Tout synchroniser » : une lecture en file d'attente pour chaque calendrier importable,
+     * comme la tâche planifiée. Renvoie le nombre de lectures lancées.
+     */
+    public function syncAll(): int
+    {
+        $importable = $this->feeds->importable();
+        $importable->each(fn (IcalFeed $feed) => SyncIcalFeed::dispatch($feed));
+
+        return $importable->count();
+    }
+
+    /**
      * Nouveau token d'export : l'ancienne URL cesse aussitôt de fonctionner (fuite, changement
      * d'annonce). L'URL est à recopier chez la plateforme.
      */

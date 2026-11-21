@@ -1,4 +1,4 @@
-import type { PlanningBlock } from './types'
+import type { PlanningApartment, PlanningBlock } from './types'
 
 const DAY_MS = 86_400_000
 
@@ -45,4 +45,12 @@ export function blockKind(block: PlanningBlock): BlockKind {
   if (block.type === 'manual') return 'closed'
   if (block.booking?.status === 'pending') return 'pending'
   return block.booking?.source === 'manual' ? 'manualBooking' : 'direct'
+}
+
+/** Nature de chaque nuit d'un logement sur les jours donnés (null : libre). */
+export function nightKinds(apartment: PlanningApartment, days: string[]): (BlockKind | null)[] {
+  return days.map((day) => {
+    const block = apartment.blocks.find((candidate) => candidate.starts_on <= day && day < candidate.ends_on)
+    return block ? blockKind(block) : null
+  })
 }

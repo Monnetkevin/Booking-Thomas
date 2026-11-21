@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 final readonly class BlockOverlap
 {
     /**
-     * @param  Collection<int, AvailabilityBlock>  $blocks  avec leur réservation chargée
+     * @param  Collection<int, AvailabilityBlock>  $blocks  avec leur réservation et leur calendrier chargés
      */
     public function __construct(public Collection $blocks) {}
 
@@ -19,6 +19,16 @@ final readonly class BlockOverlap
     public function isConflict(): bool
     {
         return $this->blocks->isNotEmpty();
+    }
+
+    /**
+     * Le bloc ne recouvre que des fermetures et en est peut-être une lui-même (même date fermée
+     * sur le site et sur une plateforme) : enregistré hors contrainte, mais pas un conflit.
+     */
+    public function isRedundantClosure(bool $blockMayBeClosure): bool
+    {
+        return $blockMayBeClosure && $this->isConflict()
+            && $this->blocks->every(fn (AvailabilityBlock $block) => $block->mayBeClosure());
     }
 
     /**

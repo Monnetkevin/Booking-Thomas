@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link, useSearchParams } from 'react-router'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { TrashIcon } from '@/components/icons'
@@ -8,13 +9,15 @@ import { Button } from '@/components/ui/Button'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { Section } from '@/components/ui/Section'
 import { Spinner } from '@/components/ui/Spinner'
+import { Tabs } from '@/components/ui/Tabs'
 import { ApiError } from '@/lib/api'
 import { PolicyEditor } from '../components/PolicyEditor'
-import { formFromSettings, settingsFromForm, type SettingsFormErrors, type SettingsFormValues } from '../settingsForm'
+import { formFromSettings, settingsFromForm, settingsTabOf, type SettingsFormErrors, type SettingsFormValues, type SettingsTab } from '../settingsForm'
 import { POLICY_KEYS, type Settings } from '../types'
 import { useSettings, useUpdateSettings } from '../useSettings'
 
 const MAX_EMAILS = 5
+const TABS: SettingsTab[] = ['reservation', 'paiement', 'notifications']
 
 /** Réglages de l'hôte : délais de réservation, taxe de séjour, annulation, e-mails. */
 export function SettingsPage() {
@@ -23,6 +26,18 @@ export function SettingsPage() {
   // La mutation vit ici et non dans le formulaire : celui-ci est recréé (clé) quand les
   // réglages enregistrés changent, ce qui effacerait sinon le message « Enregistré ».
   const update = useUpdateSettings()
+  const [params, setParams] = useSearchParams()
+  const tab: SettingsTab = TABS.find((value) => value === params.get('onglet')) ?? 'reservation'
+  const setTab = (value: SettingsTab) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current)
+        if (value === 'reservation') next.delete('onglet')
+        else next.set('onglet', value)
+        return next
+      },
+      { replace: true },
+    )
 
   return (
     <>
@@ -32,13 +47,22 @@ export function SettingsPage() {
       ) : settings.isError ? (
         <ErrorState onRetry={() => void settings.refetch()} />
       ) : (
-        <SettingsForm key={JSON.stringify(settings.data)} settings={settings.data} update={update} />
+        <Tabs label={t('admin.settings.tabsLabel')} value={tab} onChange={setTab} tabs={TABS.map((value) => ({ value, label: t(`admin.settings.tabs.${value}`) }))}>
+          <SettingsForm key={JSON.stringify(settings.data)} settings={settings.data} update={update} tab={tab} onErrorsIn={setTab} />
+        </Tabs>
       )}
     </>
   )
 }
 
-function SettingsForm({ settings, update }: { settings: Settings; update: ReturnType<typeof useUpdateSettings> }) {
+interface SettingsFormProps {
+  settings: Settings
+  update: ReturnType<typeof useUpdateSettings>
+  tab: SettingsTab
+  onErrorsIn: (tab: SettingsTab) => void
+}
+
+function SettingsForm({ settings, update, tab, onErrorsIn }: SettingsFormProps) {
   const { t } = useTranslation()
   const [values, setValues] = useState<SettingsFormValues>(() => formFromSettings(settings))
   const [errors, setErrors] = useState<SettingsFormErrors>({})
@@ -50,12 +74,20 @@ function SettingsForm({ settings, update }: { settings: Settings; update: Return
     event.preventDefault()
     const result = settingsFromForm(values)
     setErrors(result.errors ?? {})
-    if (result.settings) update.mutate(result.settings)
+    const first = Object.keys(result.errors ?? {})[0]
+    if (first) onErrorsIn(settingsTabOf(first))
+    if (result.settings)
+      update.mutate(result.settings, {
+        onError: (error) => {
+          const key = error instanceof ApiError ? Object.keys(error.fieldErrors)[0] : undefined
+          if (key) onErrorsIn(settingsTabOf(key))
+        },
+      })
   }
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
-      <Section title={t('admin.settings.bookingTitle')} description={t('admin.settings.bookingHint')}>
+      <Section title={t('admin.settings.bookingTitle')} description={t('admin.settings.bookingHint')} className={tab === 'reservation' ? undefined : 'hidden'}>
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
             label={t('admin.settings.minNotice')}
@@ -76,7 +108,7 @@ function SettingsForm({ settings, update }: { settings: Settings; update: Return
         </div>
       </Section>
 
-      <Section title={t('admin.settings.taxTitle')} description={t('admin.settings.taxHint')}>
+      <Section title={t('admin.settings.taxTitle')} description={t('admin.settings.taxHint')} className={tab === 'paiement' ? undefined : 'hidden'}>
         <div className="grid gap-4 sm:grid-cols-2">
           <SelectField
             label={t('admin.settings.taxMode')}
@@ -120,7 +152,7 @@ function SettingsForm({ settings, update }: { settings: Settings; update: Return
         </div>
       </Section>
 
-      <Section title={t('admin.settings.cancellationTitle')} description={t('admin.settings.cancellationHint')}>
+      <Section title={t('admin.settings.cancellationTitle')} description={t('admin.settings.cancellationHint')} className={tab === 'paiement' ? undefined : 'hidden'}>
         <div className="space-y-6">
           {POLICY_KEYS.map((policy) => (
             <PolicyEditor
@@ -134,7 +166,7 @@ function SettingsForm({ settings, update }: { settings: Settings; update: Return
         </div>
       </Section>
 
-      <Section title={t('admin.settings.emailsTitle')} description={t('admin.settings.emailsHint')}>
+      <Section title={t('admin.settings.emailsTitle')} description={t('admin.settings.emailsHint')} className={tab === 'notifications' ? undefined : 'hidden'}>
         <div className="space-y-3">
           {values.emails.map((email, index) => (
             <div key={index} className="flex items-end gap-2">
@@ -167,6 +199,11 @@ function SettingsForm({ settings, update }: { settings: Settings; update: Return
         </div>
       </Section>
 
+      {tab === 'notifications' && (
+        <p className="text-sm text-muted">
+          {t('admin.settings.personalHint')} <Link to="/admin/notifications/preferences">{t('admin.settings.personalLink')}</Link>
+        </p>
+      )}
       {update.isSuccess && <Alert tone="success">{t('admin.common.saved')}</Alert>}
       {(Object.keys(errors).length > 0 || (update.error instanceof ApiError && update.error.status === 422)) && (
         <Alert tone="danger">{t('admin.settings.errors.fix')}</Alert>

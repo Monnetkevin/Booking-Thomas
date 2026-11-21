@@ -10,11 +10,11 @@ class ContactMessagePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 
     public function update(User $user, ContactMessage $message): bool
     {
-        return $user->isActiveAdmin();
+        return $user->canOperate();
     }
 }

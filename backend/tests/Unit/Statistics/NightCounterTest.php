@@ -1,0 +1,116 @@
+<?php
+
+use App\Enums\BlockType;
+use App\Enums\BookingStatus;
+use App\Models\AvailabilityBlock;
+use App\Services\Statistics\NightCounter;
+use Carbon\CarbonImmutable;
+
+beforeEach(function () {
+    $this->counter = new NightCounter;
+    $this->from = CarbonImmutable::parse('2026-11-01');
+    $this->to = CarbonImmutable::parse('2026-12-01');
+});
+
+function bookingBlock(BookingStatus $status, string $from = '2026-11-02', string $to = '2026-11-05'): AvailabilityBlock
+{
+    return memoryBlock(1, $from, $to, BlockType::Booking)->setRelation('booking', memoryBooking(1, $from, $to, $status));
+}
+
+it('classe chaque bloc : vendu en direct, sur une plateforme, fermé, ou rien', function () {
+    expect($this->counter->kind(bookingBlock(BookingStatus::Confirmed)))->toBe('direct')
+        ->and($this->counter->kind(bookingBlock(BookingStatus::Completed)))->toBe('direct')
+        ->and($this->counter->kind(bookingBlock(BookingStatus::Pending)))->toBeNull()
+        ->and($this->counter->kind(bookingBlock(BookingStatus::Cancelled)))->toBeNull()
+        ->and($this->counter->kind(memoryBlock(1, '2026-11-02', '2026-11-05')))->toBe('closed')
+        ->and($this->counter->kind(memoryIcalBlock(1, '2026-11-02', '2026-11-05')))->toBe('platform')
+        ->and($this->counter->kind(memoryIcalBlock(1, '2026-11-02', '2026-11-05', summary: 'Airbnb (Not available)')))->toBe('closed')
+        ->and($this->counter->kind(memoryIcalBlock(1, '2026-11-02', '2026-11-05', 'booking', 'CLOSED - Not available')))->toBe('platform');
+});
+
+it('compte une seule fois une nuit couverte par plusieurs blocs : site, puis plateforme, puis fermeture', function () {
+    $blocks = collect([
+        memoryBlock(1, '2026-11-10', '2026-11-13'),                                         // fermée sur le site
+        memoryIcalBlock(1, '2026-11-10', '2026-11-13', summary: 'Airbnb (Not available)'),  // et sur Airbnb
+        memoryIcalBlock(1, '2026-11-12', '2026-11-15'),                                     // séjour Airbnb en conflit
+        bookingBlock(BookingStatus::Confirmed, '2026-11-14', '2026-11-16'),                 // réservation du site
+        memoryBlock(2, '2026-11-10', '2026-11-13'),                                         // autre logement
+    ]);
+
+    // Logement 1 : 10 et 11 fermées, 12 et 13 Airbnb, 14 et 15 site ; logement 2 : 3 fermées.
+    expect($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 2, 'platform' => 2, 'closed' => 5]);
+});
+
+it('compte les nuits dans [début, fin[, à cheval sur la période comprise', function () {
+    $blocks = collect([
+        bookingBlock(BookingStatus::Confirmed, '2026-10-30', '2026-11-03'),   // 2 nuits en novembre
+        memoryIcalBlock(1, '2026-11-28', '2026-12-04'),                       // 3 nuits en novembre
+        memoryIcalBlock(1, '2026-11-10', '2026-11-20', summary: 'Airbnb (Not available)'),
+        memoryBlock(2, '2026-11-01', '2026-11-02'),
+        bookingBlock(BookingStatus::Pending, '2026-11-15', '2026-11-18'),
+    ]);
+
+    expect($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 2, 'platform' => 3, 'closed' => 11]);
+});
+
+it('ne compte aucune nuit hors de la période', function () {
+    $block = memoryBlock(1, '2026-10-01', '2026-10-05');
+
+    expect($this->counter->overlap($block, $this->from, $this->to))->toBe(0)
+        ->and($this->counter->overlap(memoryBlock(1, '2026-11-30', '2026-12-02'), $this->from, $this->to))->toBe(1);
+});
+
+it('compte les nuits des séjours de plateforme au mois d’arrivée, par plateforme, sans les fermetures', function () {
+    $blocks = collect([
+        memoryIcalBlock(1, '2026-11-28', '2026-12-04'),                                     // 6 nuits, arrivée en novembre
+        memoryIcalBlock(1, '2026-10-29', '2026-11-03'),                                     // arrivée en octobre
+        memoryIcalBlock(1, '2026-11-10', '2026-11-20', summary: 'Airbnb (Not available)'), // fermeture
+        memoryIcalBlock(2, '2026-11-05', '2026-11-07', 'booking', 'CLOSED - Not available'),
+        bookingBlock(BookingStatus::Confirmed),
+    ]);
+
+    expect($this->counter->platformNightsArriving($blocks, $this->from, $this->to))->toBe(['airbnb' => 6, 'booking' => 2]);
+});
+
+it('confirme un séjour Booking.com par un versement du même logement arrivé le même jour, sinon le compte fermé', function () {
+    $confirmed = memoryIcalBlock(1, '2026-11-03', '2026-11-06', 'booking', 'CLOSED - Not available');
+    $closed = memoryIcalBlock(1, '2026-11-15', '2026-11-25', 'booking', 'CLOSED - Not available');
+    $otherApartment = memoryIcalBlock(2, '2026-11-03', '2026-11-06', 'booking', 'CLOSED - Not available');
+    $airbnb = memoryIcalBlock(1, '2026-11-15', '2026-11-17');
+    $payouts = collect([
+        memoryPayout('booking', 1, '2026-11-03', 3, 36000),
+        // Versement Airbnb au même jour : ne confirme pas un séjour Booking.com.
+        memoryPayout('airbnb', 2, '2026-11-03', 3, 30000),
+    ]);
+
+    $blocks = $this->counter->confirmPlatformStays(collect([$confirmed, $closed, $otherApartment, $airbnb]), $payouts);
+
+    expect($blocks->map(fn ($block) => $this->counter->kind($block))->all())->toBe(['platform', 'closed', 'closed', 'platform'])
+        ->and($blocks[0])->toBe($confirmed)
+        ->and($blocks[3])->toBe($airbnb)
+        // Le bloc d'origine n'est pas modifié.
+        ->and($closed->type)->toBe(BlockType::Ical)
+        // Les 15 et 16, sous le séjour Airbnb et la fermeture Booking.com, comptent une fois, vendues.
+        ->and($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 0, 'platform' => 5, 'closed' => 11]);
+});
+
+it('calcule l’occupation sur les nuits ouvertes, nulle sans nuit ouverte', function () {
+    $nights = ['direct' => 10, 'platform' => 5, 'closed' => 30];
+
+    expect($this->counter->occupancy($nights, 2, 30))->toBe(50.0)
+        ->and($this->counter->openNights($nights, 2, 30))->toBe(30)
+        ->and($this->counter->occupancy(['direct' => 0, 'platform' => 0, 'closed' => 30], 1, 30))->toBeNull();
+});
+
+it('compte les arrivées de séjours vendus, et celles du site', function () {
+    $blocks = collect([
+        bookingBlock(BookingStatus::Confirmed),
+        bookingBlock(BookingStatus::Pending),
+        memoryIcalBlock(1, '2026-11-10', '2026-11-12'),
+        memoryIcalBlock(1, '2026-11-20', '2026-11-22', summary: 'Airbnb (Not available)'),
+        memoryBlock(1, '2026-11-25', '2026-11-26'),
+        memoryIcalBlock(1, '2026-10-30', '2026-11-02'),
+    ]);
+
+    expect($this->counter->arrivals($blocks, $this->from, $this->to))->toBe(['all' => 2, 'direct' => 1]);
+});

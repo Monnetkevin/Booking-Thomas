@@ -6,6 +6,7 @@ export const syncKeys = {
   all: ['admin', 'sync'] as const,
   feeds: ['admin', 'sync', 'feeds'] as const,
   logs: (feedId: number) => ['admin', 'sync', 'logs', feedId] as const,
+  latestLogs: ['admin', 'sync', 'latest-logs'] as const,
 }
 
 /** Calendriers de tous les logements ; l'état se rafraîchit tout seul (lecture toutes les 15 min). */
@@ -17,10 +18,22 @@ export function useIcalLogs(feedId: number, enabled: boolean, service: SyncServi
   return useQuery({ queryKey: syncKeys.logs(feedId), queryFn: () => service.logs(feedId), enabled })
 }
 
-/** Après une écriture : état des calendriers et journaux. */
+export function useLatestSyncLogs(service: SyncService = syncService) {
+  return useQuery({ queryKey: syncKeys.latestLogs, queryFn: () => service.latestLogs(), refetchInterval: 60_000 })
+}
+
+/**
+ * Après une écriture : état des calendriers et journaux, mais aussi les compteurs de la barre
+ * (calendriers en échec, état de la synchro) et le tableau de bord, qui en dépendent.
+ */
 function useRefresh() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: syncKeys.all })
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: syncKeys.all }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] }),
+    ])
 }
 
 /** Enregistre l'URL d'import : crée le calendrier du logement s'il n'existe pas encore. */
@@ -44,4 +57,10 @@ export function useSyncNow(service: SyncService = syncService) {
 export function useRegenerateExportToken(service: SyncService = syncService) {
   const refresh = useRefresh()
   return useMutation({ mutationFn: (feedId: number) => service.regenerateExportToken(feedId), onSuccess: refresh })
+}
+
+/** « Tout synchroniser » : les lectures partent en file d'attente ; l'état se relit ensuite. */
+export function useSyncAll(service: SyncService = syncService) {
+  const refresh = useRefresh()
+  return useMutation({ mutationFn: () => service.syncAll(), onSuccess: () => setTimeout(() => void refresh(), 5000) })
 }

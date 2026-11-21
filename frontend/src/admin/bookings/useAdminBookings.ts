@@ -41,6 +41,10 @@ export function useDownloadBookingPdf(reference: string, service: AdminBookingSe
   return useMutation({ mutationFn: async () => saveFile(await service.downloadPdf(reference), `${reference}.pdf`) })
 }
 
+export function useDownloadBookingsCsv(service: AdminBookingService = adminBookingService) {
+  return useMutation({ mutationFn: async (filters: BookingFilters) => saveFile(await service.downloadCsv(filters), 'reservations.csv') })
+}
+
 export function useCreateBooking(service: AdminBookingService = adminBookingService) {
   const refresh = useRefreshAdmin()
   return useMutation({ mutationFn: (input: ManualBookingInput) => service.create(input), onSuccess: refresh })

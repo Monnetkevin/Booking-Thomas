@@ -11,9 +11,9 @@ describe('service des statistiques', () => {
     }
     const service = createStatisticsService(client)
 
-    expect(await service.get()).toEqual({ from: '2025-12-01' })
-    expect(client.request).toHaveBeenCalledWith('/admin/statistics')
-    expect(await service.downloadCsv()).toBe(file)
-    expect(client.download).toHaveBeenCalledWith('/admin/statistics.csv')
+    expect(await service.get('six_months')).toEqual({ from: '2025-12-01' })
+    expect(client.request).toHaveBeenCalledWith('/admin/statistics?period=six_months')
+    expect(await service.downloadCsv('all')).toBe(file)
+    expect(client.download).toHaveBeenCalledWith('/admin/statistics.csv?period=all')
   })
 })

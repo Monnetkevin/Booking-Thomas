@@ -41,7 +41,8 @@ abstract class ApartmentRequest extends FormRequest
             'min_stay' => ['required', 'integer', 'between:1,365'],
             'max_stay' => ['required', 'integer', 'between:1,365', 'gte:min_stay'],
             'turnover_days' => ['required', 'integer', 'between:0,7'],
-            'cleaning_fee' => ['required', 'integer', 'between:0,100000'],
+            // Facultatif : ignoré pour le gestionnaire (ApartmentService), 0 par défaut à la création.
+            'cleaning_fee' => ['sometimes', 'integer', 'between:0,100000'],
             'cancellation_policy' => ['required', Rule::enum(CancellationPolicy::class)],
             'registration_number' => ['nullable', 'string', 'max:50'],
             'amenity_ids' => ['sometimes', 'array'],

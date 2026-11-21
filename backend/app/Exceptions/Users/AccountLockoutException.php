@@ -20,6 +20,11 @@ class AccountLockoutException extends DomainException
         return new self('cannot_deactivate_self');
     }
 
+    public static function adminRole(): self
+    {
+        return new self('admin_role_fixed');
+    }
+
     public static function lastAdmin(): self
     {
         return new self('last_admin');

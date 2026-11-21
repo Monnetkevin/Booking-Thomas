@@ -29,7 +29,7 @@ class UserController extends Controller
     {
         Gate::authorize('create', User::class);
 
-        $user = $this->users->invite($request->string('name')->toString(), $request->string('email')->toString());
+        $user = $this->users->invite($request->string('name')->toString(), $request->string('email')->toString(), $request->role());
 
         return (new AccountResource($user))->response()->setStatusCode(201);
     }

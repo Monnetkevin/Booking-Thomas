@@ -48,6 +48,7 @@ class AuthService
 
         RateLimiter::clear($throttleKey);
         $this->guard->login($user, $remember);
+        $this->users->touchLastLogin($user);
 
         return $user;
     }

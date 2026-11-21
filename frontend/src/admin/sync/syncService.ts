@@ -8,6 +8,10 @@ export interface SyncService {
   /** acceptEmpty : l'hôte confirme que le calendrier est vide chez la plateforme (nuits libérées). */
   syncNow(feedId: number, acceptEmpty?: boolean): Promise<IcalSyncLog>
   logs(feedId: number): Promise<IcalSyncLog[]>
+  /** Dernières lectures de tous les calendriers. */
+  latestLogs(): Promise<IcalSyncLog[]>
+  /** Met en file d'attente la lecture de tous les calendriers ; renvoie leur nombre. */
+  syncAll(): Promise<number>
   regenerateExportToken(feedId: number): Promise<IcalFeed>
 }
 
@@ -28,6 +32,8 @@ export function createSyncService(client: HttpClient): SyncService {
         }),
       ),
     logs: (feedId) => unwrap(client.request(`/admin/ical-feeds/${feedId}/logs`)),
+    latestLogs: () => unwrap(client.request('/admin/ical-sync-logs')),
+    syncAll: async () => (await unwrap(client.request<{ data: { queued: number } }>('/admin/ical-feeds/sync-all', { method: 'POST' }))).queued,
     regenerateExportToken: (feedId) => unwrap(client.request(`/admin/ical-feeds/${feedId}/export-token`, { method: 'POST' })),
   }
 }
