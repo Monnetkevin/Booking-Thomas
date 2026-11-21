@@ -4,9 +4,11 @@ namespace App\Services\Availability;
 
 use App\Enums\BlockType;
 use App\Enums\PayoutPlatform;
+use App\Events\StayScheduleChanged;
 use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\PlatformPayoutRepositoryInterface;
+use App\Services\Housekeeping\StayChange;
 use Carbon\CarbonImmutable;
 
 /**
@@ -36,6 +38,8 @@ class BlockConflictService
      * blocage retiré, événement disparu du flux) : chaque bloc en conflit sur ces nuits
      * qui ne recouvre plus rien redevient un bloc normal, l'un après l'autre (deux blocs
      * en conflit entre eux : le plus ancien l'emporte, l'autre reste en conflit).
+     * Un bloc qui n'était qu'une fermeture redondante et redevient un séjour (fermeture du
+     * site retirée sous une date Booking.com), ou l'inverse, est signalé au ménage.
      *
      * @return int nombre de conflits levés
      */
@@ -45,6 +49,7 @@ class BlockConflictService
 
         foreach ($this->availability->conflictsOverlapping($apartmentId, $from->toDateString(), $to->toDateString()) as $block) {
             /** @var AvailabilityBlock $block */
+            $housekeeping = $block->knownToHousekeeping();
             $overlap = $this->check($apartmentId, $block->starts_on, $block->ends_on, $block->id);
             if (! $overlap->isConflict()) {
                 $this->availability->updateBlock($block, ['has_conflict' => false, 'is_redundant_closure' => false]);
@@ -53,9 +58,22 @@ class BlockConflictService
                 // Il ne reste que des fermetures sous ce bloc (ou de nouveau un séjour).
                 $this->availability->updateBlock($block, ['is_redundant_closure' => $redundant]);
             }
+            $this->notifyHousekeeping($block, $housekeeping);
         }
 
         return $resolved;
+    }
+
+    /**
+     * Le bloc, mêmes nuits, vient de changer de nature pour le ménage (séjour ↔ simple date
+     * fermée) : séjour ajouté ou annulé à son planning.
+     */
+    public function notifyHousekeeping(AvailabilityBlock $block, bool $before): void
+    {
+        $after = $block->is_active && $block->concernsHousekeeping();
+        if ($after !== $before) {
+            StayScheduleChanged::dispatch($after ? StayChange::added($block) : StayChange::cancelled($block));
+        }
     }
 
     /**

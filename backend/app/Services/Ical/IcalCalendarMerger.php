@@ -141,22 +141,38 @@ class IcalCalendarMerger
         }
 
         $previous = $block->is_active ? [$block->starts_on, $block->ends_on] : null;
+        $housekeeping = $block->knownToHousekeeping();
         $overlap = $this->overlap($block->apartment_id, $event, $block->id);
         $this->availability->updateBlock($block, [...$this->placement($feed, $event, $overlap), ...$this->details($event)]);
+        // is_redundant_closure vient d'être recalculé avec les versements (placement) : la
+        // confirmation chargée avec le bloc, pour ses anciennes dates, ne vaut plus.
+        $block->offsetUnset('confirmed_by_payout');
 
-        if ($moved) {
-            $this->alertIfDoubleBooked($block, $overlap);
-            if ($previous !== null) {
-                $this->conflicts->release($block->apartment_id, ...$previous);
-            }
-            // Ménage prévenu : séjour déplacé, ou de nouveau attendu s'il avait été annulé
-            // (pas une simple date fermée).
-            if ($block->concernsHousekeeping()) {
-                StayScheduleChanged::dispatch($previous === null ? StayChange::added($block) : StayChange::moved($block, ...$previous));
-            }
+        if (! $moved) {
+            // Conflit réévalué, mêmes nuits : le bloc a pu passer de date fermée à séjour.
+            $this->conflicts->notifyHousekeeping($block, $housekeeping);
+
+            return false;
         }
 
-        return $moved;
+        $this->alertIfDoubleBooked($block, $overlap);
+        if ($previous !== null) {
+            $this->conflicts->release($block->apartment_id, ...$previous);
+        }
+        // Ménage prévenu : séjour déplacé, de nouveau attendu (annulé puis revenu, ou date
+        // fermée devenue séjour), ou retiré de son planning (séjour devenu date fermée).
+        // ($housekeeping implique un bloc déjà actif, donc $previous connu.)
+        $concerns = $block->concernsHousekeeping();
+        $change = match (true) {
+            $housekeeping && $previous !== null => $concerns ? StayChange::moved($block, ...$previous) : StayChange::cancelled($block, ...$previous),
+            $concerns => StayChange::added($block),
+            default => null,
+        };
+        if ($change !== null) {
+            StayScheduleChanged::dispatch($change);
+        }
+
+        return true;
     }
 
     /** Séjour annulé chez la plateforme : nuits libérées, conflits qu'elles portaient levés. */
