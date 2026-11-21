@@ -77,16 +77,18 @@ export function PlanningGrid({ days, today, apartments, onBlock, onEmptyDay, den
                       'z-10 mx-0.5 my-1.5 truncate rounded-lg px-2 text-left text-xs font-semibold',
                       blockKindClasses[blockKind(block)],
                       block.has_conflict && 'ring-2 ring-danger ring-offset-1',
-                      block.has_conflict && 'self-end',
+                      (block.has_conflict || block.redundant_closure) && 'self-end',
+                      block.redundant_closure && 'opacity-70',
                       placement.continuesBefore && 'rounded-l-none',
                       placement.continuesAfter && 'rounded-r-none',
                     )}
-                    title={`${label} · ${block.starts_on} → ${block.ends_on}${block.has_conflict ? ` · ${t('admin.planning.conflict')}` : ''}`}
+                    title={`${label} · ${block.starts_on} → ${block.ends_on}${block.has_conflict ? ` · ${t('admin.planning.conflict')}` : ''}${block.redundant_closure ? ` · ${t('admin.planning.redundantClosure')}` : ''}`}
                     onClick={() => onBlock(block, apartment)}
                   >
                     {block.has_conflict && <span aria-hidden="true">⚠ </span>}
                     {label}
                     {block.has_conflict && <span className="sr-only"> ({t('admin.planning.conflict')})</span>}
+                    {block.redundant_closure && <span className="sr-only"> ({t('admin.planning.redundantClosure')})</span>}
                   </button>
                 )
               })}

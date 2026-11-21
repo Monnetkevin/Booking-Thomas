@@ -870,6 +870,7 @@
     "legend": "Légende",
     "closeFrom": "{{apartment}} : fermer à partir du {{day}}",
     "conflict": "Conflit de dates",
+    "redundantClosure": "Déjà fermé sur ces dates",
     "kinds": {
       "direct": "Réservation du site",
       "manualBooking": "Saisie à la main",

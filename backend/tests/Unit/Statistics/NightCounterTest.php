@@ -114,3 +114,17 @@ it('compte les arrivées de séjours vendus, et celles du site', function () {
 
     expect($this->counter->arrivals($blocks, $this->from, $this->to))->toBe(['all' => 2, 'direct' => 1]);
 });
+
+it('compte une arrivée par séjour qui tient sa première nuit : deux séjours en conflit font une arrivée', function () {
+    $blocks = collect([
+        bookingBlock(BookingStatus::Confirmed, '2026-11-10', '2026-11-12'),
+        memoryIcalBlock(1, '2026-11-10', '2026-11-12'),                                     // séjour Airbnb en conflit
+        memoryBlock(1, '2026-11-20', '2026-11-22'),                                         // fermeture du site
+        memoryIcalBlock(1, '2026-11-20', '2026-11-22', summary: 'Airbnb (Not available)'),  // fermée aussi sur Airbnb
+        memoryIcalBlock(1, '2026-11-25', '2026-11-27'),
+        memoryIcalBlock(2, '2026-11-10', '2026-11-12'),                                     // autre logement
+    ]);
+
+    expect($this->counter->arrivals($blocks, $this->from, $this->to))->toBe(['all' => 3, 'direct' => 1])
+        ->and($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 2, 'platform' => 4, 'closed' => 2]);
+});

@@ -77,4 +77,7 @@ interface PlatformPayoutRepositoryInterface
      * @return Collection<int, PlatformPayout>
      */
     public function arrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
+
+    /** Un versement de cette plateforme arrive-t-il ce jour-là dans ce logement ? */
+    public function hasArrival(PayoutPlatform $platform, int $apartmentId, string $arrival): bool;
 }

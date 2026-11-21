@@ -8,6 +8,7 @@ use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
+use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
 use App\Services\Statistics\NightCounter;
@@ -30,6 +31,7 @@ class DashboardService
 
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
+        private readonly AvailabilityRepositoryInterface $availability,
         private readonly BookingRepositoryInterface $bookings,
         private readonly AlertCollector $alertCollector,
         private readonly ContactMessageRepositoryInterface $messages,
@@ -64,7 +66,11 @@ class DashboardService
     {
         $end = $today->addDays(self::MOVEMENT_DAYS);
         $apartments = $this->apartments->allOrdered()->keyBy('id');
-        $blocks = $this->soldStays->between($today->subDay(), $end, $apartments->keys()->all())
+        // Blocs bruts : un séjour Booking.com dont le versement n'est pas encore importé reste une
+        // arrivée à préparer ; seule une fermeture posée sur des nuits déjà fermées est écartée.
+        $blocks = $this->availability->planningBlocks($today->subDay()->toDateString(), $end->toDateString())
+            ->whereIn('apartment_id', $apartments->keys()->all())
+            ->reject(fn (AvailabilityBlock $block) => $block->isRedundantClosure())
             ->filter(fn (AvailabilityBlock $block) => in_array($this->nights->kind($block), ['direct', 'platform'], true));
 
         $days = [];

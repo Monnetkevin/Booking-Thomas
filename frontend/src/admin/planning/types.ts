@@ -9,6 +9,8 @@ export interface PlanningBlock {
   starts_on: string
   ends_on: string
   has_conflict: boolean
+  /** Fermeture posée sur des nuits déjà fermées (site et plateforme) : en retrait, sans alerte. */
+  redundant_closure: boolean
   /** Voyageur (réservation), plateforme (séjour importé) ou motif (fermeture). */
   label: string | null
   booking: { reference: string; status: BookingStatus; source: BookingSource; guests: number } | null

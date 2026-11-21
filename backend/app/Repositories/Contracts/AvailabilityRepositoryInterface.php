@@ -107,7 +107,8 @@ interface AvailabilityRepositoryInterface
     public function earliestStart(): ?string;
 
     /**
-     * Séjours importés en conflit qui ne sont pas terminés, avec leur logement.
+     * Séjours importés en conflit qui ne sont pas terminés, avec leur logement (hors fermetures
+     * posées sur des nuits déjà fermées, sauf si un versement en fait un séjour).
      *
      * @return Collection<int, AvailabilityBlock>
      */

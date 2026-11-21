@@ -38,8 +38,9 @@ class BookingCsvParser implements PlatformCsvParser
 
         $dayFirst = CsvTable::dayFirst(
             array_merge(...array_map(fn (array $row) => [$row['cells'][$columns['arrival']] ?? '', $row['cells'][$columns['departure']] ?? ''], $table->rows())),
-            // Dates ambiguës dans tout le fichier : JJ/MM/AAAA en français, MM/JJ/AAAA en anglais.
-            $table->column(['Arrivée']) !== null,
+            // Aucune date au-delà du 12 dans tout le fichier : JJ/MM/AAAA, l'usage européen de
+            // Booking.com, même avec des en-têtes en anglais.
+            true,
         );
 
         $rows = [];

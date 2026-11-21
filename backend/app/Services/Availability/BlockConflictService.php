@@ -2,8 +2,11 @@
 
 namespace App\Services\Availability;
 
+use App\Enums\BlockType;
+use App\Enums\PayoutPlatform;
 use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
+use App\Repositories\Contracts\PlatformPayoutRepositoryInterface;
 use Carbon\CarbonImmutable;
 
 /**
@@ -15,7 +18,10 @@ use Carbon\CarbonImmutable;
  */
 class BlockConflictService
 {
-    public function __construct(private readonly AvailabilityRepositoryInterface $availability) {}
+    public function __construct(
+        private readonly AvailabilityRepositoryInterface $availability,
+        private readonly PlatformPayoutRepositoryInterface $payouts,
+    ) {}
 
     /** Nuits [from, to[ déjà occupées par d'autres blocs actifs ? */
     public function check(int $apartmentId, CarbonImmutable $from, CarbonImmutable $to, ?int $exceptBlockId = null): BlockOverlap
@@ -43,12 +49,28 @@ class BlockConflictService
             if (! $overlap->isConflict()) {
                 $this->availability->updateBlock($block, ['has_conflict' => false, 'is_redundant_closure' => false]);
                 $resolved++;
-            } elseif ($overlap->isRedundantClosure($block->mayBeClosure()) !== $block->is_redundant_closure) {
+            } elseif (($redundant = $this->isRedundantClosure($block, $overlap)) !== $block->is_redundant_closure) {
                 // Il ne reste que des fermetures sous ce bloc (ou de nouveau un séjour).
-                $this->availability->updateBlock($block, ['is_redundant_closure' => $overlap->isRedundantClosure($block->mayBeClosure())]);
+                $this->availability->updateBlock($block, ['is_redundant_closure' => $redundant]);
             }
         }
 
         return $resolved;
+    }
+
+    /**
+     * Le bloc importé (non enregistré, ou déjà là) n'est qu'une fermeture posée sur des nuits
+     * toutes déjà fermées : pas un conflit à signaler. Un bloc Booking.com (séjour ou fermeture,
+     * on ne sait pas) dont un versement importé confirme l'arrivée reste un vrai conflit.
+     */
+    public function isRedundantClosure(AvailabilityBlock $block, BlockOverlap $overlap): bool
+    {
+        if (! $block->mayBeClosure() || ! $overlap->onlyClosuresCovering($block->starts_on, $block->ends_on)) {
+            return false;
+        }
+        $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
+
+        return $provider === null || ! $provider->confirmsStaysByPayout()
+            || ! $this->payouts->hasArrival(PayoutPlatform::from($provider->value), $block->apartment_id, $block->starts_on->toDateString());
     }
 }

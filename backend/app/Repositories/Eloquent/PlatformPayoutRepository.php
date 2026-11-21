@@ -103,4 +103,13 @@ class PlatformPayoutRepository implements PlatformPayoutRepositoryInterface
             ->where('arrival', '<', $to->toDateString())
             ->get();
     }
+
+    public function hasArrival(PayoutPlatform $platform, int $apartmentId, string $arrival): bool
+    {
+        return PlatformPayout::query()
+            ->where('platform', $platform)
+            ->where('apartment_id', $apartmentId)
+            ->where('arrival', $arrival)
+            ->exists();
+    }
 }

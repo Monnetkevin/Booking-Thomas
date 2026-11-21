@@ -9,11 +9,18 @@ it('lit des dates JJ/MM/AAAA dans un export français', function () {
         ->and($rows[0]->departure->toDateString())->toBe('2027-04-06');
 });
 
-it('lit des dates MM/JJ/AAAA dans un export anglais', function () {
-    $rows = (new BookingCsvParser)->parse("Book number,Check-in,Check-out,Price\n77,03/04/2027,03/06/2027,300.00\n")->rows;
+it('lit des dates ambiguës en JJ/MM/AAAA même dans un export anglais (usage européen)', function () {
+    $rows = (new BookingCsvParser)->parse("Book number,Check-in,Check-out,Price\n77,03/04/2027,06/04/2027,300.00\n")->rows;
+
+    expect($rows[0]->arrival->toDateString())->toBe('2027-04-03')
+        ->and($rows[0]->departure->toDateString())->toBe('2027-04-06');
+});
+
+it('lit des dates MM/JJ/AAAA quand un jour au-delà de 12 le prouve', function () {
+    $rows = (new BookingCsvParser)->parse("Book number,Check-in,Check-out,Price\n77,03/04/2027,03/06/2027,300.00\n78,03/20/2027,03/22/2027,200.00\n")->rows;
 
     expect($rows[0]->arrival->toDateString())->toBe('2027-03-04')
-        ->and($rows[0]->departure->toDateString())->toBe('2027-03-06');
+        ->and($rows[1]->arrival->toDateString())->toBe('2027-03-20');
 });
 
 it('déduit l’ordre des dates du fichier quand un jour dépasse 12, quelle que soit la langue', function () {

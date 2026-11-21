@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Source unique de vérité des nuits occupées, quelle qu'en soit l'origine.
@@ -50,6 +52,7 @@ class AvailabilityBlock extends Model
             'is_active' => 'boolean',
             'has_conflict' => 'boolean',
             'is_redundant_closure' => 'boolean',
+            'confirmed_by_payout' => 'boolean',
         ];
     }
 
@@ -66,10 +69,54 @@ class AvailabilityBlock extends Model
         };
     }
 
-    /** Conflit à montrer et à signaler (une fermeture redondante n'en est pas un). */
+    /**
+     * Fermeture posée sur des nuits déjà fermées, qu'aucun versement importé ne désigne comme
+     * un séjour : ni conflit ni arrivée. Un versement de la plateforme arrivé ce jour-là (chargé
+     * par withPayoutConfirmation) en refait un vrai conflit : c'était un séjour Booking.com.
+     */
+    public function isRedundantClosure(): bool
+    {
+        return $this->has_conflict && $this->is_redundant_closure && ! $this->getAttribute('confirmed_by_payout');
+    }
+
+    /** Conflit à montrer et à signaler. */
     public function isRealConflict(): bool
     {
-        return $this->has_conflict && ! $this->is_redundant_closure;
+        return $this->has_conflict && ! $this->isRedundantClosure();
+    }
+
+    /**
+     * Ajoute confirmed_by_payout : un versement importé de la plateforme du calendrier arrive
+     * le premier jour du bloc, dans le même logement.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeWithPayoutConfirmation(Builder $query): void
+    {
+        $query->select('availability_blocks.*')->selectSub($this->payoutExists(), 'confirmed_by_payout');
+    }
+
+    /**
+     * Conflits à signaler : les fermetures redondantes non désignées comme séjours sont exclues.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeRealConflicts(Builder $query): void
+    {
+        $query->where('has_conflict', true)
+            ->where(fn (Builder $query) => $query->where('is_redundant_closure', false)->orWhereExists($this->payoutExists()));
+    }
+
+    /** Sous-requête : versement de la plateforme du calendrier arrivé le premier jour du bloc. */
+    private function payoutExists(): QueryBuilder
+    {
+        return DB::table('platform_payouts')
+            ->selectRaw('1')
+            ->join('ical_feeds', 'ical_feeds.provider', '=', 'platform_payouts.platform')
+            ->whereColumn('ical_feeds.id', 'availability_blocks.ical_feed_id')
+            ->whereColumn('platform_payouts.apartment_id', 'availability_blocks.apartment_id')
+            ->whereColumn('platform_payouts.arrival', 'availability_blocks.starts_on')
+            ->limit(1);
     }
 
     /**

@@ -22,10 +22,27 @@ class NightCounter
      */
     public function count(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
     {
-        // Une nuit couverte par plusieurs blocs (conflit, même date fermée ici et sur une
-        // plateforme) ne compte qu'une fois : séjour du site, puis séjour plateforme, puis fermeture.
+        $nights = ['direct' => 0, 'platform' => 0, 'closed' => 0];
+        foreach ($this->nightOwners($blocks, $from, $to) as ['kind' => $kind]) {
+            $nights[$kind]++;
+        }
+
+        return $nights;
+    }
+
+    /**
+     * Bloc retenu pour chaque nuit (logement|date) de [from, to[ : une nuit couverte par
+     * plusieurs blocs (conflit, même date fermée ici et sur une plateforme) ne compte qu'une
+     * fois, pour le séjour du site, puis le séjour plateforme, puis la fermeture ; à rang égal,
+     * pour le premier bloc.
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks
+     * @return array<string, array{kind: string, block: int}>
+     */
+    private function nightOwners(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
+    {
         $rank = ['closed' => 1, 'platform' => 2, 'direct' => 3];
-        $taken = [];
+        $owners = [];
         foreach ($blocks as $block) {
             $kind = $this->kind($block);
             if ($kind === null) {
@@ -34,18 +51,13 @@ class NightCounter
             $end = $block->ends_on->min($to);
             for ($day = $block->starts_on->max($from); $day->lt($end); $day = $day->addDay()) {
                 $key = $block->apartment_id.'|'.$day->toDateString();
-                if (! isset($taken[$key]) || $rank[$kind] > $rank[$taken[$key]]) {
-                    $taken[$key] = $kind;
+                if (! isset($owners[$key]) || $rank[$kind] > $rank[$owners[$key]['kind']]) {
+                    $owners[$key] = ['kind' => $kind, 'block' => spl_object_id($block)];
                 }
             }
         }
 
-        $nights = ['direct' => 0, 'platform' => 0, 'closed' => 0];
-        foreach ($taken as $kind) {
-            $nights[$kind]++;
-        }
-
-        return $nights;
+        return $owners;
     }
 
     /**
@@ -132,8 +144,12 @@ class NightCounter
      */
     public function arrivals(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
     {
+        // Un séjour compte s'il tient sa première nuit : deux séjours en conflit sur les mêmes
+        // nuits font une arrivée, comme ils font une seule série de nuits vendues.
+        $owners = $this->nightOwners($blocks, $from, $to);
         $kinds = $blocks
             ->filter(fn (AvailabilityBlock $block) => $block->starts_on->gte($from) && $block->starts_on->lt($to))
+            ->filter(fn (AvailabilityBlock $block) => ($owners[$block->apartment_id.'|'.$block->starts_on->toDateString()]['block'] ?? null) === spl_object_id($block))
             ->map(fn (AvailabilityBlock $block) => $this->kind($block))
             ->filter(fn (?string $kind) => in_array($kind, ['direct', 'platform'], true));
 
