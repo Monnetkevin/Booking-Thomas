@@ -15,7 +15,7 @@ export function ExportUrlPanel({ feed }: { feed: IcalFeed }) {
 
   return (
     <div className="space-y-3">
-      <CopyField label={t('admin.sync.export.label')} value={feed.export_url} />
+      <CopyField label={t('admin.sync.export.label', { provider: feed.provider_label })} value={feed.export_url} />
       {regenerate.isError && <Alert tone="danger">{t('common.error')}</Alert>}
       <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
         {t('admin.sync.export.regenerate')}
@@ -30,7 +30,7 @@ export function ExportUrlPanel({ feed }: { feed: IcalFeed }) {
         onCancel={() => setConfirming(false)}
         onConfirm={() => regenerate.mutate(feed.id, { onSettled: () => setConfirming(false) })}
       >
-        {t('admin.sync.export.confirm')}
+        {t('admin.sync.export.confirm', { provider: feed.provider_label })}
       </ConfirmDialog>
     </div>
   )

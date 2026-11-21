@@ -47,8 +47,30 @@ interface BookingRepositoryInterface
      */
     public function paginateForAdmin(BookingFilters $filters, int $perPage): LengthAwarePaginator;
 
+    /**
+     * Même liste sans pagination (export), limitée.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function allForAdmin(BookingFilters $filters, int $limit): Collection;
+
+    /**
+     * Nombre de réservations par onglet (toutes, à venir, en cours, terminées, annulées),
+     * avec les autres filtres.
+     *
+     * @return array<string, int>
+     */
+    public function countByStage(BookingFilters $filters): array;
+
     /** Charge ce qu'affiche la fiche d'une réservation (logement, paiements). */
     public function loadDetails(Booking $booking): Booking;
+
+    /**
+     * Recherche rapide (référence, nom ou e-mail du voyageur), séjours les plus récents d'abord.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function search(string $term, int $limit): Collection;
 
     /**
      * Fait passer une réservation de confirmée à annulée, seulement si elle l'est encore en
@@ -59,8 +81,13 @@ interface BookingRepositoryInterface
     /** Règlement reçu hors ligne (espèces, virement) : paiement réussi, sans Stripe. */
     public function recordOfflinePayment(Booking $booking, int $amount): void;
 
-    /** Encaissé sur la période : paiements réussis moins remboursements réussis, en centimes. */
-    public function netPaymentsBetween(CarbonInterface $from, CarbonInterface $to): int;
+    /**
+     * Réservations qui peuvent rapporter (confirmées, terminées, ou annulées avec une somme
+     * gardée) qui arrivent dans [from, to[, avec paid_amount et refunded_amount.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function earningArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
 
     /**
      * Réservations vendues (confirmées ou terminées) qui arrivent dans [from, to[.

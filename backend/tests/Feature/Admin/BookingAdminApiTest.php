@@ -170,3 +170,53 @@ it('réserve les réservations à l’administrateur', function () {
     $this->postJson("/api/admin/bookings/{$booking->reference}/cancel", ['notify_guest' => false])->assertForbidden();
     $this->get("/api/admin/bookings/{$booking->reference}/pdf")->assertForbidden();
 });
+
+it('filtre par onglet, compte chaque onglet et donne l’état du règlement', function () {
+    $upcoming = paidBooking($this->apartment, '2026-12-10', '2026-12-12');
+    paidBooking($this->apartment, '2026-11-19', '2026-11-22');
+    $past = paidBooking($this->apartment, '2026-11-01', '2026-11-03', ['status' => BookingStatus::Completed]);
+    Payment::query()->create(['booking_id' => $past->id, 'type' => 'refund', 'amount' => 10000, 'status' => PaymentStatus::Succeeded]);
+    paidBooking($this->apartment, '2026-12-20', '2026-12-22', ['status' => BookingStatus::Cancelled]);
+    directBooking($this->apartment, '2027-01-10', '2027-01-12', BookingStatus::Pending);
+
+    $this->getJson('/api/admin/bookings')
+        ->assertJsonPath('meta.counts', ['all' => 5, 'upcoming' => 1, 'ongoing' => 1, 'past' => 1, 'cancelled' => 1])
+        ->assertJsonPath('data.0.reference', $past->reference)
+        ->assertJsonPath('data.0.payment_state', 'partially_refunded')
+        ->assertJsonPath('data.4.payment_state', 'awaiting');
+    $this->getJson('/api/admin/bookings?stage=upcoming')
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.reference', $upcoming->reference)
+        ->assertJsonPath('data.0.payment_state', 'paid')
+        ->assertJsonPath('meta.counts.all', 5);
+    $this->getJson('/api/admin/bookings?stage=later')->assertJsonValidationErrors('stage');
+});
+
+it('exporte la liste filtrée en CSV, sans coordonnées et sans formule exécutable', function () {
+    paidBooking($this->apartment, '2026-12-10', '2026-12-12', ['guest_name' => '=HYPERLINK("x")', 'guest_email' => 'secret@example.com']);
+    paidBooking($this->apartment, '2026-12-20', '2026-12-22', ['status' => BookingStatus::Cancelled]);
+
+    $response = $this->get('/api/admin/bookings.csv?stage=upcoming')
+        ->assertOk()
+        ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    $csv = (string) $response->getContent();
+
+    expect($csv)->toStartWith("\u{FEFF}Référence;Voyageur;Logement")
+        ->toContain("'=HYPERLINK")
+        ->toContain('345,00')
+        ->not->toContain('secret@example.com')
+        ->and(substr_count($csv, "\r\n"))->toBe(2)
+        ->and(AuditLog::query()->where('action', AuditAction::BookingsExported->value)->sole()->after)->toBe(['rows' => 1, 'filters' => ['stage' => 'upcoming']]);
+});
+
+it('retrace l’historique de la réservation : paiements, corrections avec leur auteur, séjour à venir', function () {
+    $booking = paidBooking($this->apartment, '2026-12-10', '2026-12-12');
+    $this->patchJson("/api/admin/bookings/{$booking->reference}", ['housekeeping_notes' => 'Lit bébé'])->assertOk();
+
+    $history = $this->getJson("/api/admin/bookings/{$booking->reference}")->assertOk()->json('data.history');
+
+    expect(array_column($history, 'event'))->toBe(['created', 'paid', 'updated', 'arrival', 'departure'])
+        ->and($history[1]['amount'])->toBe(34500)
+        ->and($history[2]['by'])->toBe(auth()->user()->name)
+        ->and($history[3]['upcoming'])->toBeTrue();
+});

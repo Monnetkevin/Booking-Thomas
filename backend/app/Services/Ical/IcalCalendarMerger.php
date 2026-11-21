@@ -30,9 +30,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Recouvrements (spec « Autres recouvrements ») : une réservation directe en attente de
  * paiement est expirée ; une réservation directe confirmée laisse le bloc en conflit et
- * l'hôte est alerté ; un blocage manuel ou un autre calendrier : conflit, sans alerte.
+ * l'hôte est alerté ; un blocage manuel ou un autre calendrier : conflit, sans alerte ; une
+ * fermeture posée sur des nuits déjà fermées (site et plateforme) : pas un conflit.
  * Des nuits libérées lèvent les conflits qu'elles portaient. Chaque séjour ajouté, déplacé
- * ou annulé est signalé au ménage (StayScheduleChanged, après la transaction).
+ * ou annulé est signalé au ménage (StayScheduleChanged, après la transaction), pas une
+ * simple date fermée.
  */
 class IcalCalendarMerger
 {
@@ -84,13 +86,13 @@ class IcalCalendarMerger
                 if ($block === null) {
                     $blocks->put($event->uid, $this->create($feed, $event));
                     $created++;
-                } elseif ($this->apply($block, $event)) {
+                } elseif ($this->apply($feed, $block, $event)) {
                     $updated++;
                 }
             }
 
             $conflicts = $blocks->filter(
-                fn (AvailabilityBlock $block) => $block->is_active && $block->has_conflict && $block->ends_on->gt($today),
+                fn (AvailabilityBlock $block) => $block->is_active && $block->isRealConflict() && $block->ends_on->gt($today),
             )->count();
 
             return new SyncResult(IcalSyncStatus::Success, $created, $updated, $removed, $conflicts, unreadable: count($kept));
@@ -111,11 +113,13 @@ class IcalCalendarMerger
             'type' => BlockType::Ical,
             'ical_feed_id' => $feed->id,
             'external_uid' => $event->uid,
-            ...$this->placement($event, $overlap),
+            ...$this->placement($feed, $event, $overlap),
             ...$this->details($event),
         ]);
         $this->alertIfDoubleBooked($block, $overlap);
-        StayScheduleChanged::dispatch(StayChange::added($block));
+        if ($block->concernsHousekeeping()) {
+            StayScheduleChanged::dispatch(StayChange::added($block));
+        }
 
         return $block;
     }
@@ -124,7 +128,7 @@ class IcalCalendarMerger
      * Met le bloc à jour ; renvoie true si ses nuits ont changé (déplacé ou réactivé).
      * Un bloc en conflit est réévalué à chaque passage : le conflit a pu disparaître.
      */
-    private function apply(AvailabilityBlock $block, ImportedEvent $event): bool
+    private function apply(IcalFeed $feed, AvailabilityBlock $block, ImportedEvent $event): bool
     {
         $moved = ! $block->is_active
             || ! $block->starts_on->equalTo($event->startsOn)
@@ -138,15 +142,18 @@ class IcalCalendarMerger
 
         $previous = $block->is_active ? [$block->starts_on, $block->ends_on] : null;
         $overlap = $this->overlap($block->apartment_id, $event, $block->id);
-        $this->availability->updateBlock($block, [...$this->placement($event, $overlap), ...$this->details($event)]);
+        $this->availability->updateBlock($block, [...$this->placement($feed, $event, $overlap), ...$this->details($event)]);
 
         if ($moved) {
             $this->alertIfDoubleBooked($block, $overlap);
             if ($previous !== null) {
                 $this->conflicts->release($block->apartment_id, ...$previous);
             }
-            // Ménage prévenu : séjour déplacé, ou de nouveau attendu s'il avait été annulé.
-            StayScheduleChanged::dispatch($previous === null ? StayChange::added($block) : StayChange::moved($block, ...$previous));
+            // Ménage prévenu : séjour déplacé, ou de nouveau attendu s'il avait été annulé
+            // (pas une simple date fermée).
+            if ($block->concernsHousekeeping()) {
+                StayScheduleChanged::dispatch($previous === null ? StayChange::added($block) : StayChange::moved($block, ...$previous));
+            }
         }
 
         return $moved;
@@ -155,9 +162,12 @@ class IcalCalendarMerger
     /** Séjour annulé chez la plateforme : nuits libérées, conflits qu'elles portaient levés. */
     private function deactivate(AvailabilityBlock $block): void
     {
-        $this->availability->updateBlock($block, ['is_active' => false, 'has_conflict' => false]);
+        $concernsHousekeeping = $block->concernsHousekeeping();
+        $this->availability->updateBlock($block, ['is_active' => false, 'has_conflict' => false, 'is_redundant_closure' => false]);
         $this->conflicts->release($block->apartment_id, $block->starts_on, $block->ends_on);
-        StayScheduleChanged::dispatch(StayChange::cancelled($block));
+        if ($concernsHousekeeping) {
+            StayScheduleChanged::dispatch(StayChange::cancelled($block));
+        }
     }
 
     /**
@@ -183,14 +193,29 @@ class IcalCalendarMerger
      *
      * @return array<string, mixed>
      */
-    private function placement(ImportedEvent $event, BlockOverlap $overlap): array
+    private function placement(IcalFeed $feed, ImportedEvent $event, BlockOverlap $overlap): array
     {
         return [
             'starts_on' => $event->startsOn->toDateString(),
             'ends_on' => $event->endsOn->toDateString(),
             'is_active' => true,
             'has_conflict' => $overlap->isConflict(),
+            // Même date fermée ici et sur la plateforme : pas un conflit à signaler.
+            'is_redundant_closure' => $this->conflicts->isRedundantClosure($this->candidate($feed, $event), $overlap),
         ];
+    }
+
+    /** Le bloc tel que l'événement le placerait, non enregistré. */
+    private function candidate(IcalFeed $feed, ImportedEvent $event): AvailabilityBlock
+    {
+        return (new AvailabilityBlock)->forceFill([
+            'apartment_id' => $feed->apartment_id,
+            'type' => BlockType::Ical,
+            'ical_feed_id' => $feed->id,
+            'starts_on' => $event->startsOn->toDateString(),
+            'ends_on' => $event->endsOn->toDateString(),
+            'note' => $event->summary,
+        ])->setRelation('icalFeed', $feed);
     }
 
     /** Deux voyageurs attendus sur les mêmes nuits : l'hôte est prévenu sans attendre. */

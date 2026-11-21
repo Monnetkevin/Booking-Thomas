@@ -84,3 +84,13 @@ export function settingsFromForm(values: SettingsFormValues): { settings: Settin
     },
   }
 }
+
+/** Onglets de la page Réglages qui portent des champs du formulaire. */
+export type SettingsTab = 'reservation' | 'paiement' | 'notifications'
+
+/** Onglet d'une erreur (clé de champ ou de serveur), pour y ramener l'hôte. */
+export function settingsTabOf(key: string): SettingsTab {
+  if (key.startsWith('emails') || key.startsWith('notification_emails')) return 'notifications'
+  if (/^(minNotice|horizon|min_notice|horizon)/i.test(key)) return 'reservation'
+  return 'paiement'
+}

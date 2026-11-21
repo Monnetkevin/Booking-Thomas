@@ -21,7 +21,7 @@ class BlockController extends Controller
     {
         Gate::authorize('create', AvailabilityBlock::class);
 
-        $block = $this->blocks->create($apartment, $request->startsOn(), $request->endsOn(), $request->note());
+        $block = $this->blocks->create($apartment, $request->startsOn(), $request->endsOn(), $request->note(), $request->needsCleaning());
 
         return (new BlockResource($block))->response()->setStatusCode(201);
     }

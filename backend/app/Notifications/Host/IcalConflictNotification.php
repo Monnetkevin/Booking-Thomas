@@ -44,7 +44,7 @@ class IcalConflictNotification extends BackOfficeNotification
     public function body(): string
     {
         return __('notifications.ical_conflict.body', [
-            'provider' => $this->block->icalFeed?->provider->label() ?? 'Airbnb',
+            'provider' => $this->block->icalFeed?->provider->label() ?? 'la plateforme',
             'dates' => StayDates::range($this->block->starts_on, $this->block->ends_on, 'fr'),
             'count' => $this->bookings->count(),
         ], 'fr');

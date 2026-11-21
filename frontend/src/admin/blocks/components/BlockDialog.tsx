@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
-import { DateField, SelectField, TextField } from '@/components/ui/Field'
+import { Checkbox, DateField, SelectField, TextField } from '@/components/ui/Field'
 import { ApiError } from '@/lib/api'
 import { useCreateBlock } from '../useBlocks'
 
@@ -17,13 +17,14 @@ interface BlockDialogProps {
   today: string
 }
 
-/** Fermer un logement (travaux, usage personnel) sur des nuits [début, fin[. */
+/** Fermer un logement (travaux, usage personnel) sur des nuits [début, fin[, occupé ou non. */
 export function BlockDialog({ open, onClose, apartments, initial, today }: BlockDialogProps) {
   const { t } = useTranslation()
   const [apartmentId, setApartmentId] = useState(String(initial?.apartmentId ?? apartments[0]?.id ?? ''))
   const [startsOn, setStartsOn] = useState(initial?.startsOn ?? '')
   const [endsOn, setEndsOn] = useState(initial?.endsOn ?? '')
   const [note, setNote] = useState('')
+  const [needsCleaning, setNeedsCleaning] = useState(false)
   const create = useCreateBlock()
   const errors = create.error instanceof ApiError ? create.error.fieldErrors : {}
   const conflict = create.error instanceof ApiError && create.error.code === 'dates_unavailable'
@@ -31,7 +32,7 @@ export function BlockDialog({ open, onClose, apartments, initial, today }: Block
   const submit = (event: FormEvent) => {
     event.preventDefault()
     create.mutate(
-      { apartmentId: Number(apartmentId), input: { starts_on: startsOn, ends_on: endsOn, note: note.trim() || null } },
+      { apartmentId: Number(apartmentId), input: { starts_on: startsOn, ends_on: endsOn, note: note.trim() || null, needs_cleaning: needsCleaning } },
       { onSuccess: onClose },
     )
   }
@@ -71,6 +72,10 @@ export function BlockDialog({ open, onClose, apartments, initial, today }: Block
           onChange={(event) => setNote(event.target.value)}
           error={errors.note?.[0]}
         />
+        <div>
+          <Checkbox label={t('admin.blocks.needsCleaning')} checked={needsCleaning} onChange={(event) => setNeedsCleaning(event.target.checked)} />
+          <p className="text-sm text-muted">{t('admin.blocks.needsCleaningHint')}</p>
+        </div>
         {conflict && <Alert tone="danger">{t('admin.blocks.conflict')}</Alert>}
         {create.isError && !(create.error instanceof ApiError && [409, 422].includes(create.error.status)) && (
           <Alert tone="danger">{t('common.error')}</Alert>

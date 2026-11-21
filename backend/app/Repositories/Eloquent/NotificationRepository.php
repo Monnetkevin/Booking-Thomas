@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Enums\NotificationType;
 use App\Models\Notification;
 use App\Models\User;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
@@ -45,6 +46,13 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->when($unreadOnly, fn (Builder $query) => $query->whereNull('read_at'))
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function deleteOtherTypes(User $user, array $keep): int
+    {
+        return (int) $user->notifications()
+            ->whereNotIn('type', array_map(fn (NotificationType $type) => $type->value, $keep))
+            ->delete();
     }
 
     public function unreadCount(User $user): int

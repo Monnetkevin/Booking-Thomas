@@ -3,6 +3,8 @@ import type { BookingDetail, BookingFilters, BookingListPage, GuestInput, Manual
 
 export interface AdminBookingService {
   list(filters: BookingFilters, page: number): Promise<BookingListPage>
+  /** Liste filtrée en CSV, téléchargée par le client HTTP. */
+  downloadCsv(filters: BookingFilters): Promise<DownloadedFile>
   get(reference: string): Promise<BookingDetail>
   create(input: ManualBookingInput): Promise<BookingDetail>
   update(reference: string, input: GuestInput): Promise<BookingDetail>
@@ -28,6 +30,7 @@ export function createAdminBookingService(client: HttpClient & FileDownloader): 
 
   return {
     list: (filters, page) => client.request(`/admin/bookings?${bookingQuery(filters, page)}`),
+    downloadCsv: (filters) => client.download(`/admin/bookings.csv?${bookingQuery(filters, 1)}`),
     get: (reference) => unwrap(client.request(path(reference))),
     create: (input) => unwrap(client.request('/admin/bookings', { method: 'POST', body: input })),
     update: (reference, input) => unwrap(client.request(path(reference), { method: 'PATCH', body: input })),

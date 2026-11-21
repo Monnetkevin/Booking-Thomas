@@ -1,17 +1,17 @@
 import { http, type DownloadedFile, type FileDownloader, type HttpClient } from '@/lib/http'
-import type { Statistics } from './types'
+import type { Statistics, StatisticsPeriod } from './types'
 
 export interface StatisticsService {
-  get(): Promise<Statistics>
+  get(period: StatisticsPeriod): Promise<Statistics>
   /** Export CSV, téléchargé par le client HTTP (session expirée → 401 comme ailleurs). */
-  downloadCsv(): Promise<DownloadedFile>
+  downloadCsv(period: StatisticsPeriod): Promise<DownloadedFile>
 }
 
-/** Statistiques sur 12 mois glissants, sans React ni cache. */
+/** Statistiques (6 mois, 12 mois ou tout), sans React ni cache. */
 export function createStatisticsService(client: HttpClient & FileDownloader): StatisticsService {
   return {
-    get: async () => (await client.request<{ data: Statistics }>('/admin/statistics')).data,
-    downloadCsv: () => client.download('/admin/statistics.csv'),
+    get: async (period) => (await client.request<{ data: Statistics }>(`/admin/statistics?period=${period}`)).data,
+    downloadCsv: (period) => client.download(`/admin/statistics.csv?period=${period}`),
   }
 }
 

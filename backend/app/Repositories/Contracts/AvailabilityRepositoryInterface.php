@@ -81,15 +81,16 @@ interface AvailabilityRepositoryInterface
     public function deleteBlock(AvailabilityBlock $block): bool;
 
     /**
-     * Un autre séjour (réservation ou plateforme) actif du logement part le jour d'arrivée
-     * ou arrive le jour de départ : ménage entre deux séjours le même jour.
+     * Un autre séjour (réservation, plateforme, ou fermeture d'un logement occupé) actif du
+     * logement part le jour d'arrivée ou arrive le jour de départ : ménage entre deux séjours
+     * le même jour.
      */
     public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool;
 
     /**
      * Blocs actifs qui commencent ou finissent ce jour-là, avec logement et réservation,
      * pour le récapitulatif du ménage : logements existants, réservations confirmées
-     * (pas celles en attente de paiement).
+     * (pas celles en attente de paiement), sans les fermetures posées sur des nuits déjà fermées.
      *
      * @return Collection<int, AvailabilityBlock>
      */
@@ -103,8 +104,12 @@ interface AvailabilityRepositoryInterface
      */
     public function planningBlocks(string $from, string $to): Collection;
 
+    /** Premier jour du plus ancien séjour ou blocage actif (AAAA-MM-JJ), null s'il n'y en a pas. */
+    public function earliestStart(): ?string;
+
     /**
-     * Séjours importés en conflit qui ne sont pas terminés, avec leur logement.
+     * Séjours importés en conflit qui ne sont pas terminés, avec leur logement (hors fermetures
+     * posées sur des nuits déjà fermées, sauf si un versement en fait un séjour).
      *
      * @return Collection<int, AvailabilityBlock>
      */

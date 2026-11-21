@@ -13,13 +13,13 @@ export interface ManualBookingFormValues {
   guestPhone: string
   locale: 'fr' | 'en'
   housekeepingNotes: string
-  /** Total en euros, vide pour garder le prix calculé. */
+  /** Total en euros, vide pour garder le prix calculé ; jamais 0 € (un séjour sans montant est une fermeture). */
   total: string
   paid: boolean
   sendConfirmation: boolean
 }
 
-export type ManualBookingFormErrors = Partial<Record<keyof ManualBookingFormValues, 'required' | 'invalidNumber' | 'invalidAmount'>>
+export type ManualBookingFormErrors = Partial<Record<keyof ManualBookingFormValues, 'required' | 'invalidNumber' | 'invalidAmount' | 'freeStay'>>
 
 export const emptyManualBooking: ManualBookingFormValues = {
   apartmentId: '',
@@ -52,6 +52,8 @@ export function manualBookingInput(
   if (children === null) errors.children = 'invalidNumber'
   const total = values.total.trim() === '' ? null : parseEuros(values.total)
   if (values.total.trim() !== '' && total === null) errors.total = 'invalidAmount'
+  // Un séjour sans montant (usage personnel, logement prêté) se saisit comme une fermeture de dates.
+  else if (total !== null && total <= 0) errors.total = 'freeStay'
   if (Object.keys(errors).length > 0) return { errors }
 
   return {

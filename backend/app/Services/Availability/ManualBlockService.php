@@ -4,6 +4,7 @@ namespace App\Services\Availability;
 
 use App\Enums\AuditAction;
 use App\Enums\BlockType;
+use App\Events\StayScheduleChanged;
 use App\Exceptions\Availability\BlockAlreadyRemovedException;
 use App\Exceptions\Availability\BlockNotRemovableException;
 use App\Exceptions\DatesUnavailableException;
@@ -11,6 +12,7 @@ use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Services\Audit\AuditLogger;
+use App\Services\Housekeeping\StayChange;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +21,8 @@ use Illuminate\Support\Facades\DB;
  * Fermetures manuelles d'un logement (travaux, usage personnel) sur des nuits
  * [début, fin[. Une fermeture ne recouvre jamais un séjour déjà prévu : elle est refusée
  * plutôt que de créer un conflit. La retirer libère ses nuits et lève les conflits
- * qu'elle portait. Création et retrait sont journalisés.
+ * qu'elle portait. Création et retrait sont journalisés. Un logement occupé pendant la
+ * fermeture (famille, amis) prévient le ménage comme un séjour : passage à prévoir à la fin.
  */
 class ManualBlockService
 {
@@ -33,10 +36,10 @@ class ManualBlockService
     /**
      * @throws DatesUnavailableException nuits déjà occupées
      */
-    public function create(Apartment $apartment, CarbonImmutable $startsOn, CarbonImmutable $endsOn, ?string $note): AvailabilityBlock
+    public function create(Apartment $apartment, CarbonImmutable $startsOn, CarbonImmutable $endsOn, ?string $note, bool $needsCleaning = false): AvailabilityBlock
     {
         try {
-            $block = DB::transaction(function () use ($apartment, $startsOn, $endsOn, $note): AvailabilityBlock {
+            $block = DB::transaction(function () use ($apartment, $startsOn, $endsOn, $note, $needsCleaning): AvailabilityBlock {
                 $this->availability->lockApartment($apartment->id);
                 if ($this->availability->hasActiveBlock($apartment->id, $startsOn->toDateString(), $endsOn->toDateString())) {
                     throw DatesUnavailableException::taken();
@@ -48,6 +51,7 @@ class ManualBlockService
                     'starts_on' => $startsOn->toDateString(),
                     'ends_on' => $endsOn->toDateString(),
                     'note' => $note,
+                    'needs_cleaning' => $needsCleaning,
                     'is_active' => true,
                     'has_conflict' => false,
                 ]);
@@ -58,6 +62,9 @@ class ManualBlockService
 
         $this->availabilityService->flushApartment($apartment->id);
         $this->audit->record(AuditAction::BlockCreated, $block, after: $this->auditValues($block));
+        if ($block->concernsHousekeeping()) {
+            StayScheduleChanged::dispatch(StayChange::added($block));
+        }
 
         return $block;
     }
@@ -89,6 +96,9 @@ class ManualBlockService
 
         $this->availabilityService->flushApartment($block->apartment_id);
         $this->audit->record(AuditAction::BlockDeleted, $block, before: $before);
+        if ($block->concernsHousekeeping()) {
+            StayScheduleChanged::dispatch(StayChange::cancelled($block));
+        }
     }
 
     /**
@@ -101,6 +111,7 @@ class ManualBlockService
             'starts_on' => $block->starts_on->toDateString(),
             'ends_on' => $block->ends_on->toDateString(),
             'note' => $block->note,
+            'needs_cleaning' => $block->needs_cleaning,
         ];
     }
 }

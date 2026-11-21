@@ -9,10 +9,10 @@ import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Checkbox } from '@/components/ui/Field'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { FilterChips } from '@/components/ui/FilterChips'
 import { Section } from '@/components/ui/Section'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api'
+import { BaseRatesTable } from '../components/BaseRatesTable'
 import { RatePeriodForm } from '../components/RatePeriodForm'
 import { QuotePreviewPanel } from '../components/QuotePreviewPanel'
 import { RatePeriodList } from '../components/RatePeriodList'
@@ -44,14 +44,9 @@ export function RatesPage() {
         </Alert>
       ) : (
         <>
-          <div className="mb-5">
-            <FilterChips<string>
-              label={t('admin.rates.chooseApartment')}
-              value={String(selected.id)}
-              onChange={(id) => setParams({ logement: id }, { replace: true })}
-              options={list.map((apartment) => ({ value: String(apartment.id), label: apartment.name }))}
-            />
-          </div>
+          <Section title={t('admin.rates.base.title')} description={t('admin.rates.base.hint')} className="mb-5">
+            <BaseRatesTable apartments={list} selectedId={selected.id} onSelect={(id) => setParams({ logement: String(id) }, { replace: true })} />
+          </Section>
           {/* La clé repart d'un état propre (formulaire fermé) à chaque changement de logement. */}
           <ApartmentRates key={selected.id} apartmentId={selected.id} name={selected.name} minStay={selected.min_stay} />
         </>

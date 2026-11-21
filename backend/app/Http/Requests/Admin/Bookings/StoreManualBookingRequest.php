@@ -45,10 +45,19 @@ class StoreManualBookingRequest extends FormRequest
             'guest_country' => ['nullable', 'string', 'size:2', 'alpha'],
             'locale' => ['sometimes', Rule::in(['fr', 'en'])],
             'housekeeping_notes' => ['nullable', 'string', 'max:500'],
-            'total_amount' => ['nullable', 'integer', 'between:0,10000000'],
+            'total_amount' => ['nullable', 'integer', 'min:1', 'max:10000000'],
             'paid' => ['required', 'boolean'],
             'send_confirmation' => ['required', 'boolean'],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        // Un total à 0 € : le séjour se saisit comme une fermeture de dates.
+        return ['total_amount.min' => __('booking.errors.free_stay', [], 'fr')];
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Enums\BookingSource;
 use App\Enums\BookingStatus;
 use App\Events\BookingConfirmed;
 use App\Exceptions\Apartment\ApartmentNotFoundException;
+use App\Exceptions\Booking\FreeStayException;
 use App\Exceptions\Booking\NoRateForStayException;
 use App\Exceptions\Booking\StayNotAllowedException;
 use App\Exceptions\DatesUnavailableException;
@@ -28,7 +29,8 @@ use Illuminate\Support\Facades\DB;
  * l'occupation des nuits et la capacité du logement, mais ni le préavis ni le séjour
  * minimum. Le prix est calculé par PriceCalculator ; l'hôte peut fixer un autre total
  * (écart noté comme ajustement), ou le prix convenu si aucun tarif ne couvre les nuits.
- * Un règlement reçu hors ligne est noté comme paiement réussi.
+ * Un règlement reçu hors ligne est noté comme paiement réussi. Une réservation a toujours
+ * un montant : un séjour sans montant se saisit comme une fermeture de dates.
  */
 class ManualBookingService
 {
@@ -50,6 +52,7 @@ class ManualBookingService
      * @throws ApartmentNotFoundException logement inconnu ou supprimé
      * @throws StayNotAllowedException trop de voyageurs pour le logement
      * @throws NoRateForStayException aucun tarif et aucun total
+     * @throws FreeStayException total à 0 €
      * @throws DatesUnavailableException nuits déjà occupées
      */
     public function create(int $apartmentId, Stay $stay, array $guest, ?int $total, bool $paid, bool $notifyGuest): Booking
@@ -63,6 +66,9 @@ class ManualBookingService
             throw new StayNotAllowedException([['code' => 'too_many_guests', 'message' => __('stay.too_many_guests', ['capacity' => $apartment->capacity])]]);
         }
         $amounts = $this->amounts($apartment, $stay, $total);
+        if ($amounts['total_amount'] <= 0) {
+            throw new FreeStayException;
+        }
 
         try {
             $booking = DB::transaction(function () use ($apartment, $stay, $guest, $amounts, $paid, $notifyGuest): Booking {

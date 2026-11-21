@@ -10,7 +10,9 @@ use App\Http\Requests\Admin\Apartment\UpdateApartmentRequest;
 use App\Http\Resources\Admin\AdminApartmentListResource;
 use App\Http\Resources\Admin\AdminApartmentResource;
 use App\Models\Apartment;
+use App\Services\Apartment\ApartmentListMeta;
 use App\Services\Apartment\ApartmentService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -18,20 +20,24 @@ use Illuminate\Support\Facades\Gate;
 
 class ApartmentController extends Controller
 {
-    public function __construct(private readonly ApartmentService $apartments) {}
+    public function __construct(
+        private readonly ApartmentService $apartments,
+        private readonly ApartmentListMeta $listMeta,
+    ) {}
 
     public function index(IndexApartmentsRequest $request): AnonymousResourceCollection
     {
         Gate::authorize('viewAny', Apartment::class);
 
-        return AdminApartmentListResource::collection($this->apartments->list($request->status()));
+        return AdminApartmentListResource::collection($this->apartments->list($request->status()))
+            ->additional(['meta' => $this->listMeta->compute(CarbonImmutable::today())]);
     }
 
     public function store(StoreApartmentRequest $request): JsonResponse
     {
         Gate::authorize('create', Apartment::class);
 
-        $apartment = $this->apartments->create($request->apartmentData());
+        $apartment = $this->apartments->create($request->apartmentData(), Gate::allows('managePricing', Apartment::class));
 
         return (new AdminApartmentResource($apartment))->response()->setStatusCode(201);
     }
@@ -47,7 +53,7 @@ class ApartmentController extends Controller
     {
         Gate::authorize('update', $apartment);
 
-        return new AdminApartmentResource($this->apartments->update($apartment, $request->apartmentData()));
+        return new AdminApartmentResource($this->apartments->update($apartment, $request->apartmentData(), Gate::allows('managePricing', Apartment::class)));
     }
 
     public function publish(Apartment $apartment): AdminApartmentResource

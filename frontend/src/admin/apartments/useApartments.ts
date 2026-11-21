@@ -11,6 +11,10 @@ export function useApartmentList(status?: ApartmentStatus, service: ApartmentSer
   return useQuery({ queryKey: apartmentKeys.list(status), queryFn: () => service.list(status) })
 }
 
+export function useApartmentOverview(status?: ApartmentStatus, service: ApartmentService = apartmentService) {
+  return useQuery({ queryKey: apartmentKeys.overview(status), queryFn: () => service.overview(status), placeholderData: (previous) => previous })
+}
+
 export function useApartment(id: number, service: ApartmentService = apartmentService) {
   return useQuery({
     queryKey: apartmentKeys.detail(id),

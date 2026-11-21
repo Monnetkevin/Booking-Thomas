@@ -49,6 +49,11 @@ class IcalFeedRepository implements IcalFeedRepositoryInterface
         return $feed->syncLogs()->create($log);
     }
 
+    public function latestLogs(int $limit): Collection
+    {
+        return IcalSyncLog::query()->with('feed.apartment:id,name')->latest('id')->limit($limit)->get();
+    }
+
     public function recentLogs(IcalFeed $feed, int $limit): Collection
     {
         return $feed->syncLogs()->latest('id')->limit($limit)->get();

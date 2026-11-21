@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Réservation tout juste créée : de quoi enchaîner sur le paiement (jalon 10).
+ * Réservation tout juste créée : de quoi enchaîner sur le paiement (jalon 11).
  *
  * @mixin Booking
  */

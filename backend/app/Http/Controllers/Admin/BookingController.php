@@ -9,11 +9,15 @@ use App\Http\Requests\Admin\Bookings\StoreManualBookingRequest;
 use App\Http\Requests\Admin\Bookings\UpdateBookingRequest;
 use App\Http\Resources\Admin\AdminBookingListResource;
 use App\Http\Resources\Admin\AdminBookingResource;
+use App\Http\Responses\CsvDownload;
+use App\Models\Apartment;
 use App\Models\Booking;
 use App\Services\Booking\AdminBookingService;
 use App\Services\Booking\BookingConfirmationPdf;
+use App\Services\Booking\BookingHistory;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\ManualBookingService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -27,19 +31,35 @@ class BookingController extends Controller
         private readonly BookingService $lifecycle,
         private readonly BookingConfirmationPdf $pdf,
         private readonly ManualBookingService $manual,
+        private readonly BookingHistory $history,
     ) {}
 
     public function index(ListBookingsRequest $request): AnonymousResourceCollection
     {
         Gate::authorize('viewAny', Booking::class);
 
-        return AdminBookingListResource::collection($this->bookings->list($request->filters()));
+        $filters = $request->filters();
+
+        return AdminBookingListResource::collection($this->bookings->list($filters))
+            ->additional(['meta' => ['counts' => $this->bookings->stageCounts($filters)]]);
+    }
+
+    /** Liste filtrée au format CSV (tableur). */
+    public function csv(ListBookingsRequest $request): Response
+    {
+        Gate::authorize('viewAny', Booking::class);
+
+        return CsvDownload::make($this->bookings->csv($request->filters()), 'reservations');
     }
 
     /** Réservation saisie par l'hôte (téléphone, connaissance), confirmée tout de suite. */
     public function store(StoreManualBookingRequest $request): JsonResponse
     {
         Gate::authorize('create', Booking::class);
+        // Un total différent du prix calculé est une modification de prix : administrateur seulement.
+        if ($request->total() !== null) {
+            Gate::authorize('managePricing', Apartment::class);
+        }
 
         $booking = $this->manual->create(
             $request->integer('apartment_id'),
@@ -99,6 +119,6 @@ class BookingController extends Controller
     {
         $booking = $this->bookings->details($booking);
 
-        return new AdminBookingResource($booking, $this->bookings->refundProposal($booking));
+        return new AdminBookingResource($booking, $this->bookings->refundProposal($booking), $this->history->of($booking, CarbonImmutable::today()));
     }
 }

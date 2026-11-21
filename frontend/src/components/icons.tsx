@@ -287,3 +287,12 @@ export function BarChartIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function SearchIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon width="18" height="18" strokeWidth="1.8" {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-3.5-3.5" />
+    </Icon>
+  )
+}

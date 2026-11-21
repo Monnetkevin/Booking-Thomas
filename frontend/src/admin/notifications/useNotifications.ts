@@ -12,10 +12,11 @@ export const notificationKeys = {
 /** Rafraîchissement du nombre de non lues (spec : toutes les 60 s et au retour sur l'onglet). */
 export const UNREAD_REFRESH_MS = 60_000
 
-export function useUnreadCount(service: NotificationService = notificationService) {
+export function useUnreadCount(enabled = true, service: NotificationService = notificationService) {
   return useQuery({
     queryKey: notificationKeys.unread,
     queryFn: () => service.unreadCount(),
+    enabled,
     refetchInterval: UNREAD_REFRESH_MS,
     refetchOnWindowFocus: true,
   })

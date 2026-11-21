@@ -3,6 +3,12 @@ export type BookingSource = 'direct' | 'manual'
 
 export const BOOKING_STATUSES: BookingStatus[] = ['pending', 'confirmed', 'completed', 'cancelled', 'expired']
 
+/** Onglets de la liste : à venir, en cours, terminées, annulées (null : toutes). */
+export type BookingStage = 'upcoming' | 'ongoing' | 'past' | 'cancelled'
+export const BOOKING_STAGES: BookingStage[] = ['upcoming', 'ongoing', 'past', 'cancelled']
+
+export type PaymentState = 'awaiting' | 'unpaid' | 'paid' | 'partially_refunded' | 'refunded'
+
 /** Ligne de la liste des réservations. */
 export interface BookingListItem {
   reference: string
@@ -16,6 +22,8 @@ export interface BookingListItem {
   source: BookingSource
   total_amount: number
   created_at: string | null
+  /** Donné dans la liste seulement. */
+  payment_state?: PaymentState | null
 }
 
 export interface RefundProposal {
@@ -48,6 +56,17 @@ export interface BookingDetail extends BookingListItem {
   confirmed_at: string | null
   cancelled_at: string | null
   refund_proposal: RefundProposal | null
+  history: BookingHistoryEvent[]
+}
+
+export interface BookingHistoryEvent {
+  event: 'created' | 'paid' | 'refunded' | 'payment_failed' | 'confirmed' | 'updated' | 'cancelled' | 'arrival' | 'departure'
+  at: string
+  /** Auteur (compte du back-office), si l'action vient de l'administration. */
+  by: string | null
+  amount: number | null
+  /** Arrivée ou départ pas encore arrivés. */
+  upcoming: boolean
 }
 
 export interface BookingFilters {
@@ -57,11 +76,12 @@ export interface BookingFilters {
   from?: string
   to?: string
   search?: string
+  stage?: BookingStage
 }
 
 export interface BookingListPage {
   data: BookingListItem[]
-  meta: { current_page: number; last_page: number; total: number }
+  meta: { current_page: number; last_page: number; total: number; counts: Record<'all' | BookingStage, number> }
 }
 
 export interface ManualBookingInput {

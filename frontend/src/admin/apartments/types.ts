@@ -14,11 +14,32 @@ export interface ApartmentListItem {
   name: string
   status: ApartmentStatus
   capacity: number
+  bedrooms: number | null
+  city: string | null
   min_stay: number
   position: number
   /** Prix par nuit de la période en cours ou de la prochaine, en centimes. */
   base_price: number | null
   cover_url: string | null
+  card_url: string | null
+  /** Frais de ménage par séjour, en centimes. */
+  cleaning_fee: number
+  /** Période de prix en cours ou prochaine. */
+  current_rate: {
+    id: number
+    label: string | null
+    starts_on: string
+    ends_on: string
+    nightly_price: number
+    weekend_supplement: number | null
+    min_stay: number | null
+  } | null
+}
+
+/** Compléments de la liste : nombre par statut, occupation du mois par logement (id → %). */
+export interface ApartmentListMeta {
+  counts: { all: number; draft: number; published: number }
+  occupancy: Record<number, number | null>
 }
 
 export interface PhotoUrls {

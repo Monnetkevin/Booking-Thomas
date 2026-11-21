@@ -80,6 +80,10 @@ export const router = createBrowserRouter([
             }),
           },
           {
+            path: 'revenus-plateformes',
+            lazy: async () => ({ Component: (await import('@/admin/platformImports/pages/PlatformImportPage')).PlatformImportPage }),
+          },
+          {
             path: 'statistiques',
             lazy: async () => ({ Component: (await import('@/admin/statistics/pages/StatisticsPage')).StatisticsPage }),
           },

@@ -3,6 +3,7 @@
 namespace App\Services\Booking;
 
 use App\Enums\AuditAction;
+use App\Enums\BookingPaymentState;
 use App\Enums\BookingStatus;
 use App\Events\StayScheduleChanged;
 use App\Exceptions\Booking\BookingNotCancellableException;
@@ -16,6 +17,7 @@ use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Availability\BlockConflictService;
+use App\Services\Export\CsvWriter;
 use App\Services\Housekeeping\StayChange;
 use App\Services\Notifications\HostNotifier;
 use Carbon\CarbonImmutable;
@@ -30,11 +32,13 @@ use Illuminate\Support\Facades\DB;
  *
  * Annuler libère les nuits, lève les conflits qu'elles portaient, prévient le ménage et,
  * si l'hôte le veut, le voyageur. Le remboursement proposé suit le barème copié dans la
- * réservation ; il est versé depuis Stripe au jalon 10 (en attendant, hors ligne).
+ * réservation ; il est versé depuis Stripe au jalon 11 (en attendant, hors ligne).
  */
 class AdminBookingService
 {
     public const PER_PAGE = 25;
+
+    public const EXPORT_LIMIT = 5000;
 
     /** Champs du voyageur que l'hôte peut corriger. */
     private const GUEST_FIELDS = ['guest_name', 'guest_email', 'guest_phone', 'guest_country', 'housekeeping_notes'];
@@ -48,6 +52,7 @@ class AdminBookingService
         private readonly HostNotifier $host,
         private readonly Mailer $mailer,
         private readonly AuditLogger $audit,
+        private readonly CsvWriter $csv,
     ) {}
 
     /**
@@ -55,7 +60,67 @@ class AdminBookingService
      */
     public function list(BookingFilters $filters): LengthAwarePaginator
     {
-        return $this->bookings->paginateForAdmin($filters, self::PER_PAGE);
+        $page = $this->bookings->paginateForAdmin($filters, self::PER_PAGE);
+        // État du règlement, à partir des sommes payées et remboursées chargées par la liste.
+        foreach ($page->items() as $booking) {
+            $booking->setAttribute(
+                'payment_state',
+                BookingPaymentState::of($booking->status, (int) $booking->getAttribute('paid_amount'), (int) $booking->getAttribute('refunded_amount')),
+            );
+        }
+
+        return $page;
+    }
+
+    /**
+     * Compteurs des onglets de la liste, avec les autres filtres.
+     *
+     * @return array<string, int>
+     */
+    public function stageCounts(BookingFilters $filters): array
+    {
+        return $this->bookings->countByStage($filters);
+    }
+
+    /**
+     * Liste filtrée en CSV (au plus EXPORT_LIMIT lignes) : ni coordonnées ni notes, seulement
+     * ce qui sert à un suivi dans un tableur.
+     */
+    public function csv(BookingFilters $filters): string
+    {
+        $rows = [['Référence', 'Voyageur', 'Logement', 'Arrivée', 'Départ', 'Nuits', 'Voyageurs', 'Source', 'Statut', 'Total (€)', 'Taxe de séjour (€)']];
+        foreach ($this->bookings->allForAdmin($filters, self::EXPORT_LIMIT) as $booking) {
+            $rows[] = [
+                $booking->reference,
+                $booking->guest_name,
+                $booking->apartment?->getTranslation('name', 'fr') ?? '',
+                $booking->arrival->toDateString(),
+                $booking->departure->toDateString(),
+                $booking->nights(),
+                $booking->adults + $booking->children,
+                __('booking.sources.'.$booking->source->value, [], 'fr'),
+                __('booking.statuses.'.$booking->status->value, [], 'fr'),
+                $this->csv->euros($booking->total_amount),
+                $this->csv->euros($booking->tourist_tax),
+            ];
+        }
+
+        // Export de données personnelles (noms) : tracé, avec les filtres et le nombre de lignes.
+        $this->audit->record(AuditAction::BookingsExported, after: [
+            'rows' => count($rows) - 1,
+            // Filtres sans la recherche saisie (elle peut contenir un nom) : seulement sa présence.
+            'filters' => array_filter([
+                'stage' => $filters->stage?->value,
+                'status' => $filters->status?->value,
+                'source' => $filters->source?->value,
+                'apartment_id' => $filters->apartmentId,
+                'from' => $filters->from,
+                'to' => $filters->to,
+                'search' => $filters->search !== null,
+            ]),
+        ]);
+
+        return $this->csv->write($rows);
     }
 
     public function details(Booking $booking): Booking

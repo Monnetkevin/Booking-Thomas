@@ -23,6 +23,7 @@ class BlockResource extends JsonResource
             'starts_on' => $this->starts_on->toDateString(),
             'ends_on' => $this->ends_on->toDateString(),
             'note' => $this->note,
+            'needs_cleaning' => $this->needs_cleaning,
         ];
     }
 }

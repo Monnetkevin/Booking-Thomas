@@ -156,3 +156,23 @@ export function formErrorsFromApi(fieldErrors: Record<string, string[]>): Apartm
   }
   return errors
 }
+
+/** Sections du formulaire, affichées chacune dans un onglet de la fiche. */
+export type ApartmentFormSection = 'info' | 'location' | 'rules'
+export const APARTMENT_FORM_SECTIONS: ApartmentFormSection[] = ['info', 'location', 'rules']
+
+const FIELD_SECTION: Partial<Record<keyof ApartmentFormValues, ApartmentFormSection>> = {
+  address: 'location',
+  postalCode: 'location',
+  city: 'location',
+  minStay: 'rules',
+  maxStay: 'rules',
+  turnoverDays: 'rules',
+  cancellationPolicy: 'rules',
+  registrationNumber: 'rules',
+}
+
+/** Section d'un champ, pour amener l'hôte sur l'onglet de son erreur. */
+export function formSectionOf(field: keyof ApartmentFormValues): ApartmentFormSection {
+  return FIELD_SECTION[field] ?? 'info'
+}

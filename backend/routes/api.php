@@ -10,9 +10,12 @@ use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\PlanningController;
+use App\Http\Controllers\Admin\PlatformImportController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\UserController;
@@ -60,15 +63,15 @@ Route::prefix('auth')->group(function () {
     // Mot de passe choisi depuis le lien d'invitation ou de réinitialisation.
     Route::post('password', [PasswordController::class, 'update'])->middleware('throttle:5,1');
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('me', [SessionController::class, 'show'])->middleware('role:admin,housekeeping');
+        Route::get('me', [SessionController::class, 'show'])->middleware('role:admin,manager,housekeeping');
         Route::post('logout', [SessionController::class, 'destroy']);
     });
 });
 
 /*
-| Back-office, pour les deux rôles : notifications et préférences du compte connecté
+| Back-office, pour tous les rôles : notifications et préférences du compte connecté
 */
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager,housekeeping'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index']);
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
@@ -78,9 +81,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])-
 });
 
 /*
-| Back-office : réservé aux administrateurs (routes ajoutées par les jalons suivants)
+| Back-office : administrateurs et gestionnaires (les Policies affinent). Tarifs, comptes
+| et réglages sont regroupés plus bas, réservés aux administrateurs.
 */
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager'])->group(function () {
     // Logements (identifiés par leur id dans l'admin : le slug peut changer)
     Route::put('apartments/order', [ApartmentController::class, 'reorder']);
     Route::get('apartments', [ApartmentController::class, 'index']);
@@ -100,15 +104,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('amenities', [AmenityController::class, 'index']);
     Route::put('apartments/{apartment:id}/amenities', [AmenityController::class, 'sync']);
 
-    // Tarifs par période
-    Route::get('apartments/{apartment:id}/rate-periods', [RatePeriodController::class, 'index']);
-    Route::post('apartments/{apartment:id}/rate-periods', [RatePeriodController::class, 'store']);
-    Route::put('rate-periods/{ratePeriod}', [RatePeriodController::class, 'update']);
-    Route::delete('rate-periods/{ratePeriod}', [RatePeriodController::class, 'destroy']);
+    // Aperçu du prix d'un séjour (réservation à la main)
     Route::post('apartments/{apartment:id}/quote-preview', QuotePreviewController::class);
 
     // Calendriers des plateformes (Airbnb) : import et export iCal
     Route::get('ical-feeds', [IcalFeedController::class, 'index']);
+    Route::get('ical-sync-logs', [IcalFeedController::class, 'latestLogs']);
+    // Tout synchroniser : en file d'attente, 2 fois par minute au plus.
+    Route::post('ical-feeds/sync-all', [IcalFeedController::class, 'syncAll'])->middleware('throttle:2,1');
     Route::post('apartments/{apartment:id}/ical-feeds', [IcalFeedController::class, 'store']);
     Route::patch('ical-feeds/{icalFeed}', [IcalFeedController::class, 'update']);
     Route::post('ical-feeds/{icalFeed}/export-token', [IcalFeedController::class, 'regenerateExportToken']);
@@ -116,14 +119,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Lecture immédiate : 6 par minute, pour ne pas solliciter la plateforme à l'excès.
     Route::post('ical-feeds/{icalFeed}/sync', [IcalFeedController::class, 'sync'])->middleware('throttle:6,1');
 
-    // Comptes du back-office : invitation du ménage, activation, lien de mot de passe
-    Route::get('users', [UserController::class, 'index']);
-    Route::post('users', [UserController::class, 'store'])->middleware('throttle:10,1');
-    Route::patch('users/{user}', [UserController::class, 'update'])->whereNumber('user');
-    Route::post('users/{user}/password-reset', [UserController::class, 'sendPasswordReset'])->whereNumber('user')->middleware('throttle:6,1');
-
     // Réservations : liste, fiche, coordonnées, annulation, confirmation (référence BT-…)
     Route::get('bookings', [AdminBookingController::class, 'index']);
+    // Export CSV (noms des voyageurs) : 10 par minute, tracé au journal.
+    Route::get('bookings.csv', [AdminBookingController::class, 'csv'])->middleware('throttle:10,1');
     Route::post('bookings', [AdminBookingController::class, 'store'])->middleware('throttle:20,1');
     Route::get('bookings/{booking}', [AdminBookingController::class, 'show']);
     Route::patch('bookings/{booking}', [AdminBookingController::class, 'update']);
@@ -133,10 +132,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Tableau de bord
     Route::get('dashboard', DashboardController::class);
+    // Compteurs de la barre (menu, alertes), relus toutes les minutes
+    Route::get('overview', OverviewController::class);
+    // Recherche rapide (Ctrl K) : réservations et logements
+    Route::get('search', SearchController::class)->middleware('throttle:60,1');
 
     // Statistiques sur 12 mois glissants
     Route::get('statistics', [StatisticsController::class, 'show']);
-    Route::get('statistics.csv', [StatisticsController::class, 'csv']);
+    Route::get('statistics.csv', [StatisticsController::class, 'csv'])->middleware('throttle:10,1');
 
     // Planning multi-logements
     Route::get('planning', PlanningController::class);
@@ -145,10 +148,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('apartments/{apartment:id}/blocks', [BlockController::class, 'store']);
     Route::delete('blocks/{block}', [BlockController::class, 'destroy'])->whereNumber('block');
 
-    // Réglages de l'hôte
-    Route::get('settings', [SettingsController::class, 'show']);
-    Route::put('settings', [SettingsController::class, 'update']);
-
     // Messages du formulaire de contact
     Route::get('messages', [ContactMessageController::class, 'index']);
     Route::get('messages/unread-count', [ContactMessageController::class, 'unreadCount']);
@@ -156,4 +155,30 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Journal des actions sensibles (lecture seule)
     Route::get('audit-logs', [AuditLogController::class, 'index']);
+});
+
+/*
+| Back-office : administrateurs seulement (tarifs, comptes, réglages)
+*/
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    // Tarifs par période
+    Route::get('apartments/{apartment:id}/rate-periods', [RatePeriodController::class, 'index']);
+    Route::post('apartments/{apartment:id}/rate-periods', [RatePeriodController::class, 'store']);
+    Route::put('rate-periods/{ratePeriod}', [RatePeriodController::class, 'update']);
+    Route::delete('rate-periods/{ratePeriod}', [RatePeriodController::class, 'destroy']);
+
+    // Comptes du back-office : invitation du ménage, activation, lien de mot de passe
+    Route::get('users', [UserController::class, 'index']);
+    Route::post('users', [UserController::class, 'store'])->middleware('throttle:10,1');
+    Route::patch('users/{user}', [UserController::class, 'update'])->whereNumber('user');
+    Route::post('users/{user}/password-reset', [UserController::class, 'sendPasswordReset'])->whereNumber('user')->middleware('throttle:6,1');
+
+    // Réglages de l'hôte
+    Route::get('settings', [SettingsController::class, 'show']);
+    Route::put('settings', [SettingsController::class, 'update']);
+
+    // Revenus Airbnb et Booking.com importés de leurs fichiers CSV : aperçu, puis import
+    Route::get('platform-imports', [PlatformImportController::class, 'index']);
+    Route::post('platform-imports/preview', [PlatformImportController::class, 'preview'])->middleware('throttle:20,1');
+    Route::post('platform-imports', [PlatformImportController::class, 'store'])->middleware('throttle:10,1');
 });

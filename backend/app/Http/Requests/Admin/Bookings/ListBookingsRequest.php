@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Bookings;
 
 use App\Enums\BookingSource;
+use App\Enums\BookingStage;
 use App\Enums\BookingStatus;
 use App\Services\Booking\BookingFilters;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,6 +24,7 @@ class ListBookingsRequest extends FormRequest
             'from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'to' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after:from'],
             'search' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'stage' => ['sometimes', 'nullable', Rule::enum(BookingStage::class)],
             'page' => ['sometimes', 'integer', 'min:1'],
         ];
     }
@@ -38,6 +40,8 @@ class ListBookingsRequest extends FormRequest
             from: $this->filled('from') ? $this->string('from')->toString() : null,
             to: $this->filled('to') ? $this->string('to')->toString() : null,
             search: $search === '' ? null : $search,
+            stage: BookingStage::tryFrom($this->string('stage')->toString()),
+            today: now()->toDateString(),
         );
     }
 }

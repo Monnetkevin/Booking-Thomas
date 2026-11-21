@@ -7,9 +7,15 @@ use App\Models\AuditLog;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class AuditLogRepository implements AuditLogRepositoryInterface
 {
+    public function forSubject(string $type, string $id): Collection
+    {
+        return AuditLog::query()->with('user:id,name')->where('subject_type', $type)->where('subject_id', $id)->orderBy('created_at')->orderBy('id')->get();
+    }
+
     public function create(array $attributes): AuditLog
     {
         return AuditLog::query()->create($attributes);

@@ -7,11 +7,11 @@ describe('service des fermetures', () => {
     const client: HttpClient = { request: vi.fn(async <T,>() => ({ data: {} }) as T) as HttpClient['request'] }
     const service = createBlockService(client)
 
-    await service.create(3, { starts_on: '2026-12-01', ends_on: '2026-12-05', note: 'Travaux' })
+    await service.create(3, { starts_on: '2026-12-01', ends_on: '2026-12-05', note: 'Famille', needs_cleaning: true })
     await service.remove(9)
 
     expect(vi.mocked(client.request).mock.calls).toEqual([
-      ['/admin/apartments/3/blocks', { method: 'POST', body: { starts_on: '2026-12-01', ends_on: '2026-12-05', note: 'Travaux' } }],
+      ['/admin/apartments/3/blocks', { method: 'POST', body: { starts_on: '2026-12-01', ends_on: '2026-12-05', note: 'Famille', needs_cleaning: true } }],
       ['/admin/blocks/9', { method: 'DELETE' }],
     ])
   })

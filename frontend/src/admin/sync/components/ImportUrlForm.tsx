@@ -4,19 +4,19 @@ import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Checkbox, TextField } from '@/components/ui/Field'
 import { ApiError } from '@/lib/api'
-import type { IcalFeed, IcalFeedInput } from '../types'
+import type { IcalFeed, IcalFeedInput, IcalProvider } from '../types'
 import { useSaveIcalFeed } from '../useSync'
 
 /**
- * URL d'import du calendrier Airbnb. Enregistrer crée le calendrier du logement s'il
- * n'existe pas (même sans URL : l'export du site fonctionne seul).
+ * URL d'import du calendrier d'une plateforme. Enregistrer crée le calendrier du logement
+ * pour cette plateforme s'il n'existe pas (même sans URL : l'export du site fonctionne seul).
  */
-export function ImportUrlForm({ apartmentId, feed }: { apartmentId: number; feed?: IcalFeed }) {
+export function ImportUrlForm({ apartmentId, provider, feed }: { apartmentId: number; provider: IcalProvider; feed?: IcalFeed }) {
   const { t } = useTranslation()
   const [url, setUrl] = useState(feed?.import_url ?? '')
   const save = useSaveIcalFeed(apartmentId)
 
-  const submit = (input: IcalFeedInput) => save.mutate({ feedId: feed?.id ?? null, provider: feed?.provider ?? 'airbnb', input })
+  const submit = (input: IcalFeedInput) => save.mutate({ feedId: feed?.id ?? null, provider, input })
   const onSubmit = (event: FormEvent) => {
     event.preventDefault()
     submit({ import_url: url.trim() || null })
@@ -28,10 +28,10 @@ export function ImportUrlForm({ apartmentId, feed }: { apartmentId: number; feed
   return (
     <form onSubmit={onSubmit} className="space-y-3" noValidate>
       <TextField
-        label={t('admin.sync.import.label')}
+        label={t('admin.sync.import.label', { provider: t(`admin.sync.providers.${provider}`) })}
         type="url"
         inputMode="url"
-        placeholder={t('admin.sync.import.placeholder')}
+        placeholder={t(`admin.sync.import.placeholder.${provider}`)}
         hint={t('admin.sync.import.hint')}
         value={url}
         error={fieldError}

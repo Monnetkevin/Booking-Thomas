@@ -1,104 +1,153 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useCurrentUser } from '@/admin/auth/useAuth'
-import { PageHeader } from '@/admin/components/PageHeader'
-import { StatTile } from '@/admin/dashboard/components/StatTile'
-import type { Movement } from '@/admin/dashboard/types'
+import { MovementList } from '@/admin/dashboard/components/MovementList'
+import { OccupancyStrip } from '@/admin/dashboard/components/OccupancyStrip'
+import { RevenueChart } from '@/admin/dashboard/components/RevenueChart'
+import { TodoList } from '@/admin/dashboard/components/TodoList'
+import { KpiCard } from '@/admin/components/KpiCard'
+import { countDelta, percentDelta, pointsDelta } from '@/admin/components/delta'
+import { movementRows, todoItems } from '@/admin/dashboard/dashboardFigures'
+import type { DashboardPeriod } from '@/admin/dashboard/types'
 import { useDashboard } from '@/admin/dashboard/useDashboard'
+import { addDays } from '@/admin/planning/planningLayout'
+import { usePlanning } from '@/admin/planning/usePlanning'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { Alert } from '@/components/ui/Alert'
+import { BarChartIcon, CalendarIcon, GridIcon, PlusIcon } from '@/components/icons'
+import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Section } from '@/components/ui/Section'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { Spinner } from '@/components/ui/Spinner'
-import { formatDate, formatLongDate } from '@/lib/dates'
+import { formatDate } from '@/lib/dates'
 import { formatEuros } from '@/lib/money'
 
 const percent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
+const OCCUPANCY_DAYS = 14
 
-function MovementLine({ movement }: { movement: Movement }) {
-  const { t } = useTranslation()
-  const text = (
-    <>
-      <span className="font-semibold">{movement.apartment}</span> · {movement.label ?? t('admin.dashboard.platform')}
-      {movement.guests !== null && ` · ${t('admin.dashboard.guests', { count: movement.guests })}`}
-    </>
-  )
-  return <li>{movement.reference ? <Link to={`/admin/reservations/${movement.reference}`}>{text}</Link> : text}</li>
-}
+/** Période dans l'adresse (?periode=semaine), pour la garder au rechargement. */
+const PERIOD_PARAM: Record<string, DashboardPeriod> = { semaine: 'week', mois: 'month', annee: 'year' }
+const PERIOD_SLUG: Record<DashboardPeriod, string> = { week: 'semaine', month: 'mois', year: 'annee' }
 
-/** Tableau de bord : alertes, chiffres du mois, arrivées et départs des 7 prochains jours. */
+/**
+ * Tableau de bord : chiffres de la période comparés à la précédente, revenus directs des
+ * six derniers mois, situations à traiter, arrivées et départs, occupation des 14 jours.
+ */
 export function DashboardPage() {
   const { t } = useTranslation()
   const { data: user } = useCurrentUser()
-  const dashboard = useDashboard()
+  const [params, setParams] = useSearchParams()
+  const period = PERIOD_PARAM[params.get('periode') ?? ''] ?? 'month'
+  const dashboard = useDashboard(period)
+  const today = dashboard.data?.today
+  const planning = usePlanning(today ?? '', OCCUPANCY_DAYS, undefined, Boolean(today))
+  const firstName = user?.name.split(' ')[0] ?? ''
+
+  const setPeriod = (value: DashboardPeriod) =>
+    setParams((current) => {
+      const next = new URLSearchParams(current)
+      if (value === 'month') next.delete('periode')
+      else next.set('periode', PERIOD_SLUG[value])
+      return next
+    }, { replace: true })
 
   return (
     <>
-      <PageHeader title={t('admin.dashboard.title')} subtitle={t('admin.dashboard.welcome', { name: user?.name ?? '' })} />
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[28px] leading-tight font-semibold sm:text-[32px]">{t('admin.dashboard.hello', { name: firstName })}</h1>
+          {dashboard.data && (
+            <p className="mt-1 text-sm text-muted">
+              {t(`admin.dashboard.periodIntro.${period}`, {
+                from: formatDate(dashboard.data.period.from),
+                to: formatDate(addDays(dashboard.data.period.to, -1)),
+              })}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <SegmentedControl
+            label={t('admin.dashboard.period')}
+            value={period}
+            onChange={setPeriod}
+            options={(['week', 'month', 'year'] as const).map((value) => ({ value, label: t(`admin.dashboard.periods.${value}`) }))}
+          />
+          <Link to="/admin/reservations/nouvelle" className={buttonClasses('primary')}>
+            <PlusIcon />
+            {t('admin.dashboard.newBooking')}
+          </Link>
+        </div>
+      </header>
+
       {dashboard.isPending ? (
         <Spinner label={t('common.loading')} />
       ) : dashboard.isError ? (
         <ErrorState onRetry={() => void dashboard.refetch()} />
       ) : (
-        <div className="space-y-5">
-          {dashboard.data.alerts.conflicts.length > 0 && (
-            <Alert tone="danger">
-              <span className="font-semibold">{t('admin.dashboard.conflicts', { count: dashboard.data.alerts.conflicts.length })}</span>{' '}
-              {dashboard.data.alerts.conflicts.map((conflict) => `${conflict.apartment} (${formatDate(conflict.starts_on)} → ${formatDate(conflict.ends_on)})`).join(' · ')}{' '}
-              <Link to="/admin/planning">{t('admin.dashboard.openPlanning')}</Link>
-            </Alert>
-          )}
-          {dashboard.data.alerts.failing_feeds.map((feed) => (
-            <Alert key={`${feed.apartment}-${feed.provider}`} tone="warning">
-              {feed.empty_refused
-                ? t('admin.dashboard.emptyRefused', { provider: feed.provider, apartment: feed.apartment })
-                : t('admin.dashboard.failingFeed', { provider: feed.provider, apartment: feed.apartment, count: feed.failures })}{' '}
-              <Link to="/admin/synchronisation">{t('admin.dashboard.openSync')}</Link>
-            </Alert>
-          ))}
-          {dashboard.data.alerts.unread_messages > 0 && (
-            <Alert tone="info">
-              {t('admin.dashboard.unreadMessages', { count: dashboard.data.alerts.unread_messages })}{' '}
-              <Link to="/admin/messages">{t('admin.dashboard.openMessages')}</Link>
-            </Alert>
-          )}
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <StatTile
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <KpiCard
+              icon={<GridIcon />}
               label={t('admin.dashboard.occupancy')}
-              value={dashboard.data.month.occupancy === null ? '—' : `${percent.format(dashboard.data.month.occupancy)} %`}
-              detail={t('admin.dashboard.occupancyDetail')}
+              value={dashboard.data.figures.occupancy.value === null ? '—' : `${percent.format(dashboard.data.figures.occupancy.value)} %`}
+              detail={t(`admin.dashboard.occupancyDetail.${period}`)}
+              delta={pointsDelta(dashboard.data.figures.occupancy.value, dashboard.data.figures.occupancy.previous)}
             />
-            <StatTile
-              label={t('admin.dashboard.nightsSold')}
-              value={dashboard.data.month.nights.direct + dashboard.data.month.nights.platform}
-              detail={t('admin.dashboard.nightsDetail', { direct: dashboard.data.month.nights.direct, platform: dashboard.data.month.nights.platform })}
+            <KpiCard
+              icon={<BarChartIcon />}
+              label={t('admin.dashboard.revenue')}
+              value={formatEuros(dashboard.data.figures.revenue.value)}
+              detail={t('admin.dashboard.revenueDetail')}
+              delta={percentDelta(dashboard.data.figures.revenue.value, dashboard.data.figures.revenue.previous)}
             />
-            <StatTile label={t('admin.dashboard.revenue')} value={formatEuros(dashboard.data.month.revenue)} detail={t('admin.dashboard.revenueDetail')} />
+            <KpiCard
+              icon={<CalendarIcon />}
+              label={t('admin.dashboard.stays')}
+              value={dashboard.data.figures.stays.value}
+              detail={t('admin.dashboard.staysDetail', { count: dashboard.data.figures.stays.direct })}
+              delta={countDelta(dashboard.data.figures.stays.value, dashboard.data.figures.stays.previous)}
+            />
           </div>
 
-          <Section title={t('admin.dashboard.movements')}>
-            <ol className="divide-y divide-line">
-              {dashboard.data.movements.map((day) => (
-                <li key={day.date} className="grid gap-2 py-3 sm:grid-cols-[12rem_1fr_1fr]">
-                  <p className="font-semibold">{day.date === dashboard.data.today ? t('admin.dashboard.today') : formatLongDate(day.date)}</p>
-                  {day.arrivals.length === 0 && day.departures.length === 0 ? (
-                    <p className="text-sm text-muted sm:col-span-2">{t('admin.dashboard.noMovement')}</p>
-                  ) : (
-                    <>
-                      <div>
-                        <p className="text-sm text-muted">{t('admin.dashboard.arrivals')}</p>
-                        {day.arrivals.length === 0 ? <p className="text-sm text-muted">—</p> : <ul className="space-y-0.5 text-[15px]">{day.arrivals.map((m, i) => <MovementLine key={i} movement={m} />)}</ul>}
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted">{t('admin.dashboard.departures')}</p>
-                        {day.departures.length === 0 ? <p className="text-sm text-muted">—</p> : <ul className="space-y-0.5 text-[15px]">{day.departures.map((m, i) => <MovementLine key={i} movement={m} />)}</ul>}
-                      </div>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </Section>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] [&>*]:min-w-0">
+            <Section
+              title={t('admin.dashboard.revenueChart')}
+              description={t('admin.dashboard.revenueChartHint')}
+              actions={
+                <p className="text-right">
+                  <strong className="block text-xl tabular-nums">
+                    {formatEuros(dashboard.data.revenue_months.reduce((sum, month) => sum + month.revenue, 0))}
+                  </strong>
+                </p>
+              }
+            >
+              <RevenueChart months={dashboard.data.revenue_months} />
+            </Section>
+            <Section
+              title={t('admin.dashboard.todoTitle')}
+              actions={
+                <span className="rounded-full bg-cream px-2.5 py-0.5 text-sm font-bold tabular-nums">{todoItems(dashboard.data.alerts).length}</span>
+              }
+            >
+              <TodoList items={todoItems(dashboard.data.alerts)} />
+            </Section>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-2 [&>*]:min-w-0">
+            <Section
+              title={t('admin.dashboard.movements')}
+              description={t('admin.dashboard.movementsHint')}
+              actions={
+                <Link to="/admin/planning" className="text-sm font-bold text-accent-strong no-underline">
+                  {t('admin.dashboard.seeAll')}
+                </Link>
+              }
+            >
+              <MovementList rows={movementRows(dashboard.data.movements)} today={dashboard.data.today} />
+            </Section>
+            <Section title={t('admin.dashboard.occupancyStrip')} description={t('admin.dashboard.occupancyStripHint', { days: OCCUPANCY_DAYS })}>
+              {planning.data ? <OccupancyStrip planning={planning.data} /> : planning.isError ? <ErrorState onRetry={() => void planning.refetch()} /> : <Spinner label={t('common.loading')} />}
+            </Section>
+          </div>
         </div>
       )}
     </>

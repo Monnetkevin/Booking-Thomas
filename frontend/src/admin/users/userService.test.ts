@@ -7,18 +7,20 @@ function fakeClient(): HttpClient {
 }
 
 describe('service des comptes', () => {
-  it('liste, invite, active et envoie un lien de mot de passe', async () => {
+  it('liste, invite avec un rôle, change le rôle, active et envoie un lien de mot de passe', async () => {
     const client = fakeClient()
     const service = createUserService(client)
 
     await service.list()
-    await service.invite({ name: 'Alice', email: 'alice@example.com' })
+    await service.invite({ name: 'Alice', email: 'alice@example.com', role: 'manager' })
+    await service.setRole(5, 'housekeeping')
     await service.setActive(5, false)
     await service.sendPasswordReset(5)
 
     expect(vi.mocked(client.request).mock.calls).toEqual([
       ['/admin/users'],
-      ['/admin/users', { method: 'POST', body: { name: 'Alice', email: 'alice@example.com' } }],
+      ['/admin/users', { method: 'POST', body: { name: 'Alice', email: 'alice@example.com', role: 'manager' } }],
+      ['/admin/users/5', { method: 'PATCH', body: { role: 'housekeeping' } }],
       ['/admin/users/5', { method: 'PATCH', body: { is_active: false } }],
       ['/admin/users/5/password-reset', { method: 'POST' }],
     ])

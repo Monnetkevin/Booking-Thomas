@@ -6,7 +6,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-/** Fermeture d'un logement : nuits [début, fin[, au plus un an, motif facultatif. */
+/**
+ * Fermeture d'un logement : nuits [début, fin[, au plus un an, motif facultatif, et si le
+ * logement est occupé (ménage à prévoir à la fin).
+ */
 class StoreBlockRequest extends FormRequest
 {
     public const MAX_NIGHTS = 366;
@@ -20,6 +23,7 @@ class StoreBlockRequest extends FormRequest
             'starts_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after:starts_on'],
             'note' => ['nullable', 'string', 'max:120'],
+            'needs_cleaning' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -53,5 +57,10 @@ class StoreBlockRequest extends FormRequest
         $note = trim($this->string('note')->toString());
 
         return $note === '' ? null : $note;
+    }
+
+    public function needsCleaning(): bool
+    {
+        return $this->boolean('needs_cleaning');
     }
 }

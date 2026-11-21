@@ -21,6 +21,9 @@ class IcalSyncLogResource extends JsonResource
         return [
             'id' => $this->id,
             'feed_id' => $this->ical_feed_id,
+            // Journal de tous les calendriers : logement et plateforme de la lecture.
+            'apartment' => $this->whenLoaded('feed', fn () => $this->feed->apartment?->getTranslation('name', 'fr')),
+            'provider' => $this->whenLoaded('feed', fn () => $this->feed->provider->label()),
             'trigger' => $this->trigger->value,
             'status' => $this->status->value,
             'created' => $this->created_count,

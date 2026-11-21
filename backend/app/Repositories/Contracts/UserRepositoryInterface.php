@@ -24,8 +24,17 @@ interface UserRepositoryInterface
      */
     public function activeByRole(UserRole $role): Collection;
 
+    /**
+     * @param  list<UserRole>  $roles
+     * @return Collection<int, User>
+     */
+    public function activeByRoles(array $roles): Collection;
+
     /** Nombre d'administrateurs actifs, lignes verrouillées jusqu'à la fin de la transaction. */
     public function countActiveAdminsForUpdate(): int;
+
+    /** Note la connexion réussie (sans toucher à updated_at). */
+    public function touchLastLogin(User $user): void;
 
     /**
      * @param  array<string, mixed>  $attributes

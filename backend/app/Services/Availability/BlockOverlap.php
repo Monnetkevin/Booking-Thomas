@@ -5,13 +5,14 @@ namespace App\Services\Availability;
 use App\Enums\BookingStatus;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 
 /** Blocs actifs (hors conflit) qui occupent déjà des nuits demandées par un bloc importé. */
 final readonly class BlockOverlap
 {
     /**
-     * @param  Collection<int, AvailabilityBlock>  $blocks  avec leur réservation chargée
+     * @param  Collection<int, AvailabilityBlock>  $blocks  avec leur réservation et leur calendrier chargés
      */
     public function __construct(public Collection $blocks) {}
 
@@ -19,6 +20,24 @@ final readonly class BlockOverlap
     public function isConflict(): bool
     {
         return $this->blocks->isNotEmpty();
+    }
+
+    /**
+     * Toutes les nuits [from, to[ sont déjà tenues par des fermetures, et rien d'autre ne les
+     * recouvre : un bloc qui n'est lui-même qu'une fermeture n'y change rien.
+     */
+    public function onlyClosuresCovering(CarbonImmutable $from, CarbonImmutable $to): bool
+    {
+        if (! $this->isConflict() || ! $this->blocks->every(fn (AvailabilityBlock $block) => $block->mayBeClosure())) {
+            return false;
+        }
+        for ($day = $from; $day->lt($to); $day = $day->addDay()) {
+            if (! $this->blocks->contains(fn (AvailabilityBlock $block) => $block->starts_on->lte($day) && $block->ends_on->gt($day))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

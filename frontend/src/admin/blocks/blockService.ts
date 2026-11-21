@@ -4,6 +4,8 @@ export interface ManualBlockInput {
   starts_on: string
   ends_on: string
   note: string | null
+  /** Logement occupé pendant la fermeture (famille, amis) : le ménage passe à la fin. */
+  needs_cleaning: boolean
 }
 
 export interface BlockService {
