@@ -34,6 +34,15 @@ enum IcalProvider: string
     }
 
     /**
+     * Vrai si l'événement peut n'être qu'une date fermée : fermeture certaine, ou calendrier
+     * qui ne distingue pas séjours et fermetures (Booking.com).
+     */
+    public function mayBeClosure(?string $summary): bool
+    {
+        return $this->isClosure($summary) || $this->confirmsStaysByPayout();
+    }
+
+    /**
      * Vrai si le calendrier ne distingue pas un séjour d'une date fermée : un bloc n'y compte
      * comme séjour vendu, dans les chiffres du back-office, que si un versement importé le confirme.
      */

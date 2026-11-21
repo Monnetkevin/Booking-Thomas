@@ -28,6 +28,19 @@ it('classe chaque bloc : vendu en direct, sur une plateforme, fermé, ou rien', 
         ->and($this->counter->kind(memoryIcalBlock(1, '2026-11-02', '2026-11-05', 'booking', 'CLOSED - Not available')))->toBe('platform');
 });
 
+it('compte une seule fois une nuit couverte par plusieurs blocs : site, puis plateforme, puis fermeture', function () {
+    $blocks = collect([
+        memoryBlock(1, '2026-11-10', '2026-11-13'),                                         // fermée sur le site
+        memoryIcalBlock(1, '2026-11-10', '2026-11-13', summary: 'Airbnb (Not available)'),  // et sur Airbnb
+        memoryIcalBlock(1, '2026-11-12', '2026-11-15'),                                     // séjour Airbnb en conflit
+        bookingBlock(BookingStatus::Confirmed, '2026-11-14', '2026-11-16'),                 // réservation du site
+        memoryBlock(2, '2026-11-10', '2026-11-13'),                                         // autre logement
+    ]);
+
+    // Logement 1 : 10 et 11 fermées, 12 et 13 Airbnb, 14 et 15 site ; logement 2 : 3 fermées.
+    expect($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 2, 'platform' => 2, 'closed' => 5]);
+});
+
 it('compte les nuits dans [début, fin[, à cheval sur la période comprise', function () {
     $blocks = collect([
         bookingBlock(BookingStatus::Confirmed, '2026-10-30', '2026-11-03'),   // 2 nuits en novembre
@@ -77,7 +90,8 @@ it('confirme un séjour Booking.com par un versement du même logement arrivé l
         ->and($blocks[3])->toBe($airbnb)
         // Le bloc d'origine n'est pas modifié.
         ->and($closed->type)->toBe(BlockType::Ical)
-        ->and($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 0, 'platform' => 5, 'closed' => 13]);
+        // Les 15 et 16, sous le séjour Airbnb et la fermeture Booking.com, comptent une fois, vendues.
+        ->and($this->counter->count($blocks, $this->from, $this->to))->toBe(['direct' => 0, 'platform' => 5, 'closed' => 11]);
 });
 
 it('calcule l’occupation sur les nuits ouvertes, nulle sans nuit ouverte', function () {

@@ -9,7 +9,8 @@ use Carbon\CarbonImmutable;
 /**
  * Conflits de dates entre blocs. Un bloc importé d'une plateforme qui recouvre des nuits
  * déjà occupées est enregistré en conflit : la contrainte d'exclusion ne s'applique pas à
- * lui (il ne peut pas être refusé, la réservation existe déjà chez la plateforme).
+ * lui (il ne peut pas être refusé, la réservation existe déjà chez la plateforme). Une
+ * fermeture posée sur des nuits déjà fermées n'est pas un vrai conflit (is_redundant_closure).
  * À appeler sous le verrou du logement (AvailabilityRepositoryInterface::lockApartment).
  */
 class BlockConflictService
@@ -38,9 +39,13 @@ class BlockConflictService
 
         foreach ($this->availability->conflictsOverlapping($apartmentId, $from->toDateString(), $to->toDateString()) as $block) {
             /** @var AvailabilityBlock $block */
-            if (! $this->check($apartmentId, $block->starts_on, $block->ends_on, $block->id)->isConflict()) {
-                $this->availability->updateBlock($block, ['has_conflict' => false]);
+            $overlap = $this->check($apartmentId, $block->starts_on, $block->ends_on, $block->id);
+            if (! $overlap->isConflict()) {
+                $this->availability->updateBlock($block, ['has_conflict' => false, 'is_redundant_closure' => false]);
                 $resolved++;
+            } elseif ($overlap->isRedundantClosure($block->mayBeClosure()) !== $block->is_redundant_closure) {
+                // Il ne reste que des fermetures sous ce bloc (ou de nouveau un séjour).
+                $this->availability->updateBlock($block, ['is_redundant_closure' => $overlap->isRedundantClosure($block->mayBeClosure())]);
             }
         }
 

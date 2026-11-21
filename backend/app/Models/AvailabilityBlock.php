@@ -27,10 +27,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $note
  * @property bool $is_active
  * @property bool $has_conflict
+ * @property bool $is_redundant_closure fermeture posée sur des nuits déjà fermées : pas un conflit
  */
 #[Fillable([
     'apartment_id', 'starts_on', 'ends_on', 'type', 'booking_id', 'ical_feed_id',
-    'external_uid', 'external_url', 'note', 'is_active', 'has_conflict',
+    'external_uid', 'external_url', 'note', 'is_active', 'has_conflict', 'is_redundant_closure',
 ])]
 class AvailabilityBlock extends Model
 {
@@ -48,7 +49,27 @@ class AvailabilityBlock extends Model
             'type' => BlockType::class,
             'is_active' => 'boolean',
             'has_conflict' => 'boolean',
+            'is_redundant_closure' => 'boolean',
         ];
+    }
+
+    /**
+     * Peut être une simple fermeture : blocage manuel, date fermée sur une plateforme, ou bloc
+     * Booking.com (séjour et fermeture s'y confondent). Une réservation du site n'en est jamais une.
+     */
+    public function mayBeClosure(): bool
+    {
+        return match ($this->type) {
+            BlockType::Manual => true,
+            BlockType::Booking => false,
+            BlockType::Ical => $this->icalFeed?->provider->mayBeClosure($this->note) ?? false,
+        };
+    }
+
+    /** Conflit à montrer et à signaler (une fermeture redondante n'en est pas un). */
+    public function isRealConflict(): bool
+    {
+        return $this->has_conflict && ! $this->is_redundant_closure;
     }
 
     /**

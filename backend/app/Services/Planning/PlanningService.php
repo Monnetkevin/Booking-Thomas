@@ -33,7 +33,9 @@ class PlanningService
         $apartments = $this->apartments->allOrdered();
         $ids = $apartments->modelKeys();
         $all = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
-        $blocks = $all->groupBy('apartment_id');
+        // Une fermeture importée sur des nuits déjà fermées n'apparaît pas en double ; elle
+        // réapparaît si la fermeture du dessous est retirée.
+        $blocks = $all->reject(fn (AvailabilityBlock $block) => $block->has_conflict && $block->is_redundant_closure)->groupBy('apartment_id');
 
         return [
             'from' => $from->toDateString(),
@@ -60,7 +62,7 @@ class PlanningService
             'type' => $block->type->value,
             'starts_on' => $block->starts_on->toDateString(),
             'ends_on' => $block->ends_on->toDateString(),
-            'has_conflict' => $block->has_conflict,
+            'has_conflict' => $block->isRealConflict(),
             'label' => match ($block->type) {
                 BlockType::Booking => $booking?->guest_name,
                 BlockType::Ical => $block->icalFeed?->provider->label(),

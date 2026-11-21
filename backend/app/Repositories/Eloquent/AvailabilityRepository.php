@@ -57,7 +57,7 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return $this->occupying($apartmentId, $from, $to)
             ->where('has_conflict', false)
             ->when($exceptBlockId !== null, fn (Builder $query) => $query->whereKeyNot($exceptBlockId))
-            ->with('booking')
+            ->with(['booking', 'icalFeed'])
             ->orderBy('starts_on')
             ->get();
     }
@@ -69,6 +69,7 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->where('is_active', true)
             ->where('has_conflict', true)
             ->overlapping($from, $to)
+            ->with('icalFeed')
             ->orderBy('id')
             ->get();
     }
@@ -111,6 +112,7 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return AvailabilityBlock::query()
             ->where('is_active', true)
             ->where('has_conflict', true)
+            ->where('is_redundant_closure', false)
             ->where('ends_on', '>', $today)
             ->with('apartment:id,name')
             ->orderBy('starts_on')

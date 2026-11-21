@@ -22,13 +22,27 @@ class NightCounter
      */
     public function count(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
     {
-        $nights = ['direct' => 0, 'platform' => 0, 'closed' => 0];
-
+        // Une nuit couverte par plusieurs blocs (conflit, même date fermée ici et sur une
+        // plateforme) ne compte qu'une fois : séjour du site, puis séjour plateforme, puis fermeture.
+        $rank = ['closed' => 1, 'platform' => 2, 'direct' => 3];
+        $taken = [];
         foreach ($blocks as $block) {
             $kind = $this->kind($block);
-            if ($kind !== null) {
-                $nights[$kind] += $this->overlap($block, $from, $to);
+            if ($kind === null) {
+                continue;
             }
+            $end = $block->ends_on->min($to);
+            for ($day = $block->starts_on->max($from); $day->lt($end); $day = $day->addDay()) {
+                $key = $block->apartment_id.'|'.$day->toDateString();
+                if (! isset($taken[$key]) || $rank[$kind] > $rank[$taken[$key]]) {
+                    $taken[$key] = $kind;
+                }
+            }
+        }
+
+        $nights = ['direct' => 0, 'platform' => 0, 'closed' => 0];
+        foreach ($taken as $kind) {
+            $nights[$kind]++;
         }
 
         return $nights;
