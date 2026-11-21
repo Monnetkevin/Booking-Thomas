@@ -24,4 +24,10 @@ describe('saisie d’une réservation à la main', () => {
       total: 'invalidAmount',
     })
   })
+
+  it('refuse un total à 0 € : un séjour sans montant est une fermeture de dates', () => {
+    expect(manualBookingInput({ ...filled, total: '0' }).errors).toEqual({ total: 'freeStay' })
+    expect(manualBookingInput({ ...filled, total: '0,00' }).errors).toEqual({ total: 'freeStay' })
+    expect(manualBookingInput({ ...filled, total: '0,01' }).input?.total_amount).toBe(1)
+  })
 })

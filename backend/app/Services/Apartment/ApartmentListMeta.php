@@ -6,8 +6,8 @@ use App\Enums\ApartmentStatus;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
-use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Services\Statistics\NightCounter;
+use App\Services\Statistics\SoldStayBlocks;
 use Carbon\CarbonImmutable;
 
 /**
@@ -18,7 +18,7 @@ class ApartmentListMeta
 {
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
-        private readonly AvailabilityRepositoryInterface $availability,
+        private readonly SoldStayBlocks $soldStays,
         private readonly NightCounter $nights,
     ) {}
 
@@ -30,7 +30,7 @@ class ApartmentListMeta
         $all = $this->apartments->allOrdered();
         $from = $today->startOfMonth();
         $to = $from->addMonth();
-        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString());
+        $blocks = $this->soldStays->between($from, $to);
         $days = (int) $from->diffInDays($to);
 
         $counts = ['all' => $all->count()];

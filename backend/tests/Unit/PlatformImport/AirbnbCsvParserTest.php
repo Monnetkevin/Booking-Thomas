@@ -102,6 +102,15 @@ it('ne change pas la clé d’un ajustement unique quand un double apparaît plu
         ->and($double[1]->entryKey)->not->toBe($single[0]->entryKey);
 });
 
+it('garde la clé d’un versement de réservation quand sa date passe de prévue à réelle', function () {
+    $pending = (new AirbnbCsvParser)->parse(airbnbCsv('12/01/2027;Réservation;HM1;04/01/2027;3;Jean;Studio;500,00;;'))->rows;
+    $paid = (new AirbnbCsvParser)->parse(airbnbCsv('14/01/2027;Réservation;HM1;04/01/2027;3;Jean;Studio;500,00;;'))->rows;
+    $undated = (new AirbnbCsvParser)->parse(airbnbCsv(';Réservation;HM1;04/01/2027;3;Jean;Studio;500,00;;'))->rows;
+
+    expect($paid[0]->entryKey)->toBe($pending[0]->entryKey)
+        ->and($undated[0]->entryKey)->toBe($pending[0]->entryKey);
+});
+
 it('distingue un ajustement d’une réservation de même montant', function () {
     $rows = (new AirbnbCsvParser)->parse(airbnbCsv(
         '05/11/2026;Réservation;HM1;04/11/2026;3;Jean;Studio;100,00;;',

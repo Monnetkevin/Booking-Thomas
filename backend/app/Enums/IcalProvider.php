@@ -35,7 +35,7 @@ enum IcalProvider: string
 
     /**
      * Vrai si le calendrier ne distingue pas un séjour d'une date fermée : un bloc n'y compte
-     * comme séjour vendu, dans les statistiques, que si un versement importé le confirme.
+     * comme séjour vendu, dans les chiffres du back-office, que si un versement importé le confirme.
      */
     public function confirmsStaysByPayout(): bool
     {

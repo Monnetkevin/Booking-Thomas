@@ -8,11 +8,11 @@ use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
-use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
 use App\Services\Statistics\NightCounter;
 use App\Services\Statistics\RevenueCalculator;
+use App\Services\Statistics\SoldStayBlocks;
 use Carbon\CarbonImmutable;
 
 /**
@@ -30,12 +30,12 @@ class DashboardService
 
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
-        private readonly AvailabilityRepositoryInterface $availability,
         private readonly BookingRepositoryInterface $bookings,
         private readonly AlertCollector $alertCollector,
         private readonly ContactMessageRepositoryInterface $messages,
         private readonly NightCounter $nights,
         private readonly RevenueCalculator $revenue,
+        private readonly SoldStayBlocks $soldStays,
     ) {}
 
     /**
@@ -64,8 +64,7 @@ class DashboardService
     {
         $end = $today->addDays(self::MOVEMENT_DAYS);
         $apartments = $this->apartments->allOrdered()->keyBy('id');
-        $blocks = $this->availability->planningBlocks($today->subDay()->toDateString(), $end->toDateString())
-            ->whereIn('apartment_id', $apartments->keys()->all())
+        $blocks = $this->soldStays->between($today->subDay(), $end, $apartments->keys()->all())
             ->filter(fn (AvailabilityBlock $block) => in_array($this->nights->kind($block), ['direct', 'platform'], true));
 
         $days = [];
@@ -111,7 +110,7 @@ class DashboardService
     {
         $apartments = $this->apartments->allOrdered();
         $ids = $apartments->modelKeys();
-        $blocks = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
+        $blocks = $this->soldStays->between($from, $to, $ids);
         $nights = $this->nights->count($blocks, $from, $to);
         $arrivals = $this->nights->arrivals($blocks, $from, $to);
 

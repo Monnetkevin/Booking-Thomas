@@ -847,7 +847,7 @@
     "noRate": "Aucun tarif ne couvre toutes ces nuits : indiquez le prix total convenu.",
     "warnings": "À savoir : {{list}} (ne bloque pas une saisie à la main).",
     "price": "Prix et règlement",
-    "priceHint": "Laissez le total vide pour garder le prix calculé, ou indiquez le total convenu (l’écart est noté comme ajustement).",
+    "priceHint": "Laissez le total vide pour garder le prix calculé, ou indiquez le total convenu (l’écart est noté comme ajustement). Un séjour sans montant se saisit comme une fermeture de dates.",
     "total": "Total convenu",
     "paid": "Réglé hors ligne (espèces, virement…)",
     "emailHint": "Facultatif : sans e-mail, rien n’est envoyé au voyageur.",
@@ -857,7 +857,8 @@
     "errors": {
       "required": "Champ obligatoire.",
       "invalidNumber": "Nombre attendu.",
-      "invalidAmount": "Montant invalide."
+      "invalidAmount": "Montant invalide.",
+      "freeStay": "Une réservation a toujours un montant : pour un séjour sans montant (usage personnel, logement prêté), fermez plutôt les dates depuis le planning."
     }
   },
   "planning": {

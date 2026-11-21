@@ -101,11 +101,13 @@ class AirbnbCsvParser implements PlatformCsvParser
                 continue;
             }
             $fee = CsvTable::cents($cell('fee'));
-            // Un versement : code, date du versement, période et montant (un long séjour en a
-            // plusieurs) ; le type distingue un ajustement d'une réservation de même montant.
+            // Un versement de réservation : code, période et montant (un long séjour en a
+            // plusieurs), sans la date du versement, qui change d'un export à l'autre tant qu'il
+            // est en attente (date prévue, puis date réelle). Un ajustement garde sa date et son
+            // type, qui le distinguent d'une réservation de même montant.
             $parts = $adjustment
                 ? [$code, $type, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount]
-                : [$code, (string) $cell('date'), $start->toDateString(), (string) $nights, (string) $amount];
+                : [$code, $start->toDateString(), (string) $nights, (string) $amount];
             // Deux lignes identiques (deux ajustements de même montant le même jour) sont deux
             // versements : le rang de la ligne parmi ses doubles les distingue, de façon stable.
             $base = implode('|', $parts);

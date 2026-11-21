@@ -55,7 +55,7 @@ class NightCounter
     }
 
     /**
-     * Pour les statistiques : un bloc d'un calendrier qui ne distingue pas séjours et dates
+     * Pour tous les chiffres (voir SoldStayBlocks) : un bloc d'un calendrier qui ne distingue pas séjours et dates
      * fermées (Booking.com) n'est un séjour vendu que si un versement importé de cette
      * plateforme arrive le même jour dans le même logement ; sinon il compte comme fermé.
      *

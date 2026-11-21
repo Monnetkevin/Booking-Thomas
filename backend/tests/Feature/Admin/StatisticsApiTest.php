@@ -220,8 +220,18 @@ it('compte les dates fermées sur Airbnb comme fermées, et un bloc Booking.com 
         ->assertJsonPath('data.totals.revenue_per_night', 11200)
         ->assertJsonPath('data.totals.average_stay', 2.5);
     // Le tableau de bord ne montre pas une date fermée sur Airbnb comme une arrivée.
-    $arrivals = collect($this->getJson('/api/admin/dashboard')->json('data.movements'))->firstWhere('date', '2026-11-20')['arrivals'] ?? [];
+    $dashboard = $this->getJson('/api/admin/dashboard')
+        // Mêmes règles que les statistiques : la fermeture Booking.com B2 n'est pas un séjour.
+        ->assertJsonPath('data.figures.occupancy.value', 12.5)
+        ->assertJsonPath('data.figures.stays.value', 2);
+    $arrivals = collect($dashboard->json('data.movements'))->firstWhere('date', '2026-11-20')['arrivals'] ?? [];
     expect($arrivals)->toBe([]);
+    $this->getJson('/api/admin/planning?from=2026-11-01&days=30')
+        ->assertJsonPath('data.figures.sold_nights', 5)
+        ->assertJsonPath('data.figures.open_nights', 40)
+        ->assertJsonPath('data.figures.arrivals', 2);
+    // Le Cocon : 3 nuits vendues sur 20 ouvertes.
+    $this->getJson('/api/admin/apartments')->assertJsonPath("meta.occupancy.{$this->cocon->id}", 15);
 });
 
 it('calcule le revenu par nuit sur les seuls séjours vendus et payés', function () {

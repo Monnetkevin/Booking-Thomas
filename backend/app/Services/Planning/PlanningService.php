@@ -7,6 +7,7 @@ use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
+use App\Services\Statistics\SoldStayBlocks;
 use Carbon\CarbonImmutable;
 
 /**
@@ -20,6 +21,7 @@ class PlanningService
         private readonly ApartmentRepositoryInterface $apartments,
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly PlanningFigures $figures,
+        private readonly SoldStayBlocks $soldStays,
     ) {}
 
     /**
@@ -36,7 +38,8 @@ class PlanningService
         return [
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
-            'figures' => $this->figures->compute($all->toBase(), $ids, $from, $to),
+            // Chiffres : un bloc Booking.com sans versement importé compte comme fermé.
+            'figures' => $this->figures->compute($this->soldStays->confirm($all->toBase(), $to), $ids, $from, $to),
             'apartments' => $apartments->map(fn (Apartment $apartment) => [
                 'id' => $apartment->id,
                 'name' => $apartment->getTranslation('name', 'fr'),

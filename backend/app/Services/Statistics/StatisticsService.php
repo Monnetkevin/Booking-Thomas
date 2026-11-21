@@ -35,6 +35,7 @@ class StatisticsService
     public function __construct(
         private readonly ApartmentRepositoryInterface $apartments,
         private readonly AvailabilityRepositoryInterface $availability,
+        private readonly SoldStayBlocks $soldStays,
         private readonly BookingRepositoryInterface $bookings,
         private readonly PlatformPayoutRepositoryInterface $payouts,
         private readonly NightCounter $nights,
@@ -53,15 +54,10 @@ class StatisticsService
         // Seuls les logements existants comptent : sinon les nuits d'un logement supprimé
         // gonfleraient l'occupation sans compter parmi les nuits disponibles.
         $ids = $apartments->modelKeys();
-        $planning = $this->availability->planningBlocks($from->toDateString(), $to->toDateString())->whereIn('apartment_id', $ids);
+        $blocks = $this->soldStays->between($from, $to, $ids);
         $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
         $earning = $this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
-        // Versements depuis le premier bloc (un séjour arrivé avant la période la chevauche) :
-        // ils confirment les séjours Booking.com ; les revenus ne comptent que ceux de la période.
-        $firstStart = $planning->min(fn (AvailabilityBlock $block) => $block->starts_on->toDateString());
-        $allPayouts = $this->payouts->arrivingBetween($firstStart === null ? $from : $from->min(CarbonImmutable::parse($firstStart)), $to)->whereIn('apartment_id', $ids);
-        $payouts = $allPayouts->filter(fn (PlatformPayout $payout) => $payout->arrival->gte($from));
-        $blocks = $this->nights->confirmPlatformStays($planning, $allPayouts);
+        $payouts = $this->payouts->arrivingBetween($from, $to)->whereIn('apartment_id', $ids);
 
         $months = [];
         for ($month = $from; $month->lt($to); $month = $month->addMonth()) {

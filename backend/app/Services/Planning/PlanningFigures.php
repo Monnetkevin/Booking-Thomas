@@ -10,7 +10,8 @@ use Illuminate\Support\Collection;
 /**
  * Chiffres de la période affichée au planning, avec les mêmes règles que le tableau de bord
  * et les statistiques (NightCounter) : nuits vendues et ouvertes, occupation, arrivées dont
- * directes, nuits libres dont de week-end (vendredi et samedi).
+ * directes, nuits libres dont de week-end (vendredi et samedi). Les blocs reçus sont déjà
+ * passés par SoldStayBlocks (séjours Booking.com confirmés par un versement).
  */
 class PlanningFigures
 {
@@ -32,7 +33,9 @@ class PlanningFigures
         foreach ($apartmentIds as $apartmentId) {
             $own = $blocks->filter(fn (AvailabilityBlock $block) => $block->apartment_id === $apartmentId);
             for ($day = $from; $day->lt($to); $day = $day->addDay()) {
-                $taken = $own->contains(fn (AvailabilityBlock $block) => $block->starts_on->lte($day) && $block->ends_on->gt($day));
+                // Une réservation en attente de paiement ne prend pas la nuit : libres + vendues
+                // + fermées = nuits de la période, comme les autres chiffres.
+                $taken = $own->contains(fn (AvailabilityBlock $block) => $block->starts_on->lte($day) && $block->ends_on->gt($day) && $this->nights->kind($block) !== null);
                 if (! $taken) {
                     $free++;
                     $freeWeekend += in_array($day->dayOfWeek, [CarbonImmutable::FRIDAY, CarbonImmutable::SATURDAY], true) ? 1 : 0;

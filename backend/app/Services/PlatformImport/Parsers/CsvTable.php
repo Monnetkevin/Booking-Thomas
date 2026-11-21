@@ -110,6 +110,28 @@ class CsvTable
         return null;
     }
 
+    /**
+     * Ordre des dates JJ/MM ou MM/JJ d'une colonne : un premier nombre au-delà de 12 ne peut
+     * être qu'un jour, un second qu'un jour aussi. Sans indice, la langue de l'export décide.
+     *
+     * @param  list<string>  $values
+     */
+    public static function dayFirst(array $values, bool $fallback): bool
+    {
+        foreach ($values as $value) {
+            if (preg_match('#^(\d{1,2})/(\d{1,2})/\d{4}$#', trim($value), $m)) {
+                if ((int) $m[1] > 12) {
+                    return true;
+                }
+                if ((int) $m[2] > 12) {
+                    return false;
+                }
+            }
+        }
+
+        return $fallback;
+    }
+
     private function normalize(string $header): string
     {
         $header = preg_replace('/^\xEF\xBB\xBF/', '', $header) ?? $header;

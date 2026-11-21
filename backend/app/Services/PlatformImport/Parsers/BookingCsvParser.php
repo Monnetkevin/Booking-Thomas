@@ -36,6 +36,12 @@ class BookingCsvParser implements PlatformCsvParser
             throw new InvalidPlatformFileException(array_map(fn (string $key) => self::COLUMNS[$key][0], $missing));
         }
 
+        $dayFirst = CsvTable::dayFirst(
+            array_merge(...array_map(fn (array $row) => [$row['cells'][$columns['arrival']] ?? '', $row['cells'][$columns['departure']] ?? ''], $table->rows())),
+            // Dates ambiguës dans tout le fichier : JJ/MM/AAAA en français, MM/JJ/AAAA en anglais.
+            $table->column(['Arrivée']) !== null,
+        );
+
         $rows = [];
         $skipped = [];
         $cancelled = [];
@@ -50,8 +56,8 @@ class BookingCsvParser implements PlatformCsvParser
 
                 continue;
             }
-            $arrival = CsvTable::date($cell('arrival'), true);
-            $departure = CsvTable::date($cell('departure'), true);
+            $arrival = CsvTable::date($cell('arrival'), $dayFirst);
+            $departure = CsvTable::date($cell('departure'), $dayFirst);
             $price = CsvTable::cents($cell('price'));
             $code = (string) $cell('code');
             $listing = (string) ($cell('listing') ?: 'Booking.com');

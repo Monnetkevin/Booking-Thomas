@@ -156,7 +156,7 @@ it('laisse le gestionnaire voir les prix (aperçu, brouillons compris) mais pas 
     $this->actingAs($this->manager);
 
     $this->postJson("/api/admin/apartments/{$draft->id}/quote-preview", $stay)->assertOk();
-    $this->postJson('/api/admin/bookings', [...$booking, 'total_amount' => 0])->assertForbidden();
+    $this->postJson('/api/admin/bookings', [...$booking, 'total_amount' => 15000])->assertForbidden();
     $this->postJson('/api/admin/bookings', $booking)->assertCreated();
-    $this->actingAs($this->admin)->postJson('/api/admin/bookings', [...$booking, 'arrival' => now()->addDays(20)->toDateString(), 'departure' => now()->addDays(22)->toDateString(), 'total_amount' => 0])->assertCreated();
+    $this->actingAs($this->admin)->postJson('/api/admin/bookings', [...$booking, 'arrival' => now()->addDays(20)->toDateString(), 'departure' => now()->addDays(22)->toDateString(), 'total_amount' => 15000])->assertCreated();
 });

@@ -11,6 +11,7 @@ use App\Repositories\Contracts\PlatformPayoutRepositoryInterface;
 use App\Services\Export\CsvWriter;
 use App\Services\Statistics\NightCounter;
 use App\Services\Statistics\RevenueCalculator;
+use App\Services\Statistics\SoldStayBlocks;
 use App\Services\Statistics\StatisticsService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -32,13 +33,14 @@ function statisticsReport(array $blocks, array $earning = [], array $payouts = [
     $bookings->allows('soldArrivingBetween')->andReturn(new Collection(array_filter($earning, fn ($booking) => $booking->status !== BookingStatus::Cancelled)));
     $repository = Mockery::mock(PlatformPayoutRepositoryInterface::class);
     $asked = [];
-    $repository->allows('arrivingBetween')->andReturnUsing(function ($from) use ($payouts, &$asked) {
+    $repository->allows('arrivingBetween')->andReturnUsing(function ($from, $to) use ($payouts, &$asked) {
         $asked[] = $from->toDateString();
 
-        return new Collection($payouts);
+        return new Collection(array_values(array_filter($payouts, fn ($payout) => $payout->arrival->gte($from) && $payout->arrival->lt($to))));
     });
 
-    $service = new StatisticsService($apartments, $availability, $bookings, $repository, new NightCounter, new RevenueCalculator, new CsvWriter);
+    $nights = new NightCounter;
+    $service = new StatisticsService($apartments, $availability, new SoldStayBlocks($availability, $repository, $nights), $bookings, $repository, $nights, new RevenueCalculator, new CsvWriter);
 
     return [$service->report(CarbonImmutable::parse('2026-11-20'), StatisticsPeriod::SixMonths), $asked];
 }
@@ -97,7 +99,8 @@ it('confirme un séjour Booking.com arrivé avant la période par un versement d
         [memoryPayout('booking', 1, '2026-05-28', 6, 60000)],
     );
 
-    expect($asked)->toBe(['2026-05-28'])
+    // Versements depuis le premier bloc pour confirmer les séjours, puis ceux de la période pour les revenus.
+    expect($asked)->toBe(['2026-05-28', '2026-06-01'])
         ->and($report['months'][0]['month'])->toBe('2026-06')
         ->and($report['months'][0]['nights_platform'])->toBe(2)
         // Revenu compté au mois d'arrivée, hors période.
