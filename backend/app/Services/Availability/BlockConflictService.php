@@ -2,12 +2,9 @@
 
 namespace App\Services\Availability;
 
-use App\Enums\BlockType;
-use App\Enums\PayoutPlatform;
 use App\Events\StayScheduleChanged;
 use App\Models\AvailabilityBlock;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
-use App\Repositories\Contracts\PlatformPayoutRepositoryInterface;
 use App\Services\Housekeeping\StayChange;
 use Carbon\CarbonImmutable;
 
@@ -22,7 +19,6 @@ class BlockConflictService
 {
     public function __construct(
         private readonly AvailabilityRepositoryInterface $availability,
-        private readonly PlatformPayoutRepositoryInterface $payouts,
     ) {}
 
     /** Nuits [from, to[ déjà occupées par d'autres blocs actifs ? */
@@ -79,16 +75,10 @@ class BlockConflictService
     /**
      * Le bloc importé (non enregistré, ou déjà là) n'est qu'une fermeture posée sur des nuits
      * toutes déjà fermées : pas un conflit à signaler. Un bloc Booking.com (séjour ou fermeture,
-     * on ne sait pas) dont un versement importé confirme l'arrivée reste un vrai conflit.
+     * on ne sait pas) posé sur une fermeture du site est pris pour l'écho de cette fermeture.
      */
     public function isRedundantClosure(AvailabilityBlock $block, BlockOverlap $overlap): bool
     {
-        if (! $block->mayBeClosure() || ! $overlap->onlyClosuresCovering($block->starts_on, $block->ends_on)) {
-            return false;
-        }
-        $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
-
-        return $provider === null || ! $provider->confirmsStaysByPayout()
-            || ! $this->payouts->hasArrival(PayoutPlatform::from($provider->value), $block->apartment_id, $block->starts_on->toDateString());
+        return $block->mayBeClosure() && $overlap->onlyClosuresCovering($block->starts_on, $block->ends_on);
     }
 }

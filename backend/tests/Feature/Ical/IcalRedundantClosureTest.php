@@ -6,9 +6,7 @@ use App\Events\StayScheduleChanged;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
-use App\Models\PlatformPayout;
 use App\Models\User;
-use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Services\Ical\IcalCalendarMerger;
 use App\Services\Ical\ImportedEvent;
 use Carbon\CarbonImmutable;
@@ -88,25 +86,7 @@ it('couvre une fermeture importée par plusieurs fermetures du site bout à bout
     expect(importedBlock('B1')->is_redundant_closure)->toBeTrue();
 });
 
-it('refait un vrai conflit d’une date Booking.com dont un versement prouve que c’était un séjour', function () {
-    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
-    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
-    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
-
-    // Versement importé plus tard : la date fermée était une réservation Booking.com.
-    PlatformPayout::query()->create([
-        'platform' => 'booking', 'confirmation_code' => 'BK1', 'entry_key' => 'BK1', 'apartment_id' => $this->apartment->id,
-        'arrival' => '2026-11-20', 'departure' => '2026-11-23', 'nights' => 3, 'net_amount' => 30000,
-    ]);
-
-    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 1);
-    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.alerts.conflicts.0.starts_on', '2026-11-20');
-    $this->getJson('/api/admin/planning?from=2026-11-13&days=30')
-        ->assertJsonPath('data.apartments.0.blocks.1.has_conflict', true)
-        ->assertJsonPath('data.apartments.0.blocks.1.redundant_closure', false);
-});
-
-it('montre au tableau de bord une arrivée Booking.com sans versement importé, pas une fermeture redondante', function () {
+it('montre au tableau de bord une arrivée Booking.com, pas une fermeture redondante', function () {
     AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-16', '2026-11-18')->create(['type' => BlockType::Manual]);
     feedNow($this->booking, [
         'B1' => ['2026-11-15', '2026-11-16', 'CLOSED - Not available'],
@@ -117,18 +97,6 @@ it('montre au tableau de bord une arrivée Booking.com sans versement importé, 
 
     expect(array_column($movements['2026-11-15']['arrivals'], 'label'))->toBe(['Booking.com'])
         ->and($movements['2026-11-16']['arrivals'])->toBe([]);
-});
-
-it('ne marque pas redondante une date Booking.com déjà confirmée par un versement au moment de l’import', function () {
-    PlatformPayout::query()->create([
-        'platform' => 'booking', 'confirmation_code' => 'BK1', 'entry_key' => 'BK1', 'apartment_id' => $this->apartment->id,
-        'arrival' => '2026-11-20', 'departure' => '2026-11-23', 'nights' => 3, 'net_amount' => 30000,
-    ]);
-    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
-
-    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
-
-    expect(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeFalse();
 });
 
 it('remet à zéro l’indicateur d’une fermeture redondante annulée sur la plateforme', function () {
@@ -199,29 +167,6 @@ it('signale une seule fois un séjour Airbnb posé sur une fermeture du site, au
     $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
 });
 
-/** Versement Booking.com ou Airbnb importé pour ce logement. */
-function payoutOn(Apartment $apartment, string $platform, string $arrival, string $departure): void
-{
-    PlatformPayout::query()->create([
-        'platform' => $platform, 'confirmation_code' => 'X'.$arrival, 'entry_key' => $platform.$arrival, 'apartment_id' => $apartment->id,
-        'arrival' => $arrival, 'departure' => $departure, 'nights' => 3, 'net_amount' => 30000,
-    ]);
-}
-
-it('ne refait pas un conflit d’une date fermée sur Airbnb pour un versement Airbnb du même jour', function () {
-    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
-    feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-23', 'Airbnb (Not available)']]);
-
-    // Airbnb distingue ses séjours de ses dates fermées : un versement ne change rien.
-    payoutOn($this->apartment, 'airbnb', '2026-11-20', '2026-11-23');
-
-    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
-    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.alerts.conflicts', []);
-    $this->getJson('/api/admin/planning?from=2026-11-13&days=30')
-        ->assertJsonPath('data.apartments.0.blocks.1.has_conflict', false)
-        ->assertJsonPath('data.apartments.0.blocks.1.redundant_closure', true);
-});
-
 it('prévient le ménage du séjour Booking.com caché sous une fermeture du site retirée', function () {
     $this->postJson("/api/admin/apartments/{$this->apartment->id}/blocks", ['starts_on' => '2026-11-20', 'ends_on' => '2026-11-23', 'needs_cleaning' => true])->assertCreated();
     feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
@@ -237,20 +182,6 @@ it('prévient le ménage du séjour Booking.com caché sous une fermeture du sit
     ]);
 });
 
-it('prévient le ménage quand un versement révèle un séjour Booking.com, à la synchronisation suivante', function () {
-    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
-    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
-    payoutOn($this->apartment, 'booking', '2026-11-20', '2026-11-23');
-    Event::fake([StayScheduleChanged::class]);
-
-    $result = app(IcalCalendarMerger::class)->merge($this->booking, [new ImportedEvent('B1', CarbonImmutable::parse('2026-11-20'), CarbonImmutable::parse('2026-11-23'), 'CLOSED - Not available', null)]);
-
-    expect($result->conflicts)->toBe(1)
-        ->and(importedBlock('B1')->is_redundant_closure)->toBeFalse();
-    Event::assertDispatchedTimes(StayScheduleChanged::class, 1);
-    Event::assertDispatched(StayScheduleChanged::class, fn (StayScheduleChanged $event) => $event->change->kind === StayChangeKind::Added);
-});
-
 it('retire du planning du ménage un séjour Booking.com déplacé sur une fermeture du site', function () {
     AvailabilityBlock::factory()->for($this->apartment)->between('2026-12-01', '2026-12-04')->create(['type' => BlockType::Manual]);
     feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
@@ -264,21 +195,7 @@ it('retire du planning du ménage un séjour Booking.com déplacé sur une ferme
         && $event->change->startsOn->toDateString() === '2026-11-20' && $event->change->endsOn->toDateString() === '2026-11-23');
 });
 
-it('signale l’enchaînement départ-arrivée d’un séjour Booking.com confirmé par versement', function () {
-    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
-    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
-    $stay = AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-23', '2026-11-25')->create(['type' => BlockType::Ical, 'ical_feed_id' => $this->airbnb->id, 'note' => 'Reserved']);
-    $repository = app(AvailabilityRepositoryInterface::class);
-
-    expect($repository->hasSameDayTurnover($this->apartment->id, '2026-11-23', '2026-11-25', $stay->id))->toBeFalse();
-
-    payoutOn($this->apartment, 'booking', '2026-11-20', '2026-11-23');
-
-    expect($repository->hasSameDayTurnover($this->apartment->id, '2026-11-23', '2026-11-25', $stay->id))->toBeTrue();
-});
-
-it('import des revenus désactivé : compte au planning un séjour Booking.com comme vendu, sa date répétant une fermeture comme fermée', function () {
-    config(['features.platform_import' => false]);
+it('compte au planning un séjour Booking.com comme vendu, sa date répétant une fermeture comme fermée', function () {
     AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
     feedNow($this->booking, [
         'B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available'],

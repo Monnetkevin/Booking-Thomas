@@ -8,8 +8,7 @@ use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\IcalFeed;
-use App\Models\PlatformPayout;
-use Carbon\CarbonImmutable;
+use App\Models\PlatformMonthlyRevenue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -93,13 +92,10 @@ function memoryBooking(int $apartmentId, string $arrival, string $departure, Boo
     return (new Booking)->forceFill(['apartment_id' => $apartmentId, 'arrival' => $arrival, 'departure' => $departure, 'status' => $status, 'tourist_tax' => 0, ...$attributes]);
 }
 
-/** Versement de plateforme en mémoire. */
-function memoryPayout(string $platform, int $apartmentId, string $arrival, int $nights, int $net): PlatformPayout
+/** Montant saisi en mémoire : net versé par une plateforme pour un logement et un mois (« 2026-10 »). */
+function memoryRevenue(string $platform, int $apartmentId, string $month, int $net): PlatformMonthlyRevenue
 {
-    $arrivalDate = CarbonImmutable::parse($arrival);
-
-    return (new PlatformPayout)->forceFill([
-        'platform' => $platform, 'apartment_id' => $apartmentId, 'arrival' => $arrival,
-        'departure' => $arrivalDate->addDays($nights)->toDateString(), 'nights' => $nights, 'net_amount' => $net,
+    return (new PlatformMonthlyRevenue)->forceFill([
+        'platform' => $platform, 'apartment_id' => $apartmentId, 'month' => $month.'-01', 'net_amount' => $net,
     ]);
 }

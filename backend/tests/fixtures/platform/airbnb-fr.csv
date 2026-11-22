@@ -1,5 +1,0 @@
-﻿Date;Type;Code de confirmation;Date de réservation;Date de début;Nuits;Voyageur;Logement;Détails;Code de référence;Devise;Montant;Versé;Frais de service;Revenus bruts
-05/11/2026;Réservation;HMABC123;20/10/2026;04/11/2026;3;Jean Dupont;Studio Cocon centre;;;EUR;"312,50";;"9,50";"322,00"
-06/11/2026;Versement;;;;;;;;;EUR;;"312,50";;
-07/11/2026;Réservation;HMDEF456;01/11/2026;14/11/2026;2;Marie Curie;Nid doux gare;;;EUR;"1 204,00";;"36,00";"1 240,00"
-08/11/2026;Réservation;HMBAD999;01/11/2026;pas une date;2;X;Nid doux gare;;;EUR;"10,00";;;

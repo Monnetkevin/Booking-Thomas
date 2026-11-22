@@ -10,7 +10,6 @@ use App\Services\Geocoding\GeoplateformeGeocoder;
 use App\Services\Geocoding\NominatimGeocoder;
 use App\Services\Security\HumanVerifier;
 use App\Services\Security\TurnstileVerifier;
-use App\Services\Statistics\SoldStayBlocks;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Client\Factory as Http;
 use Illuminate\Http\Request;
@@ -33,8 +32,6 @@ class AppServiceProvider extends ServiceProvider
                 (string) config('services.geocoding.user_agent'),
             ),
         ));
-        // Import des revenus des plateformes mis de côté : séjours Booking.com comptés sans versement.
-        $this->app->when(SoldStayBlocks::class)->needs('$payoutsEnabled')->giveConfig('features.platform_import');
         // Auteur des actions journalisées : lu dans la requête HTTP, jamais par les services eux-mêmes.
         $this->app->bind(AuditActor::class, RequestAuditActor::class);
         $this->app->bind(HumanVerifier::class, fn ($app) => new TurnstileVerifier(

@@ -12,7 +12,7 @@ export type AuditAction =
   | 'user.invited'
   | 'user.updated'
   | 'user.password_link_sent'
-  | 'platform_payouts.imported'
+  | 'platform_revenues.saved'
   | 'bookings.exported'
 
 export const AUDIT_ACTIONS: AuditAction[] = [
@@ -29,7 +29,7 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'user.invited',
   'user.updated',
   'user.password_link_sent',
-  'platform_payouts.imported',
+  'platform_revenues.saved',
   'bookings.exported',
 ]
 

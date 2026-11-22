@@ -18,6 +18,6 @@ enum AuditAction: string
     case UserInvited = 'user.invited';
     case UserUpdated = 'user.updated';
     case UserPasswordLinkSent = 'user.password_link_sent';
-    case PlatformPayoutsImported = 'platform_payouts.imported';
+    case PlatformRevenuesSaved = 'platform_revenues.saved';
     case BookingsExported = 'bookings.exported';
 }

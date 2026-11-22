@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\IcalProvider;
-use App\Enums\PayoutPlatform;
 
 it('reconnaît une date fermée sur Airbnb, pas une réservation', function (?string $summary, bool $closure) {
     expect(IcalProvider::Airbnb->isClosure($summary))->toBe($closure);
@@ -15,8 +14,8 @@ it('reconnaît une date fermée sur Airbnb, pas une réservation', function (?st
 
 it('ne tranche pas sur Booking.com : le même résumé pour une réservation et une fermeture', function () {
     expect(IcalProvider::Booking->isClosure('CLOSED - Not available'))->toBeFalse()
-        ->and(IcalProvider::Booking->confirmsStaysByPayout())->toBeTrue()
-        ->and(IcalProvider::Airbnb->confirmsStaysByPayout())->toBeFalse();
+        ->and(IcalProvider::Booking->mixesStaysAndClosures())->toBeTrue()
+        ->and(IcalProvider::Airbnb->mixesStaysAndClosures())->toBeFalse();
 });
 
 it('n’accepte que les adresses de la plateforme', function (IcalProvider $provider, string $host, bool $allowed) {
@@ -31,8 +30,3 @@ it('n’accepte que les adresses de la plateforme', function (IcalProvider $prov
     [IcalProvider::Booking, 'notbooking.com', false],
     [IcalProvider::Airbnb, 'admin.booking.com', false],
 ]);
-
-it('donne les valeurs des plateformes de versements, pour rapprocher nuits et revenus', function () {
-    expect(array_map(fn (IcalProvider $provider) => $provider->value, IcalProvider::cases()))
-        ->toBe(array_map(fn (PayoutPlatform $platform) => $platform->value, PayoutPlatform::cases()));
-});

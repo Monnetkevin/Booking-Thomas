@@ -1,5 +1,4 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
-import { FEATURES } from '@/admin/features'
 import { PublicLayout } from '@/layouts/PublicLayout'
 
 const legalRoutes = { legal: 'mentions-legales', terms: 'cgv', privacy: 'confidentialite' } as const
@@ -80,15 +79,10 @@ export const router = createBrowserRouter([
               Component: (await import('@/admin/notifications/pages/NotificationPreferencesPage')).NotificationPreferencesPage,
             }),
           },
-          // Import des revenus des plateformes : mis de côté (FEATURES), l'adresse mène à « page introuvable ».
-          ...(FEATURES.platformImport
-            ? [
-                {
-                  path: 'revenus-plateformes',
-                  lazy: async () => ({ Component: (await import('@/admin/platformImports/pages/PlatformImportPage')).PlatformImportPage }),
-                },
-              ]
-            : []),
+          {
+            path: 'revenus-plateformes',
+            lazy: async () => ({ Component: (await import('@/admin/platformRevenues/pages/PlatformRevenuePage')).PlatformRevenuePage }),
+          },
           {
             path: 'statistiques',
             lazy: async () => ({ Component: (await import('@/admin/statistics/pages/StatisticsPage')).StatisticsPage }),

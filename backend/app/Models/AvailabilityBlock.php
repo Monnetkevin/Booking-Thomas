@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\BlockType;
-use App\Enums\IcalProvider;
 use Carbon\CarbonImmutable;
 use Database\Factories\AvailabilityBlockFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -11,8 +10,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Source unique de vérité des nuits occupées, quelle qu'en soit l'origine.
@@ -55,7 +52,6 @@ class AvailabilityBlock extends Model
             'has_conflict' => 'boolean',
             'needs_cleaning' => 'boolean',
             'is_redundant_closure' => 'boolean',
-            'confirmed_by_payout' => 'boolean',
         ];
     }
 
@@ -72,14 +68,10 @@ class AvailabilityBlock extends Model
         };
     }
 
-    /**
-     * Fermeture posée sur des nuits déjà fermées, qu'aucun versement importé ne désigne comme
-     * un séjour : ni conflit ni arrivée. Un versement de la plateforme arrivé ce jour-là (chargé
-     * par withPayoutConfirmation) en refait un vrai conflit : c'était un séjour Booking.com.
-     */
+    /** Fermeture posée sur des nuits déjà fermées : ni conflit ni arrivée. */
     public function isRedundantClosure(): bool
     {
-        return $this->has_conflict && $this->is_redundant_closure && ! $this->getAttribute('confirmed_by_payout');
+        return $this->has_conflict && $this->is_redundant_closure;
     }
 
     /**
@@ -109,34 +101,16 @@ class AvailabilityBlock extends Model
         return ! $this->isClosure() && ! $this->isRedundantClosure();
     }
 
-    /**
-     * Ce que le ménage sait de ce bloc : son état enregistré, sans la confirmation par
-     * versement chargée à la lecture. Un versement importé depuis (l'import ne touche pas
-     * aux blocs) n'a pas encore été annoncé : il le sera au prochain recalcul du bloc.
-     */
+    /** Ce que le ménage sait de ce bloc, avant une modification : séjour à son planning ou non. */
     public function knownToHousekeeping(): bool
     {
-        $stored = clone $this;
-        $stored->offsetUnset('confirmed_by_payout');
-
-        return $stored->is_active && $stored->concernsHousekeeping();
+        return $this->is_active && $this->concernsHousekeeping();
     }
 
     /** Conflit à montrer et à signaler. */
     public function isRealConflict(): bool
     {
         return $this->has_conflict && ! $this->isRedundantClosure();
-    }
-
-    /**
-     * Ajoute confirmed_by_payout : un versement importé de la plateforme du calendrier arrive
-     * le premier jour du bloc, dans le même logement.
-     *
-     * @param  Builder<self>  $query
-     */
-    public function scopeWithPayoutConfirmation(Builder $query): void
-    {
-        $query->select('availability_blocks.*')->selectSub($this->payoutExists(), 'confirmed_by_payout');
     }
 
     /**
@@ -150,35 +124,13 @@ class AvailabilityBlock extends Model
     }
 
     /**
-     * Sans les fermetures posées sur des nuits déjà fermées (sauf si un versement en fait un séjour).
+     * Sans les fermetures posées sur des nuits déjà fermées.
      *
      * @param  Builder<self>  $query
      */
     public function scopeWithoutRedundantClosures(Builder $query): void
     {
-        $query->where(fn (Builder $query) => $query->where('is_redundant_closure', false)->orWhereExists($this->payoutExists()));
-    }
-
-    /**
-     * Sous-requête : versement de la plateforme du calendrier arrivé le premier jour du bloc,
-     * pour les seuls calendriers qui confondent séjours et dates fermées (Booking.com), comme
-     * BlockConflictService::isRedundantClosure.
-     */
-    private function payoutExists(): QueryBuilder
-    {
-        $providers = array_map(
-            fn (IcalProvider $provider) => $provider->value,
-            array_filter(IcalProvider::cases(), fn (IcalProvider $provider) => $provider->confirmsStaysByPayout()),
-        );
-
-        return DB::table('platform_payouts')
-            ->selectRaw('1')
-            ->join('ical_feeds', 'ical_feeds.provider', '=', 'platform_payouts.platform')
-            ->whereColumn('ical_feeds.id', 'availability_blocks.ical_feed_id')
-            ->whereIn('ical_feeds.provider', array_values($providers))
-            ->whereColumn('platform_payouts.apartment_id', 'availability_blocks.apartment_id')
-            ->whereColumn('platform_payouts.arrival', 'availability_blocks.starts_on')
-            ->limit(1);
+        $query->where('is_redundant_closure', false);
     }
 
     /**

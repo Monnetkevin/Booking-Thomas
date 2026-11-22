@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\PlanningController;
-use App\Http\Controllers\Admin\PlatformImportController;
+use App\Http\Controllers\Admin\PlatformRevenueController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
 use App\Http\Controllers\Admin\SearchController;
@@ -177,11 +177,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('settings', [SettingsController::class, 'show']);
     Route::put('settings', [SettingsController::class, 'update']);
 
-    // Revenus Airbnb et Booking.com importés de leurs fichiers CSV : aperçu, puis import.
-    // Mis de côté jusqu'à la fin du projet (config/features.php).
-    Route::middleware('feature:platform_import')->group(function () {
-        Route::get('platform-imports', [PlatformImportController::class, 'index']);
-        Route::post('platform-imports/preview', [PlatformImportController::class, 'preview'])->middleware('throttle:20,1');
-        Route::post('platform-imports', [PlatformImportController::class, 'store'])->middleware('throttle:10,1');
-    });
+    // Revenus Airbnb et Booking.com saisis chaque mois, par logement.
+    Route::get('platform-revenues', [PlatformRevenueController::class, 'show']);
+    Route::put('platform-revenues', [PlatformRevenueController::class, 'update'])->middleware('throttle:30,1');
+    Route::get('platform-revenues/history', [PlatformRevenueController::class, 'history']);
 });

@@ -6,7 +6,7 @@ use App\Enums\PaymentType;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
-use App\Models\PlatformPayout;
+use App\Models\PlatformMonthlyRevenue;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 
@@ -47,7 +47,8 @@ it('donne les chiffres des 12 derniers mois, par mois et par logement', function
         ->assertJsonPath('data.months.10.revenue', 44000)
         ->assertJsonPath('data.months.10.occupancy', 6.5)
         ->assertJsonPath('data.months.10.platform_revenue_missing', false)
-        ->assertJsonPath('data.months.11.platform_revenue_missing', true)
+        // Mois en cours : pas encore de montant à saisir.
+        ->assertJsonPath('data.months.11.platform_revenue_missing', false)
         ->assertJsonPath('data.months.11.nights_direct', 3)
         ->assertJsonPath('data.months.11.nights_platform', 6)
         ->assertJsonPath('data.months.11.revenue', 40000)
@@ -104,14 +105,11 @@ it('réserve les statistiques à l’administrateur', function () {
     $this->get('/api/admin/statistics.csv')->assertForbidden();
 });
 
-it('ajoute les revenus importés des plateformes, la part du direct, et change de période', function () {
+it('ajoute les revenus saisis des plateformes, la part du direct, et change de période', function () {
     soldBooking($this->cocon, '2026-11-02', '2026-11-04', 30000);
     $feed = IcalFeed::factory()->for($this->nid)->create();
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM2']);
-    PlatformPayout::query()->create([
-        'platform' => 'airbnb', 'confirmation_code' => 'HMX', 'entry_key' => 'HMX-1', 'apartment_id' => $this->nid->id,
-        'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 20000,
-    ]);
+    monthlyRevenue($this->nid, 'airbnb', '2026-11', 20000);
 
     $this->getJson('/api/admin/statistics?period=six_months')
         ->assertJsonPath('data.from', '2026-06-01')
@@ -126,18 +124,18 @@ it('ajoute les revenus importés des plateformes, la part du direct, et change d
     $this->getJson('/api/admin/statistics?period=forever')->assertJsonValidationErrors('period');
 });
 
-it('signale les revenus manquants plateforme par plateforme', function () {
-    // Nuits vendues sur Airbnb, mais seuls des revenus Booking.com importés.
+it('signale les revenus manquants plateforme par plateforme, sur les mois écoulés', function () {
+    // Nuits vendues sur Airbnb en octobre, mais seul un montant Booking.com saisi.
     $feed = IcalFeed::factory()->for($this->nid)->create();
-    AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM3']);
-    PlatformPayout::query()->create([
-        'platform' => 'booking', 'confirmation_code' => 'BK1', 'entry_key' => 'BK1-1', 'apartment_id' => $this->cocon->id,
-        'arrival' => '2026-11-05', 'departure' => '2026-11-07', 'nights' => 2, 'net_amount' => 15000,
-    ]);
+    AvailabilityBlock::factory()->for($this->nid)->between('2026-10-10', '2026-10-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM3']);
+    AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM4']);
+    monthlyRevenue($this->cocon, 'booking', '2026-10', 15000);
 
     $this->getJson('/api/admin/statistics?period=six_months')
-        ->assertJsonPath('data.months.5.platform_revenue', ['airbnb' => 0, 'booking' => 15000])
-        ->assertJsonPath('data.months.5.platform_revenue_missing', true)
+        ->assertJsonPath('data.months.4.platform_revenue', ['airbnb' => 0, 'booking' => 15000])
+        ->assertJsonPath('data.months.4.platform_revenue_missing', true)
+        // Novembre, en cours, n'est pas encore à saisir.
+        ->assertJsonPath('data.months.5.platform_revenue_missing', false)
         ->assertJsonPath('data.totals.revenue_per_night', null);
 });
 
@@ -168,70 +166,59 @@ it('compte l’argent encaissé : rien pour une réservation non payée, la part
 
 it('ne divise pas les revenus d’une plateforme sans calendrier relié par les nuits des autres', function () {
     soldBooking($this->cocon, '2026-11-02', '2026-11-04', 15500);   // 2 nuits, 20 000 encaissés, 19 500 hors taxe
-    PlatformPayout::query()->create([
-        'platform' => 'booking', 'confirmation_code' => 'BK2', 'entry_key' => 'BK2-1', 'apartment_id' => $this->nid->id,
-        'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 30000,
-    ]);
+    monthlyRevenue($this->nid, 'booking', '2026-11', 30000);
 
     $this->getJson('/api/admin/statistics?period=six_months')
         ->assertJsonPath('data.totals.total_revenue', 49500)
         ->assertJsonPath('data.totals.revenue_per_night', 9750);
 });
 
-it('rapproche nuits et revenus au mois d’arrivée : un séjour à cheval ne signale rien le mois suivant', function () {
-    Date::setTestNow('2027-02-20 10:00:00');
+it('attend un montant pour chaque mois que touche un séjour à cheval', function () {
+    Date::setTestNow('2027-03-10 10:00:00');
     $feed = IcalFeed::factory()->for($this->nid)->create();
     AvailabilityBlock::factory()->for($this->nid)->between('2027-01-28', '2027-02-05')->create(['type' => BlockType::Ical, 'ical_feed_id' => $feed->id, 'external_uid' => 'HM9']);
-    PlatformPayout::query()->create([
-        'platform' => 'airbnb', 'confirmation_code' => 'HM9', 'entry_key' => 'HM9-1', 'apartment_id' => $this->nid->id,
-        'arrival' => '2027-01-28', 'departure' => '2027-02-05', 'nights' => 8, 'net_amount' => 80000,
-    ]);
+    monthlyRevenue($this->nid, 'airbnb', '2027-01', 40000);
 
     $this->getJson('/api/admin/statistics?period=six_months')
-        ->assertJsonPath('data.months.4.month', '2027-01')
-        ->assertJsonPath('data.months.4.platform_revenue_missing', false)
-        ->assertJsonPath('data.months.5.month', '2027-02')
-        ->assertJsonPath('data.months.5.nights_platform', 4)
-        ->assertJsonPath('data.months.5.platform_revenue_missing', false);
+        ->assertJsonPath('data.months.3.month', '2027-01')
+        ->assertJsonPath('data.months.3.nights_platform', 4)
+        ->assertJsonPath('data.months.3.platform_revenue_missing', false)
+        ->assertJsonPath('data.months.4.month', '2027-02')
+        ->assertJsonPath('data.months.4.nights_platform', 4)
+        ->assertJsonPath('data.months.4.platform_revenue_missing', true);
 });
 
-it('compte les dates fermées sur Airbnb comme fermées, et un bloc Booking.com comme vendu seulement si un versement le confirme', function () {
+it('compte les dates fermées sur Airbnb comme fermées, et un bloc Booking.com comme vendu', function () {
     $airbnb = IcalFeed::factory()->for($this->nid)->create();
     $booking = IcalFeed::factory()->for($this->cocon)->create(['provider' => 'booking', 'import_url' => 'https://admin.booking.com/hotel/ical.ics?t=x']);
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-10', '2026-11-12')->create(['type' => BlockType::Ical, 'ical_feed_id' => $airbnb->id, 'external_uid' => 'A1', 'note' => 'Reserved']);
     AvailabilityBlock::factory()->for($this->nid)->between('2026-11-20', '2026-11-30')->create(['type' => BlockType::Ical, 'ical_feed_id' => $airbnb->id, 'external_uid' => 'A2', 'note' => 'Airbnb (Not available)']);
-    // Booking.com : même résumé pour une réservation et une fermeture.
+    // Booking.com : même résumé pour une réservation et une fermeture ; compté comme un séjour.
     AvailabilityBlock::factory()->for($this->cocon)->between('2026-11-03', '2026-11-06')->create(['type' => BlockType::Ical, 'ical_feed_id' => $booking->id, 'external_uid' => 'B1', 'note' => 'CLOSED - Not available']);
     AvailabilityBlock::factory()->for($this->cocon)->between('2026-11-15', '2026-11-25')->create(['type' => BlockType::Ical, 'ical_feed_id' => $booking->id, 'external_uid' => 'B2', 'note' => 'CLOSED - Not available']);
-    PlatformPayout::query()->create([
-        'platform' => 'airbnb', 'confirmation_code' => 'HMA', 'entry_key' => 'HMA-1', 'apartment_id' => $this->nid->id,
-        'arrival' => '2026-11-10', 'departure' => '2026-11-12', 'nights' => 2, 'net_amount' => 20000,
-    ]);
-    PlatformPayout::query()->create([
-        'platform' => 'booking', 'confirmation_code' => 'BKA', 'entry_key' => 'BKA-1', 'apartment_id' => $this->cocon->id,
-        'arrival' => '2026-11-03', 'departure' => '2026-11-06', 'nights' => 3, 'net_amount' => 36000,
-    ]);
+    monthlyRevenue($this->nid, 'airbnb', '2026-11', 20000);
+    monthlyRevenue($this->cocon, 'booking', '2026-11', 45000);
 
-    // Novembre : 2 logements × 30 nuits, 20 fermées (10 Airbnb, 10 Booking.com), 5 vendues.
+    // Novembre : 2 logements × 30 nuits, 10 fermées (Airbnb), 15 vendues (2 Airbnb, 13 Booking.com).
     $this->getJson('/api/admin/statistics?period=six_months')
-        ->assertJsonPath('data.months.5.nights_platform', 5)
-        ->assertJsonPath('data.months.5.occupancy', 12.5)
-        ->assertJsonPath('data.months.5.platform_revenue_missing', false)
-        ->assertJsonPath('data.totals.revenue_per_night', 11200)
-        ->assertJsonPath('data.totals.average_stay', 2.5);
+        ->assertJsonPath('data.months.5.nights_platform', 15)
+        ->assertJsonPath('data.months.5.occupancy', 30)
+        ->assertJsonPath('data.months.5.platform_revenue', ['airbnb' => 20000, 'booking' => 45000])
+        ->assertJsonPath('data.totals.revenue_per_night', 4333)
+        ->assertJsonPath('data.totals.average_stay', 5);
     // Le tableau de bord ne montre pas une date fermée sur Airbnb comme une arrivée.
     $dashboard = $this->getJson('/api/admin/dashboard')
-        // Mêmes règles que les statistiques : la fermeture Booking.com B2 n'est pas un séjour.
-        ->assertJsonPath('data.figures.occupancy.value', 12.5)
-        ->assertJsonPath('data.figures.stays.value', 2);
+        // Mêmes règles que les statistiques.
+        ->assertJsonPath('data.figures.occupancy.value', 30)
+        ->assertJsonPath('data.figures.stays.value', 3);
     $arrivals = collect($dashboard->json('data.movements'))->firstWhere('date', '2026-11-20')['arrivals'] ?? [];
     expect($arrivals)->toBe([]);
     $this->getJson('/api/admin/planning?from=2026-11-01&days=30')
-        ->assertJsonPath('data.figures.sold_nights', 5)
-        ->assertJsonPath('data.figures.open_nights', 40)
-        ->assertJsonPath('data.figures.arrivals', 2);
-    // Le Cocon : 3 nuits vendues sur 20 ouvertes.
-    $this->getJson('/api/admin/apartments')->assertJsonPath("meta.occupancy.{$this->cocon->id}", 15);
+        ->assertJsonPath('data.figures.sold_nights', 15)
+        ->assertJsonPath('data.figures.open_nights', 50)
+        ->assertJsonPath('data.figures.arrivals', 3);
+    // Le Cocon : 13 nuits vendues sur 30 ouvertes.
+    $this->getJson('/api/admin/apartments')->assertJsonPath("meta.occupancy.{$this->cocon->id}", 43.3);
 });
 
 it('calcule le revenu par nuit sur les seuls séjours vendus et payés', function () {
@@ -247,3 +234,9 @@ it('calcule le revenu par nuit sur les seuls séjours vendus et payés', functio
         ->assertJsonPath('data.totals.revenue', 49500)
         ->assertJsonPath('data.totals.revenue_per_night', 9750);
 });
+
+/** Net versé saisi pour une plateforme, un logement et un mois (« 2026-11 »). */
+function monthlyRevenue(Apartment $apartment, string $platform, string $month, int $net): void
+{
+    PlatformMonthlyRevenue::query()->create(['platform' => $platform, 'apartment_id' => $apartment->id, 'month' => $month.'-01', 'net_amount' => $net]);
+}

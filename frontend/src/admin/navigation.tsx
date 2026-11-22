@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { FEATURES } from '@/admin/features'
-import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UploadIcon, UsersIcon } from '@/components/icons'
+import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
 
 /** Compteur affiché à côté d'une entrée, lu dans les compteurs de la barre. */
 export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages' | 'unreadNotifications'
@@ -20,7 +19,7 @@ export interface AdminNavItem {
     | 'admin.nav.bookings'
     | 'admin.nav.planning'
     | 'admin.nav.statistics'
-    | 'admin.nav.platformImport'
+    | 'admin.nav.platformRevenue'
     | 'admin.nav.notifications'
     | 'admin.nav.notificationPreferences'
     | 'admin.nav.users'
@@ -53,9 +52,7 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'], group: 'catalogue' },
   { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: STAFF, group: 'suivi', badge: 'unreadMessages' },
   { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: STAFF, group: 'suivi' },
-  ...(FEATURES.platformImport
-    ? [{ to: '/admin/revenus-plateformes', labelKey: 'admin.nav.platformImport', icon: <UploadIcon />, roles: ['admin'], group: 'suivi' } satisfies AdminNavItem]
-    : []),
+  { to: '/admin/revenus-plateformes', labelKey: 'admin.nav.platformRevenue', icon: <WalletIcon />, roles: ['admin'], group: 'suivi' },
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: STAFF, group: 'suivi', badge: 'failingFeeds' },
   // Le journal contient réglages, tarifs et comptes : administrateur seulement.
   { to: '/admin/journal', labelKey: 'admin.nav.audit', icon: <ListIcon />, roles: ['admin'], group: 'suivi' },

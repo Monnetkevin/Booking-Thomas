@@ -66,8 +66,8 @@ class DashboardService
     {
         $end = $today->addDays(self::MOVEMENT_DAYS);
         $apartments = $this->apartments->allOrdered()->keyBy('id');
-        // Blocs bruts : un séjour Booking.com dont le versement n'est pas encore importé reste une
-        // arrivée à préparer ; seule une fermeture posée sur des nuits déjà fermées est écartée.
+        // Un séjour Booking.com reste une arrivée à préparer ; seule une fermeture posée sur des
+        // nuits déjà fermées est écartée.
         $blocks = $this->availability->planningBlocks($today->subDay()->toDateString(), $end->toDateString())
             ->whereIn('apartment_id', $apartments->keys()->all())
             ->reject(fn (AvailabilityBlock $block) => $block->isRedundantClosure())

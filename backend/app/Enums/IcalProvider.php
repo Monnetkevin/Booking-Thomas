@@ -3,9 +3,9 @@
 namespace App\Enums;
 
 /**
- * Plateforme dont on importe le calendrier. Ajouter une plateforme se limite à un nouveau
- * cas : le modèle de données est générique. Les valeurs sont celles de PayoutPlatform, pour
- * rapprocher les nuits importées des revenus importés.
+ * Plateforme dont on importe le calendrier, et dont l'admin saisit les revenus du mois
+ * (PlatformRevenueService). Ajouter une plateforme se limite à un nouveau cas : le modèle
+ * de données est générique.
  */
 enum IcalProvider: string
 {
@@ -23,7 +23,7 @@ enum IcalProvider: string
     /**
      * Vrai si l'événement est une date fermée par l'hôte et non un séjour. Airbnb les
      * distingue (« Reserved » / « Airbnb (Not available) ») ; Booking.com marque tout
-     * « CLOSED - Not available » : voir confirmsStaysByPayout().
+     * « CLOSED - Not available » : voir mixesStaysAndClosures().
      */
     public function isClosure(?string $summary): bool
     {
@@ -39,14 +39,14 @@ enum IcalProvider: string
      */
     public function mayBeClosure(?string $summary): bool
     {
-        return $this->isClosure($summary) || $this->confirmsStaysByPayout();
+        return $this->isClosure($summary) || $this->mixesStaysAndClosures();
     }
 
     /**
-     * Vrai si le calendrier ne distingue pas un séjour d'une date fermée : un bloc n'y compte
-     * comme séjour vendu, dans les chiffres du back-office, que si un versement importé le confirme.
+     * Vrai si le calendrier ne distingue pas un séjour d'une date fermée : un bloc y compte
+     * comme séjour vendu, sauf s'il ne fait que répéter une fermeture du site (fermeture redondante).
      */
-    public function confirmsStaysByPayout(): bool
+    public function mixesStaysAndClosures(): bool
     {
         return $this === self::Booking;
     }

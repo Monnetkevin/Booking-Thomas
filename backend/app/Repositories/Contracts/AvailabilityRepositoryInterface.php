@@ -109,7 +109,7 @@ interface AvailabilityRepositoryInterface
 
     /**
      * Séjours importés en conflit qui ne sont pas terminés, avec leur logement (hors fermetures
-     * posées sur des nuits déjà fermées, sauf si un versement en fait un séjour).
+     * posées sur des nuits déjà fermées).
      *
      * @return Collection<int, AvailabilityBlock>
      */
