@@ -169,6 +169,10 @@ class BookingService
     public function expire(Booking $booking): bool
     {
         $released = DB::transaction(function () use ($booking): bool {
+            // Verrou du logement, comme toute libération de nuits : une synchronisation iCal du
+            // même logement ne peut pas lever ou poser un conflit en même temps. Déjà tenu quand
+            // la synchronisation elle-même fait expirer la réservation (verrou réentrant).
+            $this->availability->lockApartment($booking->apartment_id);
             if (! $this->bookings->transitionFromPending($booking, ['status' => BookingStatus::Expired])) {
                 return false;
             }

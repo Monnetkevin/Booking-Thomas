@@ -16,6 +16,7 @@ use App\Services\Booking\BookingService;
 use App\Services\Booking\StayRules;
 use App\Services\Security\HumanVerifier;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -169,6 +170,21 @@ it('expire une réservation non payée après 40 minutes et libère ses nuits', 
     expect(Booking::firstOrFail()->status)->toBe(BookingStatus::Expired)
         ->and(AvailabilityBlock::firstOrFail()->is_active)->toBeFalse();
     $this->postJson('/api/bookings', bookingPayload(['email' => 'autre@example.com']))->assertCreated();
+});
+
+it('verrouille le logement avant d’expirer une réservation, comme toute libération de nuits', function () {
+    $this->postJson('/api/bookings', bookingPayload())->assertCreated();
+    Date::setTestNow('2026-11-10 14:41:00');
+    $queries = [];
+    DB::listen(function ($query) use (&$queries) {
+        $queries[] = $query->sql;
+    });
+
+    $this->artisan('bookings:expire')->assertSuccessful();
+
+    $lock = collect($queries)->search(fn (string $sql) => str_contains($sql, 'pg_advisory_xact_lock'));
+    $update = collect($queries)->search(fn (string $sql) => str_starts_with($sql, 'update "bookings"'));
+    expect($lock)->not->toBeFalse()->and($update)->not->toBeFalse()->and($lock)->toBeLessThan($update);
 });
 
 it('n’expire pas une réservation confirmée entre-temps par le paiement', function () {
