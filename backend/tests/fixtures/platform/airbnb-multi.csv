@@ -1,5 +1,0 @@
-﻿Date;Type;Code de confirmation;Date de réservation;Date de début;Nuits;Voyageur;Logement;Détails;Code de référence;Devise;Montant;Versé;Frais de service;Revenus bruts
-01/12/2026;Réservation;HMLONG1;01/11/2026;01/12/2026;31;Jean Long;12;;;EUR;"1 000,00";;"30,00";
-01/01/2027;Réservation;HMLONG1;01/11/2026;02/12/2026;31;Jean Long;12;;;EUR;"1 000,00";;"30,00";
-02/01/2027;Réservation;HMLONG1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;01/11/2026;01/01/2027;2;X;12;;;EUR;"10,00";;;
-03/01/2027;Réservation;HMOTHER;01/11/2026;05/01/2027;2;Ana;2;;;EUR;"200,00";;;

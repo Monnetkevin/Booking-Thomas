@@ -69,7 +69,6 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->where('is_active', true)
             ->where('has_conflict', true)
             ->overlapping($from, $to)
-            ->withPayoutConfirmation()
             ->with('icalFeed')
             ->orderBy('id')
             ->get();
@@ -88,7 +87,7 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
 
     public function feedBlocks(int $feedId): Collection
     {
-        return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->withPayoutConfirmation()->with('icalFeed')->get();
+        return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->with('icalFeed')->get();
     }
 
     public function createBlock(array $attributes): AvailabilityBlock
@@ -131,7 +130,6 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
         return AvailabilityBlock::query()
             ->where('is_active', true)
             ->overlapping($from, $to)
-            ->withPayoutConfirmation()
             ->with(['booking', 'icalFeed'])
             ->orderBy('apartment_id')
             ->orderBy('starts_on')
@@ -146,7 +144,6 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->whereKeyNot($exceptBlockId)
             ->where(fn (Builder $query) => $this->realStay($query))
             ->where(fn (Builder $query) => $query->whereDate('ends_on', $startsOn)->orWhereDate('starts_on', $endsOn))
-            ->withPayoutConfirmation()
             ->with('icalFeed')
             ->get()
             // Séjour ou logement occupé : pas une simple date fermée.
@@ -161,7 +158,6 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->whereHas('apartment', fn (Builder $query) => $query->whereNull('deleted_at'))
             ->where(fn (Builder $query) => $this->realStay($query))
             ->withoutRedundantClosures()
-            ->withPayoutConfirmation()
             ->with(['apartment', 'booking', 'icalFeed'])
             ->orderBy('apartment_id')
             ->orderBy('starts_on')

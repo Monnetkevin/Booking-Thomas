@@ -12,6 +12,8 @@ export type AuditAction =
   | 'user.invited'
   | 'user.updated'
   | 'user.password_link_sent'
+  | 'platform_revenues.saved'
+  /** Ancien import CSV des revenus (abandonné), encore au journal. */
   | 'platform_payouts.imported'
   | 'bookings.exported'
 
@@ -29,6 +31,7 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'user.invited',
   'user.updated',
   'user.password_link_sent',
+  'platform_revenues.saved',
   'platform_payouts.imported',
   'bookings.exported',
 ]

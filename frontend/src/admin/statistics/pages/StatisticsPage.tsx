@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { useCurrentUser } from '@/admin/auth/useAuth'
-import { FEATURES } from '@/admin/features'
 import { canVisit } from '@/admin/navigation'
 import { KpiCard } from '@/admin/components/KpiCard'
 import { PageHeader } from '@/admin/components/PageHeader'
@@ -29,7 +28,7 @@ const PERIODS: StatisticsPeriod[] = ['six_months', 'year', 'all']
 
 /**
  * Statistiques sur 6 mois, 12 mois ou depuis le début : revenus par canal (direct et
- * plateformes importées), part du direct, revenu par nuit, durée moyenne, occupation,
+ * plateformes saisies), part du direct, revenu par nuit, durée moyenne, occupation,
  * détail par mois et par logement, export CSV.
  */
 export function StatisticsPage() {
@@ -77,14 +76,8 @@ export function StatisticsPage() {
       {missing && (
         <div className="mb-4">
           <Alert tone="warning">
-            {FEATURES.platformImport ? (
-              <>
-                {t('admin.statistics.platformMissing')}{' '}
-                {user && canVisit('/admin/revenus-plateformes', user.role) && <Link to="/admin/revenus-plateformes">{t('admin.statistics.importLink')}</Link>}
-              </>
-            ) : (
-              t('admin.statistics.platformNotTracked')
-            )}
+            {t('admin.statistics.platformMissing')}{' '}
+            {user && canVisit('/admin/revenus-plateformes', user.role) && <Link to="/admin/revenus-plateformes">{t('admin.statistics.fillLink')}</Link>}
           </Alert>
         </div>
       )}
@@ -180,7 +173,7 @@ export function StatisticsPage() {
                     <td className={cell}>{month.nights_direct}</td>
                     <td className={cell}>{month.nights_platform}</td>
                     <td className={cell}>{formatEuros(month.revenue)}</td>
-                    <td className={cell}>{month.platform_revenue_missing ? '—' : formatEuros(month.platform_revenue.airbnb + month.platform_revenue.booking)}</td>
+                    <td className={cell}>{formatEuros(month.platform_revenue.airbnb + month.platform_revenue.booking)}{month.platform_revenue_missing && ' *'}</td>
                     <td className={cell}>{rate(month.occupancy)}</td>
                   </tr>
                 ))}

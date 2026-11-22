@@ -5,7 +5,6 @@ namespace App\Services\Statistics;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
 use App\Models\AvailabilityBlock;
-use App\Models\PlatformPayout;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -61,64 +60,32 @@ class NightCounter
     }
 
     /**
-     * Nuits des séjours importés par iCal qui arrivent dans [from, to[, par plateforme
-     * (« airbnb », « booking »), comptées comme leurs revenus : au mois d'arrivée. Une nuit
-     * tenue par deux séjours en conflit ne compte qu'une fois, comme dans count().
+     * Nuits vendues sur chaque plateforme dans [from, to[, par logement : la base des revenus
+     * saisis chaque mois (PlatformRevenueService). Une nuit tenue par deux séjours en conflit ne
+     * compte qu'une fois, comme dans count().
      *
      * @param  Collection<int, AvailabilityBlock>  $blocks  blocs actifs (calendrier chargé)
-     * @return array<string, int>
+     * @return array<int, array<string, int>> id du logement → plateforme (« airbnb », « booking ») → nuits
      */
-    public function platformNightsArriving(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
+    public function platformNightsByApartment(Collection $blocks, CarbonImmutable $from, CarbonImmutable $to): array
     {
-        $arriving = $blocks->filter(fn (AvailabilityBlock $block) => $this->kind($block) === 'platform'
-            && $block->icalFeed !== null && $block->starts_on->gte($from) && $block->starts_on->lt($to));
-        if ($arriving->isEmpty()) {
-            return [];
-        }
-        // Propriétaires des nuits jusqu'au dernier départ : un séjour arrivé dans la période
-        // compte toutes ses nuits, même celles d'après.
-        $owners = $this->nightOwners($blocks, $from, $arriving->max(fn (AvailabilityBlock $block) => $block->ends_on));
-
+        $byBlock = $blocks->keyBy(fn (AvailabilityBlock $block) => spl_object_id($block));
         $nights = [];
-        foreach ($arriving as $block) {
-            $provider = $block->icalFeed->provider->value;
-            for ($day = $block->starts_on; $day->lt($block->ends_on); $day = $day->addDay()) {
-                if ($owners[$block->apartment_id.'|'.$day->toDateString()]['block'] === spl_object_id($block)) {
-                    $nights[$provider] = ($nights[$provider] ?? 0) + 1;
-                }
+        foreach ($this->nightOwners($blocks, $from, $to) as ['kind' => $kind, 'block' => $id]) {
+            $block = $byBlock[$id];
+            $provider = $block->icalFeed?->provider->value;
+            if ($kind !== 'platform' || $provider === null) {
+                continue;
             }
+            $nights[$block->apartment_id][$provider] = ($nights[$block->apartment_id][$provider] ?? 0) + 1;
         }
 
         return $nights;
     }
 
     /**
-     * Pour tous les chiffres (voir SoldStayBlocks) : un bloc d'un calendrier qui ne distingue pas séjours et dates
-     * fermées (Booking.com) n'est un séjour vendu que si un versement importé de cette
-     * plateforme arrive le même jour dans le même logement ; sinon il compte comme fermé.
-     *
-     * @param  Collection<int, AvailabilityBlock>  $blocks
-     * @param  Collection<int, PlatformPayout>  $payouts
-     * @return Collection<int, AvailabilityBlock>
-     */
-    public function confirmPlatformStays(Collection $blocks, Collection $payouts): Collection
-    {
-        $paid = $payouts->mapWithKeys(fn (PlatformPayout $payout) => [$payout->platform->value.'|'.$payout->apartment_id.'|'.$payout->arrival->toDateString() => true]);
-
-        return $blocks->map(function (AvailabilityBlock $block) use ($paid): AvailabilityBlock {
-            $provider = $block->type === BlockType::Ical ? $block->icalFeed?->provider : null;
-            if ($provider === null || ! $provider->confirmsStaysByPayout() || $paid->has($provider->value.'|'.$block->apartment_id.'|'.$block->starts_on->toDateString())) {
-                return $block;
-            }
-
-            // Copie non enregistrée, comptée comme une fermeture.
-            return $block->replicate()->forceFill(['type' => BlockType::Manual]);
-        });
-    }
-
-    /**
-     * Sans versements importés : un bloc qui ne fait que répéter une fermeture du site compte
-     * comme fermé (copie non enregistrée), les autres restent des séjours.
+     * Un bloc qui ne fait que répéter une fermeture du site (date Booking.com posée sur une
+     * fermeture) compte comme fermé (copie non enregistrée), les autres restent des séjours.
      *
      * @param  Collection<int, AvailabilityBlock>  $blocks
      * @return Collection<int, AvailabilityBlock>

@@ -3,17 +3,16 @@
 namespace App\Services\Statistics;
 
 use App\Enums\BookingStatus;
-use App\Enums\PayoutPlatform;
 use App\Enums\StatisticsPeriod;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
-use App\Models\PlatformPayout;
 use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
-use App\Repositories\Contracts\PlatformPayoutRepositoryInterface;
+use App\Repositories\Contracts\PlatformRevenueRepositoryInterface;
 use App\Services\Export\CsvWriter;
+use App\Services\PlatformRevenue\PlatformRevenueLedger;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -23,9 +22,9 @@ use Illuminate\Support\Collection;
  * du direct, revenu par nuit, durée moyenne de séjour, occupation, par mois et par logement.
  *
  * Revenus directs : argent encaissé moins les remboursements, hors taxe de séjour (voir
- * RevenueCalculator), compté au mois d'arrivée. Revenus des plateformes : montants nets importés de
- * leurs fichiers CSV (l'iCal ne transmet que les dates), au mois d'arrivée. La note moyenne
- * viendra avec les avis.
+ * RevenueCalculator), compté au mois d'arrivée. Revenus des plateformes : net versé saisi à la
+ * main chaque mois par logement (PlatformRevenueService ; l'iCal ne transmet que les dates),
+ * compté au mois saisi. La note moyenne viendra avec les avis.
  */
 class StatisticsService
 {
@@ -37,7 +36,8 @@ class StatisticsService
         private readonly AvailabilityRepositoryInterface $availability,
         private readonly SoldStayBlocks $soldStays,
         private readonly BookingRepositoryInterface $bookings,
-        private readonly PlatformPayoutRepositoryInterface $payouts,
+        private readonly PlatformRevenueRepositoryInterface $platformRevenues,
+        private readonly PlatformRevenueLedger $ledger,
         private readonly NightCounter $nights,
         private readonly RevenueCalculator $revenue,
         private readonly CsvWriter $csvWriter,
@@ -57,22 +57,23 @@ class StatisticsService
         $blocks = $this->soldStays->between($from, $to, $ids);
         $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
         $earning = $this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
-        $payouts = $this->payouts->arrivingBetween($from, $to)->whereIn('apartment_id', $ids);
+        $ledger = $this->ledger->months($blocks, $this->platformRevenues->between($from, $to), $from, $to, $ids);
+        // Le mois en cours n'est pas encore versé : ses montants ne manquent pas.
+        $closed = $today->startOfMonth();
 
         $months = [];
         for ($month = $from; $month->lt($to); $month = $month->addMonth()) {
             $end = $month->addMonth();
             $nights = $this->nights->count($blocks, $month, $end);
-            $platform = $this->platformRevenue($payouts->filter(fn (PlatformPayout $payout) => $payout->arrival->gte($month) && $payout->arrival->lt($end)));
+            $cells = $ledger[$month->format('Y-m')];
             $months[] = [
                 'month' => $month->format('Y-m'),
                 'nights_direct' => $nights['direct'],
                 'nights_platform' => $nights['platform'],
                 'revenue' => $this->revenue->of($earning->filter(fn (Booking $booking) => $booking->arrival->gte($month) && $booking->arrival->lt($end))),
-                'platform_revenue' => $platform,
-                // Séjours arrivés ce mois-ci sur une plateforme dont aucun revenu n'est importé :
-                // montants inconnus (revenus et séjours comptés tous deux au mois d'arrivée).
-                'platform_revenue_missing' => $this->platformRevenueMissing($this->nights->platformNightsArriving($blocks, $month, $end), $platform),
+                'platform_revenue' => $this->ledger->totals($cells),
+                // Nuits vendues ce mois-ci sur une plateforme sans montant saisi (mois écoulés seulement).
+                'platform_revenue_missing' => $month->lt($closed) && $this->ledger->missing($cells) > 0,
                 'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $month->diffInDays($end)),
             ];
         }
@@ -80,10 +81,9 @@ class StatisticsService
         $days = (int) $from->diffInDays($to);
         $total = $this->nights->count($blocks, $from, $to);
         $direct = $this->revenue->of($earning);
-        $platform = $this->platformRevenue($payouts);
+        $cells = $this->mergeMonths($ledger);
+        $platform = $this->ledger->totals($cells);
         $allRevenue = $direct + array_sum($platform);
-        $platformNights = $this->nights->platformNightsArriving($blocks, $from, $to);
-        $missing = $this->platformRevenueMissing($platformNights, $platform);
 
         return [
             'period' => $period->value,
@@ -94,8 +94,7 @@ class StatisticsService
                 'platform_revenue' => $platform,
                 'total_revenue' => $allRevenue,
                 'direct_share' => $allRevenue > 0 ? round($direct / $allRevenue * 100, 1) : null,
-                // Revenu par nuit vendue, seulement si chaque plateforme vendue a ses revenus importés.
-                'revenue_per_night' => $missing ? null : $this->revenuePerNight($earning, $platform, $platformNights),
+                'revenue_per_night' => $this->revenuePerNight($earning, $ledger),
                 'nights_direct' => $total['direct'],
                 'nights_platform' => $total['platform'],
                 'average_nightly_price' => $this->averageNightlyPrice($sold),
@@ -103,7 +102,7 @@ class StatisticsService
                 'occupancy' => $this->nights->occupancy($total, $apartments->count(), $days),
             ],
             'months' => $months,
-            'apartments' => $apartments->map(function (Apartment $apartment) use ($blocks, $earning, $payouts, $from, $to, $days): array {
+            'apartments' => $apartments->map(function (Apartment $apartment) use ($blocks, $earning, $cells, $from, $to, $days): array {
                 $nights = $this->nights->count($blocks->where('apartment_id', $apartment->id), $from, $to);
 
                 return [
@@ -112,7 +111,7 @@ class StatisticsService
                     'nights_direct' => $nights['direct'],
                     'nights_platform' => $nights['platform'],
                     'revenue' => $this->revenue->of($earning->where('apartment_id', $apartment->id)),
-                    'platform_revenue' => array_sum($this->platformRevenue($payouts->where('apartment_id', $apartment->id))),
+                    'platform_revenue' => array_sum($this->ledger->totals([$apartment->id => $cells[$apartment->id] ?? []])),
                     'occupancy' => $this->nights->occupancy($nights, 1, $days),
                     'rating' => null,
                 ];
@@ -137,57 +136,57 @@ class StatisticsService
     }
 
     /**
-     * Vrai si une plateforme a vendu des nuits sans qu'aucun de ses revenus ne soit importé
-     * (une plateforme sans import de revenus compte comme manquante).
+     * Cases de plusieurs mois réunies par logement et plateforme (nuits et montants additionnés ;
+     * montant null si aucun mois n'en a).
      *
-     * @param  array<string, int>  $nights  nuits par plateforme
-     * @param  array<string, int>  $revenue  revenus par plateforme
+     * @param  array<string, array<int, array<string, array{nights: int, net_amount: int|null}>>>  $ledger
+     * @return array<int, array<string, array{nights: int, net_amount: int|null}>>
      */
-    private function platformRevenueMissing(array $nights, array $revenue): bool
+    private function mergeMonths(array $ledger): array
     {
-        foreach ($nights as $platform => $count) {
-            if ($count > 0 && ($revenue[$platform] ?? 0) === 0) {
-                return true;
+        $merged = [];
+        foreach ($ledger as $cells) {
+            foreach ($cells as $apartmentId => $platforms) {
+                foreach ($platforms as $platform => $cell) {
+                    $previous = $merged[$apartmentId][$platform] ?? ['nights' => 0, 'net_amount' => null];
+                    $merged[$apartmentId][$platform] = [
+                        'nights' => $previous['nights'] + $cell['nights'],
+                        'net_amount' => $cell['net_amount'] === null ? $previous['net_amount'] : ($previous['net_amount'] ?? 0) + $cell['net_amount'],
+                    ];
+                }
             }
         }
 
-        return false;
+        return $merged;
     }
 
     /**
-     * Revenu par nuit vendue, revenus et nuits pris sur les mêmes séjours, arrivés dans la
-     * période : réservations directes vendues et payées (sans les annulations ni les saisies
-     * non encore payées), séjours des plateformes dont le calendrier est relié (sinon leurs
-     * revenus s'ajouteraient sans leurs nuits). Null sans aucune nuit.
+     * Revenu par nuit vendue, revenus et nuits pris sur les mêmes séjours : réservations
+     * directes arrivées dans la période, vendues et payées (sans les annulations ni les saisies
+     * non encore payées) ; mois de plateforme qui ont à la fois des nuits et un montant saisi
+     * (sinon des nuits compteraient sans leurs revenus, ou l'inverse). Null sans aucune nuit.
      *
      * @param  Collection<int, Booking>  $earning
-     * @param  array<string, int>  $platformRevenue  revenus par plateforme
-     * @param  array<string, int>  $platformNights  nuits par plateforme
+     * @param  array<string, array<int, array<string, array{nights: int, net_amount: int|null}>>>  $ledger
      */
-    private function revenuePerNight(Collection $earning, array $platformRevenue, array $platformNights): ?int
+    private function revenuePerNight(Collection $earning, array $ledger): ?int
     {
         $stays = $earning->filter(fn (Booking $booking) => in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::Completed], true)
             && $this->revenue->ofBooking($booking) > 0);
-        $nights = $stays->sum(fn (Booking $booking) => $booking->nights()) + array_sum($platformNights);
-        $revenue = $this->revenue->of($stays) + array_sum(array_intersect_key($platformRevenue, array_filter($platformNights)));
-
-        return $nights > 0 ? (int) round($revenue / $nights) : null;
-    }
-
-    /**
-     * Revenus nets versés par chaque plateforme, en centimes.
-     *
-     * @param  Collection<int, PlatformPayout>  $payouts
-     * @return array<string, int>
-     */
-    private function platformRevenue(Collection $payouts): array
-    {
-        $revenue = [];
-        foreach (PayoutPlatform::cases() as $platform) {
-            $revenue[$platform->value] = (int) $payouts->filter(fn (PlatformPayout $payout) => $payout->platform === $platform)->sum('net_amount');
+        $nights = $stays->sum(fn (Booking $booking) => $booking->nights());
+        $revenue = $this->revenue->of($stays);
+        foreach ($ledger as $cells) {
+            foreach ($cells as $platforms) {
+                foreach ($platforms as $cell) {
+                    if ($cell['net_amount'] !== null && $cell['nights'] > 0) {
+                        $nights += $cell['nights'];
+                        $revenue += $cell['net_amount'];
+                    }
+                }
+            }
         }
 
-        return $revenue;
+        return $nights > 0 ? (int) round($revenue / $nights) : null;
     }
 
     /**

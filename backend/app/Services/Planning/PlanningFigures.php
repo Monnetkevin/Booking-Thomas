@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
  * Chiffres de la période affichée au planning, avec les mêmes règles que le tableau de bord
  * et les statistiques (NightCounter) : nuits vendues et ouvertes, occupation, arrivées dont
  * directes, nuits libres dont de week-end (vendredi et samedi). Les blocs reçus sont déjà
- * passés par SoldStayBlocks (séjours Booking.com confirmés par un versement).
+ * passés par SoldStayBlocks (dates Booking.com répétant une fermeture du site comptées fermées).
  */
 class PlanningFigures
 {

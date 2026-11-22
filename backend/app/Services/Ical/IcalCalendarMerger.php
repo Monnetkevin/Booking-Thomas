@@ -144,9 +144,6 @@ class IcalCalendarMerger
         $housekeeping = $block->knownToHousekeeping();
         $overlap = $this->overlap($block->apartment_id, $event, $block->id);
         $this->availability->updateBlock($block, [...$this->placement($feed, $event, $overlap), ...$this->details($event)]);
-        // is_redundant_closure vient d'être recalculé avec les versements (placement) : la
-        // confirmation chargée avec le bloc, pour ses anciennes dates, ne vaut plus.
-        $block->offsetUnset('confirmed_by_payout');
 
         if (! $moved) {
             // Conflit réévalué, mêmes nuits : le bloc a pu passer de date fermée à séjour.

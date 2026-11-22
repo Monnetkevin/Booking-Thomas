@@ -1,5 +1,0 @@
-﻿Date;Type;Code de confirmation;Date de réservation;Date de début;Nuits;Voyageur;Logement;Détails;Code de référence;Devise;Montant;Versé;Frais de service;Revenus bruts
-02/03/2027;Annulation;HMCANCEL1;;;;Jean Dupont;;Annulation;;EUR;"-500,00";;"-24,00";
-03/03/2027;Ajustement de la résolution;HMKEEP1;;;;Marie Curie;Studio Cocon centre;;;EUR;"-50,00";;;
-03/03/2027;Ajustement de la résolution;HMKEEP1;;;;Marie Curie;Studio Cocon centre;;;EUR;"-50,00";;;
-04/03/2027;Ajustement;HMUNKNOWN;;;;;;;;EUR;"-10,00";;;

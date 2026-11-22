@@ -26,7 +26,7 @@
       "catalogue": "Catalogue",
       "suivi": "Suivi"
     },
-    "platformImport": "Revenus des plateformes"
+    "platformRevenue": "Revenus des plateformes"
   },
   "login": {
     "title": "Connexion",
@@ -614,8 +614,9 @@
       "user.invited": "Compte invité",
       "user.updated": "Compte modifié",
       "user.password_link_sent": "Lien de mot de passe envoyé",
-      "platform_payouts.imported": "Revenus d’une plateforme importés",
-      "bookings.exported": "Réservations exportées (CSV)"
+      "platform_revenues.saved": "Revenus des plateformes saisis",
+      "bookings.exported": "Réservations exportées (CSV)",
+      "platform_payouts.imported": "Revenus importés (ancien import CSV)"
     }
   },
   "notFound": {
@@ -941,7 +942,7 @@
     "revenueShort": "Revenus directs",
     "occupancyShort": "Occupation",
     "byApartment": "Par logement",
-    "platformAmounts": "Revenus des plateformes : montants nets importés de leurs fichiers, au mois d’arrivée.",
+    "platformAmounts": "Revenus des plateformes : net versé saisi chaque mois, par logement.",
     "rating": "Note moyenne",
     "occupancyDetail": "Nuits vendues sur les nuits ouvertes, tous logements.",
     "period": "Période",
@@ -950,29 +951,28 @@
       "year": "12 mois",
       "all": "Tout"
     },
-    "platformMissing": "Certains mois ont des nuits vendues sur les plateformes sans revenus importés : leurs montants manquent dans les totaux.",
-    "importLink": "Importer les revenus des plateformes",
-    "platformNotTracked": "Les revenus Airbnb et Booking.com ne sont pas encore suivis : les montants ne comptent que les réservations du site. Les nuits vendues sur les plateformes sont bien comptées.",
+    "platformMissing": "Des mois écoulés ont des nuits vendues sur les plateformes sans montant saisi : ces revenus manquent dans les totaux.",
     "totalRevenue": "Revenus totaux",
-    "totalRevenueDetail": "Site et plateformes (revenus importés), hors taxe de séjour.",
+    "totalRevenueDetail": "Site et plateformes (montants saisis), hors taxe de séjour.",
     "revenuePerNight": "Revenu par nuit",
     "revenuePerNightDetail_one": "sur {{count}} nuit vendue",
     "revenuePerNightDetail_other": "sur {{count}} nuits vendues",
     "directShare": "Part du direct",
     "occupancyLine": "Occupation : {{value}}",
     "revenueChart": "Revenus par mois",
-    "revenueChartHint": "Direct et plateformes, au mois d’arrivée.",
+    "revenueChartHint": "Direct au mois d’arrivée, plateformes au mois saisi.",
     "revenueChartLabel": "Revenus par mois : {{list}}.",
     "channels": {
       "direct": "Direct",
       "airbnb": "Airbnb",
       "booking": "Booking.com"
     },
-    "missingMark": "* revenus des plateformes non importés",
+    "missingMark": "* revenus des plateformes non saisis",
     "channelsTitle": "Répartition par canal",
     "noRevenue": "Aucun revenu sur la période.",
     "occupancyByApartment": "Taux d’occupation par appartement",
-    "platformRevenueShort": "Plateformes"
+    "platformRevenueShort": "Plateformes",
+    "fillLink": "Saisir les revenus des plateformes"
   },
   "badge": "ADMIN",
   "account": {
@@ -1005,54 +1005,40 @@
       "page": "Page de l’administration"
     }
   },
-  "platformImport": {
+  "platformRevenue": {
     "title": "Revenus des plateformes",
-    "subtitle": "Airbnb et Booking.com ne transmettent aucun montant par le calendrier : importez leurs exports pour suivre les revenus par canal.",
-    "fileTitle": "Fichier à importer",
-    "platform": "Plateforme",
-    "platforms": {
-      "airbnb": "Airbnb",
-      "booking": "Booking.com"
-    },
-    "where": {
-      "airbnb": "Sur Airbnb : Revenus › Historique des transactions › Télécharger le fichier CSV.",
-      "booking": "Sur l’extranet Booking.com : Réservations › Exporter (CSV ; un fichier Excel s’enregistre en CSV)."
-    },
-    "file": "Fichier CSV",
-    "preview": "Prévisualiser",
-    "listingsTitle": "Annonces et logements",
-    "listingsHint": "Rattachez chaque annonce du fichier à un logement. Le choix est retenu pour les prochains imports.",
-    "notLinked": "Non rattachée",
-    "previewTitle": "Aperçu",
-    "previewSummary_one": "{{count}} séjour reconnu, {{skipped}} ligne illisible.",
-    "previewSummary_other": "{{count}} séjours reconnus, {{skipped}} lignes illisibles.",
-    "noRow": "Aucun séjour reconnu dans ce fichier.",
-    "columns": {
-      "code": "Code",
-      "listing": "Annonce",
-      "stay": "Séjour",
-      "fees": "Frais",
-      "net": "Net versé",
-      "state": "État"
-    },
-    "states": {
-      "unlinked": "Annonce non rattachée",
-      "removed": "Déjà importé, sera retiré",
-      "update": "Déjà importé (mis à jour)",
-      "new": "Nouveau"
-    },
-    "skippedLines": "Lignes ignorées (illisibles) : {{lines}}.",
-    "unmapped_one": "{{count}} annonce n’est rattachée à aucun logement : ses séjours ne seront pas importés.",
-    "unmapped_other": "{{count}} annonces ne sont rattachées à aucun logement : leurs séjours ne seront pas importés.",
-    "detachedRemoved_one": "{{count}} versement déjà importé d’une annonce non rattachée sera retiré des revenus.",
-    "detachedRemoved_other": "{{count}} versements déjà importés d’annonces non rattachées seront retirés des revenus.",
-    "import_one": "Importer {{count}} séjour",
-    "import_other": "Importer {{count}} séjours",
-    "done": "Import terminé : {{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés (annulés), {{skipped}} ignorés.",
-    "historyTitle": "Derniers imports",
-    "noHistory": "Aucun import pour le moment.",
-    "counts": "{{created}} nouveaux, {{updated}} mis à jour, {{removed}} retirés, {{skipped}} ignorés",
-    "cancelled_one": "{{count}} réservation annulée chez la plateforme sera retirée.",
-    "cancelled_other": "{{count}} réservations annulées chez la plateforme seront retirées."
+    "subtitle": "Net versé par Airbnb et Booking.com, saisi chaque mois par logement. Les nuits viennent de la synchronisation iCal.",
+    "month": "Mois",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "where": "Où trouver le montant ? Airbnb › Revenus › rapport de revenus du mois : colonne « Total (EUR) » de chaque logement (net, après frais de service, hors taxe de séjour). Booking.com : relevé mensuel de l’extranet, montant versé pour chaque établissement.",
+    "sheetTitle": "Saisie de {{month}}",
+    "sheetHint": "Champ vide : pas encore saisi. 0 € : aucun revenu ce mois-ci. Un montant sans nuit (frais d’annulation, par exemple) se saisit aussi.",
+    "current": "Mois en cours",
+    "complete": "Complet",
+    "missing_one": "{{count}} montant à saisir",
+    "missing_other": "{{count}} montants à saisir",
+    "noApartment": "Aucun logement.",
+    "apartment": "Logement",
+    "nights": "Nuits (iCal)",
+    "net": "Net versé",
+    "perNight": "Net par nuit",
+    "amountLabel": "Net versé par {{platform}}, {{apartment}}",
+    "toFill": "À saisir",
+    "total": "Total du mois",
+    "incomplete": "(incomplet)",
+    "invalid": "Certains montants ne sont pas valides : saisissez un nombre en euros, par exemple 1 552,07.",
+    "saved": "Montants enregistrés.",
+    "lastSaved": "Dernière saisie le {{date}} par {{by}}.",
+    "neverSaved": "Aucun montant saisi pour ce mois.",
+    "historyTitle": "Mois précédents",
+    "historyHint": "Un mois reste « à saisir » tant qu’un logement a des nuits sur une plateforme sans montant.",
+    "state": "État",
+    "action": "Action",
+    "shown": "Affiché",
+    "fill": "Saisir",
+    "edit": "Modifier",
+    "unavailable": "Ce mois n’est pas disponible.",
+    "backToDefault": "Revenir au mois précédent"
   }
 }

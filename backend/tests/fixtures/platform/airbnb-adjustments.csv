@@ -1,6 +1,0 @@
-﻿Date;Type;Code de confirmation;Date de réservation;Date de début;Nuits;Voyageur;Logement;Détails;Code de référence;Devise;Montant;Versé;Frais de service;Revenus bruts
-05/11/2026;Réservation;HMCANCEL1;20/10/2026;04/11/2026;3;Jean Dupont;Studio Cocon centre;;;EUR;"800,00";;"24,00";"824,00"
-06/11/2026;Ajustement de la résolution;HMCANCEL1;;;;Jean Dupont;;Annulation;;EUR;"-800,00";;;
-07/11/2026;Réservation;HMKEEP1;01/11/2026;14/11/2026;2;Marie Curie;Studio Cocon centre;;;EUR;"400,00";;"12,00";"412,00"
-08/11/2026;Ajustement;;;;;;;Frais divers;;EUR;"-5,00";;;
-09/11/2026;Versement;;;;;;;;;EUR;;"400,00";;

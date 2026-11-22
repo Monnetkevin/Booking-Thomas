@@ -38,8 +38,8 @@ class PlanningService
         return [
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
-            // Chiffres : un bloc Booking.com sans versement importé compte comme fermé.
-            'figures' => $this->figures->compute($this->soldStays->confirm($all->toBase(), $to), $ids, $from, $to),
+            // Chiffres : une date Booking.com qui répète une fermeture du site compte comme fermée.
+            'figures' => $this->figures->compute($this->soldStays->classify($all->toBase()), $ids, $from, $to),
             'apartments' => $apartments->map(fn (Apartment $apartment) => [
                 'id' => $apartment->id,
                 'name' => $apartment->getTranslation('name', 'fr'),
