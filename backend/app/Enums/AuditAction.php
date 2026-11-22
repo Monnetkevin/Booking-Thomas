@@ -19,5 +19,7 @@ enum AuditAction: string
     case UserUpdated = 'user.updated';
     case UserPasswordLinkSent = 'user.password_link_sent';
     case PlatformRevenuesSaved = 'platform_revenues.saved';
+    /** Ancien import CSV des revenus (abandonné) : gardé pour lire le journal existant. */
+    case PlatformPayoutsImported = 'platform_payouts.imported';
     case BookingsExported = 'bookings.exported';
 }

@@ -1,11 +1,12 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { platformRevenueService, type PlatformRevenueService } from './platformRevenueService'
 import type { RevenueEntry } from './types'
 
 const key = ['admin', 'platform-revenues'] as const
 
-export function useRevenueSheet(month: string, service: PlatformRevenueService = platformRevenueService) {
-  return useQuery({ queryKey: [...key, 'sheet', month], queryFn: () => service.sheet(month), placeholderData: keepPreviousData })
+/** month null : mois par défaut choisi par le serveur. */
+export function useRevenueSheet(month: string | null, service: PlatformRevenueService = platformRevenueService) {
+  return useQuery({ queryKey: [...key, 'sheet', month ?? 'default'], queryFn: () => service.sheet(month) })
 }
 
 export function useRevenueHistory(service: PlatformRevenueService = platformRevenueService) {
@@ -19,7 +20,8 @@ export function useSaveRevenues(service: PlatformRevenueService = platformRevenu
     mutationFn: ({ month, entries }: { month: string; entries: RevenueEntry[] }) => service.save(month, entries),
     onSuccess: (sheet) => {
       queryClient.setQueryData([...key, 'sheet', sheet.month], sheet)
-      return queryClient.invalidateQueries({ queryKey: ['admin'], predicate: (query) => query.queryKey[2] !== 'sheet' })
+      // Le formulaire, gardé par mois, n'est pas remis à zéro par ce rechargement.
+      return queryClient.invalidateQueries({ queryKey: ['admin'] })
     },
   })
 }

@@ -615,7 +615,8 @@
       "user.updated": "Compte modifié",
       "user.password_link_sent": "Lien de mot de passe envoyé",
       "platform_revenues.saved": "Revenus des plateformes saisis",
-      "bookings.exported": "Réservations exportées (CSV)"
+      "bookings.exported": "Réservations exportées (CSV)",
+      "platform_payouts.imported": "Revenus importés (ancien import CSV)"
     }
   },
   "notFound": {
@@ -1012,7 +1013,7 @@
     "nextMonth": "Mois suivant",
     "where": "Où trouver le montant ? Airbnb › Revenus › rapport de revenus du mois : colonne « Total (EUR) » de chaque logement (net, après frais de service, hors taxe de séjour). Booking.com : relevé mensuel de l’extranet, montant versé pour chaque établissement.",
     "sheetTitle": "Saisie de {{month}}",
-    "sheetHint": "Champ vide : pas encore saisi. 0 € : aucun revenu ce mois-ci.",
+    "sheetHint": "Champ vide : pas encore saisi. 0 € : aucun revenu ce mois-ci. Un montant sans nuit (frais d’annulation, par exemple) se saisit aussi.",
     "current": "Mois en cours",
     "complete": "Complet",
     "missing_one": "{{count}} montant à saisir",
@@ -1024,7 +1025,6 @@
     "perNight": "Net par nuit",
     "amountLabel": "Net versé par {{platform}}, {{apartment}}",
     "toFill": "À saisir",
-    "noNight": "Pas de nuit",
     "total": "Total du mois",
     "incomplete": "(incomplet)",
     "invalid": "Certains montants ne sont pas valides : saisissez un nombre en euros, par exemple 1 552,07.",
@@ -1037,6 +1037,8 @@
     "action": "Action",
     "shown": "Affiché",
     "fill": "Saisir",
-    "edit": "Modifier"
+    "edit": "Modifier",
+    "unavailable": "Ce mois n’est pas disponible.",
+    "backToDefault": "Revenir au mois précédent"
   }
 }

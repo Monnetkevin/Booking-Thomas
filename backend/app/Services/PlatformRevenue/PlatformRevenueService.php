@@ -42,7 +42,8 @@ class PlatformRevenueService
         $month = $month->startOfMonth();
         $end = $month->addMonth();
         $apartments = $this->apartments->allOrdered();
-        $revenues = $this->revenues->between($month, $end);
+        // Montants des seuls logements existants : ceux d'un logement supprimé ne comptent plus.
+        $revenues = $this->revenues->between($month, $end)->whereIn('apartment_id', $apartments->modelKeys());
         $cells = $this->ledger->months($this->soldStays->between($month, $end), $revenues, $month, $end, $apartments->modelKeys())[$month->format('Y-m')];
         $last = $revenues->sortByDesc('updated_at')->first();
 
@@ -102,7 +103,7 @@ class PlatformRevenueService
         $to = $today->startOfMonth()->addMonth();
         $from = $to->subMonths(self::HISTORY);
         $apartments = $this->apartments->allOrdered();
-        $revenues = $this->revenues->between($from, $to);
+        $revenues = $this->revenues->between($from, $to)->whereIn('apartment_id', $apartments->modelKeys());
         $months = $this->ledger->months($this->soldStays->between($from, $to), $revenues, $from, $to, $apartments->modelKeys());
         $entered = $revenues->mapWithKeys(fn (PlatformMonthlyRevenue $revenue) => [$revenue->month->format('Y-m') => true]);
 

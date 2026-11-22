@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -32,8 +31,7 @@ return new class extends Migration
         Schema::dropIfExists('platform_payouts');
         Schema::dropIfExists('platform_listings');
         Schema::dropIfExists('platform_imports');
-        // Les imports journalisés désignent des tables disparues.
-        DB::table('audit_logs')->where('action', 'platform_payouts.imported')->delete();
+        // Le journal garde les imports passés (AuditAction::PlatformPayoutsImported).
     }
 
     public function down(): void

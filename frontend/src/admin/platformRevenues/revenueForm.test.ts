@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultMonth, initialDrafts, isEditable, shiftMonth, summarize } from './revenueForm'
+import { defaultMonth, initialDrafts, shiftMonth, summarize } from './revenueForm'
 import type { RevenueSheet } from './types'
 
 const sheet: RevenueSheet = {
@@ -23,12 +23,6 @@ describe('saisie des revenus des plateformes', () => {
     expect(defaultMonth(new Date(2027, 0, 3))).toBe('2026-12')
   })
 
-  it('montre un champ pour les plateformes avec des nuits ou un montant', () => {
-    expect(isEditable(sheet, 1, 'airbnb')).toBe(true)
-    expect(isEditable(sheet, 1, 'booking')).toBe(false)
-    expect(isEditable(sheet, 3, 'booking')).toBe(true)
-  })
-
   it('reprend les montants en euros et calcule totaux, cases à saisir et net par nuit', () => {
     const drafts = initialDrafts(sheet)
     expect(drafts['1|airbnb']).toBe('1552,07')
@@ -39,7 +33,15 @@ describe('saisie des revenus des plateformes', () => {
     expect(summary.totals).toEqual({ airbnb: 155207, booking: 46800 })
     expect(summary.perNight).toEqual({ 1: 5970, 2: 7800, 3: null })
     expect(summary.entries).toContainEqual({ apartment_id: 2, platform: 'airbnb', net_amount: null })
-    expect(summary.entries).not.toContainEqual(expect.objectContaining({ apartment_id: 1, platform: 'booking' }))
+    expect(summary.entries).toHaveLength(6)
+  })
+
+  it('accepte un montant sans nuit ce mois-là, compté au total mais pas au net par nuit', () => {
+    const summary = summarize(sheet, { ...initialDrafts(sheet), '1|booking': '80' })
+
+    expect(summary.entries).toContainEqual({ apartment_id: 1, platform: 'booking', net_amount: 8000 })
+    expect(summary.totals.booking).toBe(54800)
+    expect(summary.perNight[1]).toBe(5970)
   })
 
   it('accepte « 1 386,00 », refuse une saisie qui n’est pas un montant, efface un champ vidé', () => {

@@ -127,3 +127,29 @@ it('alimente les statistiques avec les montants saisis', function () {
         ->assertJsonPath('data.months.4.platform_revenue_missing', false)
         ->assertJsonPath('data.totals.revenue_per_night', 5970);
 });
+
+it('accepte un montant sans nuit ce mois-là (frais d’annulation), compté au total mais pas au net par nuit', function () {
+    $this->putJson('/api/admin/platform-revenues', ['month' => '2026-10', 'entries' => [revenueEntry($this->cocon, 'booking', 8000)]])->assertOk()
+        ->assertJsonPath('data.apartments.1.platforms.booking', ['nights' => 0, 'net_amount' => 8000])
+        ->assertJsonPath('data.totals.booking', 8000)
+        ->assertJsonPath('data.missing', 0);
+
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.4.platform_revenue.booking', 8000)
+        ->assertJsonPath('data.totals.revenue_per_night', null);
+});
+
+it('ignore les montants d’un logement supprimé dans l’historique et la dernière saisie', function () {
+    PlatformMonthlyRevenue::query()->create(['platform' => 'airbnb', 'apartment_id' => $this->cocon->id, 'month' => '2026-09-01', 'net_amount' => 21000, 'user_id' => $this->admin->id]);
+    $this->cocon->delete();
+
+    $this->getJson('/api/admin/platform-revenues?month=2026-09')->assertJsonPath('data.last_saved', null);
+    expect(collect($this->getJson('/api/admin/platform-revenues/history')->json('data'))->firstWhere('month', '2026-09'))
+        ->toMatchArray(['entered' => false, 'totals' => ['airbnb' => 0, 'booking' => 0]]);
+});
+
+it('garde lisibles au journal les imports de l’ancien import CSV', function () {
+    AuditLog::query()->create(['action' => 'platform_payouts.imported', 'after' => ['platform' => 'airbnb']]);
+
+    $this->getJson('/api/admin/audit-logs')->assertOk()->assertJsonPath('data.0.action', 'platform_payouts.imported');
+});

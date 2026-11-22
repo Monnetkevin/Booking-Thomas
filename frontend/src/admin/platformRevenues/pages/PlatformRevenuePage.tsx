@@ -15,7 +15,7 @@ import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import { formatDateTime } from '@/lib/dates'
 import { formatEuros } from '@/lib/money'
-import { cellKey, currentMonth, defaultMonth, initialDrafts, isEditable, shiftMonth, summarize, type RevenueDrafts } from '../revenueForm'
+import { cellKey, currentMonth, defaultMonth, FIRST_MONTH, initialDrafts, shiftMonth, summarize, type RevenueDrafts } from '../revenueForm'
 import { REVENUE_PLATFORMS, type RevenueHistoryEntry, type RevenueSheet } from '../types'
 import { useRevenueHistory, useRevenueSheet, useSaveRevenues } from '../usePlatformRevenues'
 
@@ -29,12 +29,16 @@ const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
 export function PlatformRevenuePage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
-  const latest = currentMonth()
-  const asked = params.get('mois') ?? ''
-  const month = MONTH_PATTERN.test(asked) && asked <= latest ? asked : defaultMonth()
-  const sheet = useRevenueSheet(month)
   const history = useRevenueHistory()
-  const goTo = (next: string) => setParams(next === defaultMonth() ? {} : { mois: next })
+  // Mois en cours d'après le serveur (premier mois de l'historique), sinon d'après le navigateur.
+  const latest = history.data?.[0]?.month ?? currentMonth()
+  const asked = params.get('mois') ?? ''
+  // Mois hors bornes ou mal écrit : le serveur choisit le mois par défaut (le précédent).
+  const requested = MONTH_PATTERN.test(asked) && asked >= FIRST_MONTH && asked <= latest ? asked : null
+  const sheet = useRevenueSheet(requested)
+  const month = requested ?? sheet.data?.month ?? defaultMonth()
+  const goTo = (next: string) => setParams({ mois: next })
+  const refused = sheet.error instanceof ApiError && sheet.error.status === 422
 
   return (
     <>
@@ -43,7 +47,13 @@ export function PlatformRevenuePage() {
         subtitle={t('admin.platformRevenue.subtitle')}
         actions={
           <div role="group" aria-label={t('admin.platformRevenue.month')} className="flex items-center gap-1 rounded-xl border border-field bg-white p-1">
-            <button type="button" onClick={() => goTo(shiftMonth(month, -1))} aria-label={t('admin.platformRevenue.previousMonth')} className="flex size-10 items-center justify-center rounded-lg hover:bg-sand">
+            <button
+              type="button"
+              onClick={() => goTo(shiftMonth(month, -1))}
+              disabled={month <= FIRST_MONTH}
+              aria-label={t('admin.platformRevenue.previousMonth')}
+              className="flex size-10 items-center justify-center rounded-lg hover:bg-sand disabled:opacity-40 disabled:hover:bg-transparent"
+            >
               <ChevronLeftIcon width={18} height={18} />
             </button>
             <strong className="min-w-36 text-center capitalize" aria-live="polite">{monthLabel(month, 'long')}</strong>
@@ -65,11 +75,20 @@ export function PlatformRevenuePage() {
 
         {sheet.isPending ? (
           <Spinner label={t('common.loading')} />
+        ) : refused ? (
+          // Mois refusé par le serveur (horloges décalées) : retour au mois par défaut.
+          <Alert tone="warning">
+            {t('admin.platformRevenue.unavailable')}{' '}
+            <button type="button" onClick={() => setParams({})} className="font-semibold underline underline-offset-4">
+              {t('admin.platformRevenue.backToDefault')}
+            </button>
+          </Alert>
         ) : sheet.isError ? (
           <ErrorState onRetry={() => void sheet.refetch()} />
         ) : (
-          // Nouvelle feuille (autre mois, ou rechargée après une saisie) : champs repris du serveur.
-          <RevenueForm key={`${sheet.data.month}-${sheet.dataUpdatedAt}`} sheet={sheet.data} />
+          // Gardé par mois : un rechargement (après une saisie, en arrière-plan) ne remet pas
+          // les champs à zéro et n'efface pas la confirmation.
+          <RevenueForm key={sheet.data.month} sheet={sheet.data} />
         )}
 
         <Section title={t('admin.platformRevenue.historyTitle')} description={t('admin.platformRevenue.historyHint')}>
@@ -156,24 +175,23 @@ function RevenueForm({ sheet }: { sheet: RevenueSheet }) {
                         return [
                           <td key={`${key}-nights`} className={cn(cell, split, 'text-right tabular-nums', nights === 0 && 'text-muted')}>{nights}</td>,
                           <td key={`${key}-amount`} className={cn(cell, 'py-1.5')}>
-                            {isEditable(sheet, apartment.id, platform) ? (
-                              <label className="relative block w-36">
-                                <span className="sr-only">{label}</span>
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
-                                  autoComplete="off"
-                                  value={drafts[key] ?? ''}
-                                  placeholder={nights > 0 ? t('admin.platformRevenue.toFill') : undefined}
-                                  onChange={(event) => setDrafts((current) => ({ ...current, [key]: event.target.value }))}
-                                  aria-invalid={invalid.has(key) || undefined}
-                                  className={fieldClasses(invalid.has(key), 'min-h-11 pr-8 text-right tabular-nums')}
-                                />
-                                <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted">€</span>
-                              </label>
-                            ) : (
-                              <span className="text-muted">{t('admin.platformRevenue.noNight')}</span>
-                            )}
+                            <label className="relative block w-36">
+                              <span className="sr-only">{label}</span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                autoComplete="off"
+                                value={drafts[key] ?? ''}
+                                placeholder={nights > 0 ? t('admin.platformRevenue.toFill') : undefined}
+                                onChange={(event) => {
+                                  setDrafts((current) => ({ ...current, [key]: event.target.value }))
+                                  if (save.isSuccess) save.reset()
+                                }}
+                                aria-invalid={invalid.has(key) || undefined}
+                                className={fieldClasses(invalid.has(key), 'min-h-11 pr-8 text-right tabular-nums')}
+                              />
+                              <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted">€</span>
+                            </label>
                           </td>,
                         ]
                       })}

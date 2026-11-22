@@ -13,6 +13,9 @@ export function shiftMonth(month: string, by: number): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
+/** Premier mois accepté par l'API. */
+export const FIRST_MONTH = '2020-01'
+
 export function currentMonth(today: Date = new Date()): string {
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
 }
@@ -32,12 +35,6 @@ export function initialDrafts(sheet: RevenueSheet): RevenueDrafts {
   return drafts
 }
 
-/** Un champ s'affiche quand la plateforme a des nuits, ou un montant déjà saisi. */
-export function isEditable(sheet: RevenueSheet, apartmentId: number, platform: RevenuePlatform): boolean {
-  const cell = sheet.apartments.find((apartment) => apartment.id === apartmentId)?.platforms[platform]
-  return cell !== undefined && (cell.nights > 0 || cell.net_amount !== null)
-}
-
 export interface RevenueSummary {
   entries: RevenueEntry[]
   /** Cases dont la saisie n'est pas un montant. */
@@ -50,7 +47,8 @@ export interface RevenueSummary {
 }
 
 /**
- * Lit la saisie : montants en centimes (vide → null, efface), erreurs, cases à saisir,
+ * Lit la saisie, une case par logement et plateforme (un montant sans nuit ce mois-là, comme
+ * des frais d'annulation, se saisit aussi) : montants en centimes (vide → null, efface), erreurs, cases à saisir,
  * totaux et net par nuit, recalculés à chaque frappe.
  */
 export function summarize(sheet: RevenueSheet, drafts: RevenueDrafts): RevenueSummary {
@@ -59,7 +57,6 @@ export function summarize(sheet: RevenueSheet, drafts: RevenueDrafts): RevenueSu
     let nights = 0
     let amount = 0
     for (const platform of REVENUE_PLATFORMS) {
-      if (!isEditable(sheet, apartment.id, platform)) continue
       const key = cellKey(apartment.id, platform)
       const text = (drafts[key] ?? '').trim()
       const cents = text === '' ? null : parseEuros(text)

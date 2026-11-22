@@ -22,9 +22,12 @@ class PlatformRevenueRepository implements PlatformRevenueRepositoryInterface
 
     public function put(IcalProvider $platform, int $apartmentId, CarbonImmutable $month, int $netAmount, ?int $userId): void
     {
-        PlatformMonthlyRevenue::query()->updateOrCreate(
-            ['platform' => $platform, 'apartment_id' => $apartmentId, 'month' => $month->toDateString()],
-            ['net_amount' => $netAmount, 'user_id' => $userId],
+        // Une seule requête (INSERT … ON CONFLICT) : deux saisies simultanées de la même case
+        // ne se heurtent pas à l'index unique.
+        PlatformMonthlyRevenue::query()->upsert(
+            [['platform' => $platform->value, 'apartment_id' => $apartmentId, 'month' => $month->toDateString(), 'net_amount' => $netAmount, 'user_id' => $userId]],
+            ['platform', 'apartment_id', 'month'],
+            ['net_amount', 'user_id', 'updated_at'],
         );
     }
 
