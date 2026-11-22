@@ -153,3 +153,23 @@ it('garde lisibles au journal les imports de l’ancien import CSV', function ()
 
     $this->getJson('/api/admin/audit-logs')->assertOk()->assertJsonPath('data.0.action', 'platform_payouts.imported');
 });
+
+it('n’écrit et ne journalise que les montants qui changent, sans toucher aux autres cases', function () {
+    $other = User::factory()->create(['name' => 'Autre admin']);
+    PlatformMonthlyRevenue::query()->create(['platform' => 'booking', 'apartment_id' => $this->cocon->id, 'month' => '2026-10-01', 'net_amount' => 46800, 'user_id' => $other->id]);
+    PlatformMonthlyRevenue::query()->create(['platform' => 'airbnb', 'apartment_id' => $this->mancelle->id, 'month' => '2026-10-01', 'net_amount' => 150000, 'user_id' => $other->id]);
+
+    $this->putJson('/api/admin/platform-revenues', ['month' => '2026-10', 'entries' => [
+        revenueEntry($this->mancelle, 'airbnb', 155207),
+        revenueEntry($this->cocon, 'booking', 46800),   // inchangé
+    ]])->assertOk();
+
+    $log = AuditLog::query()->where('action', AuditAction::PlatformRevenuesSaved)->sole();
+    expect(PlatformMonthlyRevenue::query()->where('platform', 'booking')->sole()->user_id)->toBe($other->id)
+        ->and($log->before['amounts'])->toEqual([['apartment_id' => $this->mancelle->id, 'platform' => 'airbnb', 'net_amount' => 150000]])
+        ->and($log->after['amounts'])->toEqual([['apartment_id' => $this->mancelle->id, 'platform' => 'airbnb', 'net_amount' => 155207]]);
+
+    // Rien de changé : ni écriture ni journal.
+    $this->putJson('/api/admin/platform-revenues', ['month' => '2026-10', 'entries' => [revenueEntry($this->mancelle, 'airbnb', 155207)]])->assertOk();
+    expect(AuditLog::query()->where('action', AuditAction::PlatformRevenuesSaved)->count())->toBe(1);
+});

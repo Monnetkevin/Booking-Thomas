@@ -36,6 +36,7 @@ export function initialDrafts(sheet: RevenueSheet): RevenueDrafts {
 }
 
 export interface RevenueSummary {
+  /** Cases dont le montant diffère de la feuille chargée : seules envoyées, pour ne pas écraser la saisie d'un autre. */
   entries: RevenueEntry[]
   /** Cases dont la saisie n'est pas un montant. */
   invalid: string[]
@@ -64,7 +65,9 @@ export function summarize(sheet: RevenueSheet, drafts: RevenueDrafts): RevenueSu
         summary.invalid.push(key)
         continue
       }
-      summary.entries.push({ apartment_id: apartment.id, platform, net_amount: cents })
+      if (cents !== apartment.platforms[platform].net_amount) {
+        summary.entries.push({ apartment_id: apartment.id, platform, net_amount: cents })
+      }
       const cellNights = apartment.platforms[platform].nights
       if (cents === null) {
         if (cellNights > 0) summary.missing++

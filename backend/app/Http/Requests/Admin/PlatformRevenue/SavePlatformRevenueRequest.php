@@ -23,7 +23,8 @@ class SavePlatformRevenueRequest extends FormRequest
     {
         return [
             'month' => ['required', 'date_format:Y-m', 'after_or_equal:2020-01', 'before_or_equal:'.CarbonImmutable::today()->format('Y-m')],
-            'entries' => ['present', 'array', 'max:200'],
+            // Le front n'envoie que les cases modifiées ; la borne protège seulement d'un envoi démesuré.
+            'entries' => ['present', 'array', 'max:1000'],
             'entries.*.apartment_id' => ['required', 'integer', Rule::exists('apartments', 'id')->whereNull('deleted_at')],
             'entries.*.platform' => ['required', Rule::enum(IcalProvider::class)],
             'entries.*.net_amount' => ['present', 'nullable', 'integer', 'min:0', 'max:'.self::MAX_AMOUNT],

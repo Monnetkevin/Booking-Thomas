@@ -32,24 +32,26 @@ describe('saisie des revenus des plateformes', () => {
     expect(summary.missing).toBe(1)
     expect(summary.totals).toEqual({ airbnb: 155207, booking: 46800 })
     expect(summary.perNight).toEqual({ 1: 5970, 2: 7800, 3: null })
-    expect(summary.entries).toContainEqual({ apartment_id: 2, platform: 'airbnb', net_amount: null })
-    expect(summary.entries).toHaveLength(6)
+    // Rien de modifié : rien à envoyer.
+    expect(summary.entries).toEqual([])
   })
 
   it('accepte un montant sans nuit ce mois-là, compté au total mais pas au net par nuit', () => {
     const summary = summarize(sheet, { ...initialDrafts(sheet), '1|booking': '80' })
 
-    expect(summary.entries).toContainEqual({ apartment_id: 1, platform: 'booking', net_amount: 8000 })
+    expect(summary.entries).toEqual([{ apartment_id: 1, platform: 'booking', net_amount: 8000 }])
     expect(summary.totals.booking).toBe(54800)
     expect(summary.perNight[1]).toBe(5970)
   })
 
-  it('accepte « 1 386,00 », refuse une saisie qui n’est pas un montant, efface un champ vidé', () => {
+  it('n’envoie que les cases modifiées : « 1 386,00 » accepté, champ vidé effacé, saisie invalide refusée', () => {
     const summary = summarize(sheet, { ...initialDrafts(sheet), '2|airbnb': '1 386,00', '2|booking': 'abc', '1|airbnb': '' })
 
     expect(summary.invalid).toEqual(['2|booking'])
-    expect(summary.entries).toContainEqual({ apartment_id: 2, platform: 'airbnb', net_amount: 138600 })
-    expect(summary.entries).toContainEqual({ apartment_id: 1, platform: 'airbnb', net_amount: null })
+    expect(summary.entries).toEqual([
+      { apartment_id: 1, platform: 'airbnb', net_amount: null },
+      { apartment_id: 2, platform: 'airbnb', net_amount: 138600 },
+    ])
     expect(summary.missing).toBe(1)
     expect(summary.perNight[2]).toBe(11550)
   })

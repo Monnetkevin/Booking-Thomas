@@ -65,7 +65,9 @@ class PlatformRevenueService
     }
 
     /**
-     * Enregistre les montants du mois (null : efface le montant, il redevient à saisir).
+     * Enregistre les montants envoyés (null : efface le montant, il redevient à saisir). Seules
+     * les cases dont le montant change sont écrites et journalisées (avant, après) : la saisie
+     * d'un autre admin sur d'autres cases n'est ni effacée ni attribuée à celui qui enregistre.
      *
      * @param  list<array{apartment_id: int, platform: IcalProvider, net_amount: int|null}>  $entries
      * @return array<string, mixed> la feuille à jour
@@ -73,22 +75,36 @@ class PlatformRevenueService
     public function save(CarbonImmutable $month, array $entries, ?int $userId, CarbonImmutable $today): array
     {
         $month = $month->startOfMonth();
-        DB::transaction(function () use ($month, $entries, $userId): void {
+        $changes = DB::transaction(function () use ($month, $entries, $userId): array {
+            $stored = [];
+            foreach ($this->revenues->between($month, $month->addMonth()) as $revenue) {
+                $stored[$revenue->apartment_id.'|'.$revenue->platform->value] = $revenue->net_amount;
+            }
+
+            $changes = ['before' => [], 'after' => []];
             foreach ($entries as $entry) {
+                $before = $stored[$entry['apartment_id'].'|'.$entry['platform']->value] ?? null;
+                if ($before === $entry['net_amount']) {
+                    continue;
+                }
                 $entry['net_amount'] === null
                     ? $this->revenues->forget($entry['platform'], $entry['apartment_id'], $month)
                     : $this->revenues->put($entry['platform'], $entry['apartment_id'], $month, $entry['net_amount'], $userId);
+                $cell = ['apartment_id' => $entry['apartment_id'], 'platform' => $entry['platform']->value];
+                $changes['before'][] = [...$cell, 'net_amount' => $before];
+                $changes['after'][] = [...$cell, 'net_amount' => $entry['net_amount']];
             }
+
+            return $changes;
         });
 
-        $this->audit->record(AuditAction::PlatformRevenuesSaved, after: [
-            'month' => $month->format('Y-m'),
-            'amounts' => array_map(fn (array $entry) => [
-                'apartment_id' => $entry['apartment_id'],
-                'platform' => $entry['platform']->value,
-                'net_amount' => $entry['net_amount'],
-            ], $entries),
-        ]);
+        if ($changes['after'] !== []) {
+            $this->audit->record(
+                AuditAction::PlatformRevenuesSaved,
+                before: ['month' => $month->format('Y-m'), 'amounts' => $changes['before']],
+                after: ['month' => $month->format('Y-m'), 'amounts' => $changes['after']],
+            );
+        }
 
         return $this->sheet($month, $today);
     }

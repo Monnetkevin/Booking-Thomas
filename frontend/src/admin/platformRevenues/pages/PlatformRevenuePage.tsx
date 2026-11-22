@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { PageHeader } from '@/admin/components/PageHeader'
@@ -39,6 +39,12 @@ export function PlatformRevenuePage() {
   const month = requested ?? sheet.data?.month ?? defaultMonth()
   const goTo = (next: string) => setParams({ mois: next })
   const refused = sheet.error instanceof ApiError && sheet.error.status === 422
+  // Mois par défaut chargé : inscrit dans l'adresse, pour qu'un rechargement après minuit
+  // en fin de mois reste sur ce mois et garde la saisie.
+  const loaded = sheet.data?.month
+  useEffect(() => {
+    if (requested === null && loaded) setParams({ mois: loaded }, { replace: true })
+  }, [requested, loaded, setParams])
 
   return (
     <>
@@ -120,7 +126,7 @@ function RevenueForm({ sheet }: { sheet: RevenueSheet }) {
   const submit = (event: FormEvent) => {
     event.preventDefault()
     setShowErrors(true)
-    if (summary.invalid.length > 0) return
+    if (summary.invalid.length > 0 || summary.entries.length === 0) return
     save.mutate({ month: sheet.month, entries: summary.entries })
   }
 
@@ -240,7 +246,7 @@ function RevenueForm({ sheet }: { sheet: RevenueSheet }) {
                 ? t('admin.platformRevenue.lastSaved', { date: formatDateTime(sheet.last_saved.at), by: sheet.last_saved.by ?? '—' })
                 : t('admin.platformRevenue.neverSaved')}
           </p>
-          <Button type="submit" loading={save.isPending} disabled={sheet.apartments.length === 0}>
+          <Button type="submit" loading={save.isPending} disabled={summary.entries.length === 0 && summary.invalid.length === 0}>
             {t('admin.common.save')}
           </Button>
         </div>
