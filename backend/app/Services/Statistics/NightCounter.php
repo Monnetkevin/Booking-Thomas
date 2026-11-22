@@ -116,6 +116,20 @@ class NightCounter
         });
     }
 
+    /**
+     * Sans versements importés : un bloc qui ne fait que répéter une fermeture du site compte
+     * comme fermé (copie non enregistrée), les autres restent des séjours.
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks
+     * @return Collection<int, AvailabilityBlock>
+     */
+    public function closeRedundantClosures(Collection $blocks): Collection
+    {
+        return $blocks->map(fn (AvailabilityBlock $block): AvailabilityBlock => $block->isRedundantClosure()
+            ? $block->replicate()->forceFill(['type' => BlockType::Manual])
+            : $block);
+    }
+
     /** Nuits du bloc qui tombent dans [from, to[. */
     public function overlap(AvailabilityBlock $block, CarbonImmutable $from, CarbonImmutable $to): int
     {

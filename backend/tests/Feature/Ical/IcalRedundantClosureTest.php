@@ -276,3 +276,17 @@ it('signale l’enchaînement départ-arrivée d’un séjour Booking.com confir
 
     expect($repository->hasSameDayTurnover($this->apartment->id, '2026-11-23', '2026-11-25', $stay->id))->toBeTrue();
 });
+
+it('import des revenus désactivé : compte au planning un séjour Booking.com comme vendu, sa date répétant une fermeture comme fermée', function () {
+    config(['features.platform_import' => false]);
+    AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-23')->create(['type' => BlockType::Manual]);
+    feedNow($this->booking, [
+        'B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available'],
+        'B2' => ['2026-11-25', '2026-11-27', 'CLOSED - Not available'],
+    ]);
+
+    $this->getJson('/api/admin/planning?from=2026-11-13&days=30')
+        ->assertJsonPath('data.figures.sold_nights', 2)
+        ->assertJsonPath('data.figures.open_nights', 27)
+        ->assertJsonPath('data.figures.arrivals', 1);
+});
