@@ -145,3 +145,17 @@ describe('aperçu de l’hôte', function () {
             ->assertJsonPath('data.warnings.*.code', fn (array $codes) => in_array('no_rate', $codes, true));
     });
 });
+
+it('refuse des dates trop lointaines avant tout calcul nuit par nuit', function (array $dates, string $field) {
+    quote($dates)->assertJsonValidationErrors($field);
+})->with([
+    'départ en 9999' => [['arrival' => '2027-01-01', 'departure' => '9999-12-31'], 'departure'],
+    'arrivée trop ancienne' => [['arrival' => '0001-01-01', 'departure' => '2026-12-01'], 'arrival'],
+]);
+
+it('ne parcourt pas les nuits d’un séjour plus long que la durée maximale', function () {
+    // 1 000 nuits dans la plage acceptée : la durée maximale est signalée, pas les tarifs nuit par nuit.
+    $codes = violationCodes(quote(['arrival' => '2027-01-04', 'departure' => '2029-09-30'])->assertUnprocessable());
+
+    expect($codes)->toContain('max_stay')->not->toContain('no_rate');
+});
