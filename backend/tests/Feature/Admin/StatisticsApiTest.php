@@ -240,3 +240,13 @@ function monthlyRevenue(Apartment $apartment, string $platform, string $month, i
 {
     PlatformMonthlyRevenue::query()->create(['platform' => $platform, 'apartment_id' => $apartment->id, 'month' => $month.'-01', 'net_amount' => $net]);
 }
+
+it('fait commencer « Tout » au premier revenu saisi quand il précède le premier séjour', function () {
+    soldBooking($this->cocon, '2026-06-10', '2026-06-12', 20000);
+    monthlyRevenue($this->nid, 'airbnb', '2026-01', 50000);
+
+    $this->getJson('/api/admin/statistics?period=all')
+        ->assertJsonPath('data.from', '2026-01-01')
+        ->assertJsonPath('data.months.0.platform_revenue.airbnb', 50000)
+        ->assertJsonPath('data.totals.platform_revenue.airbnb', 50000);
+});

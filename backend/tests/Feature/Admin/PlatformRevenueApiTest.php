@@ -49,7 +49,10 @@ it('montre par défaut le mois précédent : nuits iCal par logement et platefor
         ->assertJsonPath('data.missing', 2)
         ->assertJsonPath('data.totals', ['airbnb' => 0, 'booking' => 0])
         ->assertJsonPath('data.last_saved', null);
-    $this->getJson('/api/admin/platform-revenues?month=2026-11')->assertJsonPath('data.is_current', true);
+    $this->getJson('/api/admin/platform-revenues?month=2026-11')
+        ->assertJsonPath('data.is_current', true)
+        ->assertJsonPath('data.apartments.0.platforms.airbnb.nights', 2)
+        ->assertJsonPath('data.missing', 0);
 });
 
 it('enregistre, modifie et efface les montants du mois, et le journalise', function () {
@@ -112,7 +115,8 @@ it('résume les douze derniers mois, le plus récent d’abord', function () {
 
     $history = $this->getJson('/api/admin/platform-revenues/history')->assertOk()->assertJsonCount(12, 'data')->json('data');
 
-    expect($history[0])->toMatchArray(['month' => '2026-11', 'is_current' => true, 'missing' => 1, 'entered' => false])
+    // Mois en cours : pas encore versé, rien à saisir.
+    expect($history[0])->toMatchArray(['month' => '2026-11', 'is_current' => true, 'missing' => 0, 'entered' => false])
         ->and($history[1])->toMatchArray(['month' => '2026-10', 'missing' => 1, 'totals' => ['airbnb' => 0, 'booking' => 0]])
         ->and($history[2])->toMatchArray(['month' => '2026-09', 'missing' => 0, 'entered' => true, 'totals' => ['airbnb' => 0, 'booking' => 21000]])
         ->and($history[11]['month'])->toBe('2025-12');
