@@ -73,12 +73,18 @@ class BlockConflictService
     }
 
     /**
-     * Le bloc importé (non enregistré, ou déjà là) n'est qu'une fermeture posée sur des nuits
-     * toutes déjà fermées : pas un conflit à signaler. Un bloc Booking.com (séjour ou fermeture,
-     * on ne sait pas) posé sur une fermeture du site est pris pour l'écho de cette fermeture.
+     * Le bloc importé (non enregistré, ou déjà là) ne fait pas un vrai conflit :
+     * - une date fermée certaine (Airbnb « Not available ») n'amène aucun voyageur, quoi qu'elle
+     *   recouvre : posée sur une réservation du site, c'est l'écho de l'export du site ;
+     * - un bloc Booking.com (séjour ou fermeture, on ne sait pas) posé sur des nuits toutes
+     *   déjà fermées est pris pour l'écho de ces fermetures.
      */
     public function isRedundantClosure(AvailabilityBlock $block, BlockOverlap $overlap): bool
     {
+        if ($block->isClosure()) {
+            return $overlap->isConflict();
+        }
+
         return $block->mayBeClosure() && $overlap->onlyClosuresCovering($block->starts_on, $block->ends_on);
     }
 }

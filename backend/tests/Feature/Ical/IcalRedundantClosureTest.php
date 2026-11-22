@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\BlockType;
+use App\Enums\BookingStatus;
 use App\Enums\StayChangeKind;
+use App\Events\IcalConflictDetected;
 use App\Events\StayScheduleChanged;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
@@ -206,4 +208,38 @@ it('compte au planning un séjour Booking.com comme vendu, sa date répétant un
         ->assertJsonPath('data.figures.sold_nights', 2)
         ->assertJsonPath('data.figures.open_nights', 27)
         ->assertJsonPath('data.figures.arrivals', 1);
+});
+
+it('prend la date fermée Airbnb posée sur une réservation du site pour un écho : ni conflit ni alerte', function () {
+    directBooking($this->apartment, '2026-11-20', '2026-11-23');
+    Event::fake([IcalConflictDetected::class]);
+
+    feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-23', 'Airbnb (Not available)']]);
+
+    expect(importedBlock('A1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeTrue();
+    Event::assertNotDispatched(IcalConflictDetected::class);
+    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
+});
+
+it('ne fait pas expirer une réservation en cours de paiement devant une simple date fermée Airbnb', function () {
+    $pending = directBooking($this->apartment, '2026-11-20', '2026-11-23', BookingStatus::Pending);
+
+    feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-23', 'Airbnb (Not available)']]);
+
+    expect($pending->fresh()->status)->toBe(BookingStatus::Pending);
+});
+
+it('garde l’alerte et l’expiration pour un vrai séjour Airbnb sur une réservation du site', function () {
+    directBooking($this->apartment, '2026-11-20', '2026-11-23');
+    $pending = directBooking($this->apartment, '2026-11-25', '2026-11-27', BookingStatus::Pending);
+    Event::fake([IcalConflictDetected::class]);
+
+    feedNow($this->airbnb, [
+        'A1' => ['2026-11-20', '2026-11-23', 'Reserved'],
+        'A2' => ['2026-11-25', '2026-11-27', 'Reserved'],
+    ]);
+
+    expect(importedBlock('A1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeFalse()
+        ->and($pending->fresh()->status)->toBe(BookingStatus::Expired);
+    Event::assertDispatched(IcalConflictDetected::class);
 });
