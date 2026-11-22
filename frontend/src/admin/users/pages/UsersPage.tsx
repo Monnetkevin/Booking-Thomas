@@ -8,7 +8,7 @@ import { InviteAccountForm } from '../components/InviteAccountForm'
 import { RoleRightsTable } from '../components/RoleRightsTable'
 import { useAccounts } from '../useUsers'
 
-/** Comptes du back-office : équipe, invitation (gestionnaire ou ménage) et droits par rôle. */
+/** Comptes du back-office : équipe, invitation (ménage) et droits par rôle. */
 export function UsersPage() {
   const { t } = useTranslation()
   const accounts = useAccounts()

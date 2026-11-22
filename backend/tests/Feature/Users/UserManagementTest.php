@@ -2,6 +2,7 @@
 
 use App\Mail\AccountPasswordLink;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 
@@ -136,4 +137,20 @@ it('ferme les sessions ouvertes et les cookies « se souvenir de moi » au chang
     app('auth')->forgetGuards();
     $this->getJson('/api/auth/me')->assertUnauthorized();
     expect($cleaner->fresh()->remember_token)->not->toBe('ancien');
+});
+
+it('n’accepte plus le rôle gestionnaire, ni à l’invitation ni au changement de rôle', function () {
+    $this->actingAs($this->admin);
+    $housekeeper = User::factory()->housekeeping()->create();
+
+    $this->postJson('/api/admin/users', ['name' => 'Gaëlle', 'email' => 'gestion@example.com', 'role' => 'manager'])->assertJsonValidationErrors('role');
+    $this->patchJson("/api/admin/users/{$housekeeper->id}", ['role' => 'manager'])->assertJsonValidationErrors('role');
+});
+
+it('fait d’un ancien gestionnaire un compte ménage désactivé, jamais un administrateur', function () {
+    $id = DB::table('users')->insertGetId(['name' => 'Ancien', 'email' => 'ancien@example.com', 'password' => 'x', 'role' => 'manager', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+
+    (require database_path('migrations/2026_11_22_120000_remove_manager_role.php'))->up();
+
+    expect(User::query()->find($id))->role->value->toBe('housekeeping')->is_active->toBeFalse();
 });

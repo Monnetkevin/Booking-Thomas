@@ -2,30 +2,14 @@
 
 namespace App\Enums;
 
+/**
+ * Rôles du back-office : le propriétaire des logements (admin) gère tout ; le ménage voit
+ * son planning. Le rôle Gestionnaire a été retiré (décision du 2026-11-22), il pourra revenir.
+ */
 enum UserRole: string
 {
     case Admin = 'admin';
-    /** Gestionnaire : tout le back-office sauf réglages, utilisateurs, tarifs et coupons. */
-    case Manager = 'manager';
     case Housekeeping = 'housekeeping';
-
-    /**
-     * Profil de notifications : le gestionnaire reçoit les mêmes alertes que l'administrateur.
-     */
-    public function notificationProfile(): self
-    {
-        return $this === self::Manager ? self::Admin : $this;
-    }
-
-    /**
-     * Rôles qui reçoivent les notifications destinées à ce profil.
-     *
-     * @return list<self>
-     */
-    public function members(): array
-    {
-        return $this === self::Admin ? [self::Admin, self::Manager] : [$this];
-    }
 
     /**
      * Rôles qu'un administrateur peut attribuer à une invitation ou un changement de rôle.
@@ -34,6 +18,6 @@ enum UserRole: string
      */
     public static function assignable(): array
     {
-        return [self::Manager->value, self::Housekeeping->value];
+        return [self::Housekeeping->value];
     }
 }

@@ -48,7 +48,7 @@ class ApartmentService
      * Un logement naît toujours en brouillon : il n'est publié qu'une fois complet.
      *
      * @param  array<string, mixed>  $data
-     * @param  bool  $canManagePricing  faux pour le gestionnaire : prix ignorés
+     * @param  bool  $canManagePricing  faux sans le droit de fixer les prix : prix ignorés
      */
     public function create(array $data, bool $canManagePricing = true): Apartment
     {
@@ -77,7 +77,7 @@ class ApartmentService
 
     /**
      * @param  array<string, mixed>  $data
-     * @param  bool  $canManagePricing  faux pour le gestionnaire : prix ignorés
+     * @param  bool  $canManagePricing  faux sans le droit de fixer les prix : prix ignorés
      */
     public function update(Apartment $apartment, array $data, bool $canManagePricing = true): Apartment
     {

@@ -6,7 +6,7 @@ use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Invitation d'un compte gestionnaire ou ménage : nom, e-mail (unique, sans tenir compte de la casse), rôle. */
+/** Invitation d’un compte ménage : nom, e-mail (unique, sans tenir compte de la casse), rôle. */
 class StoreUserRequest extends FormRequest
 {
     protected function prepareForValidation(): void

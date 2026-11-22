@@ -540,7 +540,6 @@
     "listTitle": "Équipe",
     "roles": {
       "admin": "Administrateur",
-      "manager": "Gestionnaire",
       "housekeeping": "Ménage"
     },
     "inactive": "Désactivé",
@@ -559,7 +558,6 @@
     "invited": "Invitation envoyée à {{email}}.",
     "role": "Rôle",
     "roleHints": {
-      "manager": "Réservations, planning, logements, calendriers, messages et statistiques.",
       "housekeeping": "Planning du ménage et ses notifications, sans noms, coordonnées ni montants."
     },
     "lastLogin": "Dernière connexion : {{when}}",

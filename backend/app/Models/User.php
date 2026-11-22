@@ -63,16 +63,6 @@ class User extends Authenticatable
         return $this->is_active && $this->isAdmin();
     }
 
-    /**
-     * Compte actif qui gère l'activité (administrateur ou gestionnaire) : réservations,
-     * planning, logements, calendriers, messages. Réglages, utilisateurs et tarifs
-     * restent à l'administrateur (isActiveAdmin).
-     */
-    public function canOperate(): bool
-    {
-        return $this->is_active && in_array($this->role, [UserRole::Admin, UserRole::Manager], true);
-    }
-
     public function isHousekeeping(): bool
     {
         return $this->role === UserRole::Housekeeping;
