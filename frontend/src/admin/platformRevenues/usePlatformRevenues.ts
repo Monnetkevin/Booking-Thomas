@@ -4,9 +4,22 @@ import type { RevenueEntry } from './types'
 
 const key = ['admin', 'platform-revenues'] as const
 
-/** month null : mois par défaut choisi par le serveur. */
+/**
+ * month null : mois par défaut choisi par le serveur. Sa feuille est aussi rangée sous son mois :
+ * quand la page inscrit ce mois dans l'adresse, elle la retrouve sans nouveau chargement.
+ */
 export function useRevenueSheet(month: string | null, service: PlatformRevenueService = platformRevenueService) {
-  return useQuery({ queryKey: [...key, 'sheet', month ?? 'default'], queryFn: () => service.sheet(month) })
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey: [...key, 'sheet', month ?? 'default'],
+    // Feuille tout juste chargée (ou rangée sous son mois) : pas de rechargement immédiat.
+    staleTime: 30_000,
+    queryFn: async () => {
+      const sheet = await service.sheet(month)
+      if (month === null) queryClient.setQueryData([...key, 'sheet', sheet.month], sheet)
+      return sheet
+    },
+  })
 }
 
 export function useRevenueHistory(service: PlatformRevenueService = platformRevenueService) {

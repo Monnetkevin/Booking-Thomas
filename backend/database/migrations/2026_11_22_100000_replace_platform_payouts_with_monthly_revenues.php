@@ -27,7 +27,7 @@ return new class extends Migration
             $table->index('month');
         });
 
-        // Tables de l'import CSV, créées par une migration retirée depuis.
+        // Tables de l'import CSV abandonné (migration 2026_11_20_170000).
         Schema::dropIfExists('platform_payouts');
         Schema::dropIfExists('platform_listings');
         Schema::dropIfExists('platform_imports');
