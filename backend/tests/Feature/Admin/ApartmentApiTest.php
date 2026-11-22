@@ -4,6 +4,7 @@ use App\Enums\ApartmentStatus;
 use App\Enums\BookingStatus;
 use App\Models\Amenity;
 use App\Models\Apartment;
+use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\RatePeriod;
 use App\Models\User;
@@ -143,6 +144,21 @@ describe('publication', function () {
 
         $this->postJson("/api/admin/apartments/{$apartment->id}/publish")->assertOk()->assertJsonPath('data.status', 'published');
         $this->postJson("/api/admin/apartments/{$apartment->id}/unpublish")->assertOk()->assertJsonPath('data.status', 'draft');
+
+        // Mise en ligne et retrait journalisés.
+        expect(AuditLog::query()->orderBy('id')->pluck('action')->map->value->all())->toBe(['apartment.published', 'apartment.unpublished']);
+    });
+
+    it('journalise un changement de frais de ménage, pas une modification sans changement de prix', function () {
+        $apartment = Apartment::factory()->create(['cleaning_fee' => 4000]);
+
+        $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload(['cleaning_fee' => 9000]))->assertOk();
+        $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload(['cleaning_fee' => 9000]))->assertOk();
+
+        $log = AuditLog::query()->sole();
+        expect($log->action->value)->toBe('apartment.price_updated')
+            ->and($log->before)->toBe(['cleaning_fee' => 4000])
+            ->and($log->after)->toBe(['cleaning_fee' => 9000]);
     });
 
     it('ne compte pas une période tarifaire déjà terminée', function () {

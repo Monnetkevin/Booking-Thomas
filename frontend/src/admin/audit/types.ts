@@ -5,6 +5,9 @@ export type AuditAction =
   | 'block.created'
   | 'block.deleted'
   | 'apartment.deleted'
+  | 'apartment.published'
+  | 'apartment.unpublished'
+  | 'apartment.price_updated'
   | 'rate_period.created'
   | 'rate_period.updated'
   | 'rate_period.deleted'
@@ -24,6 +27,9 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'block.created',
   'block.deleted',
   'apartment.deleted',
+  'apartment.published',
+  'apartment.unpublished',
+  'apartment.price_updated',
   'rate_period.created',
   'rate_period.updated',
   'rate_period.deleted',
