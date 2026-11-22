@@ -2,9 +2,11 @@
 
 namespace App\Services\Planning;
 
+use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Services\Statistics\NightCounter;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,20 +21,24 @@ class PlanningFigures
 
     /**
      * @param  Collection<int, AvailabilityBlock>  $blocks  blocs actifs des logements affichés
-     * @param  list<int>  $apartmentIds
+     * @param  EloquentCollection<int, Apartment>  $apartments  logements affichés : seuls ceux sur le marché comptent
      * @return array{sold_nights: int, open_nights: int, occupancy: float|null, arrivals: int, direct_arrivals: int, free_nights: int, free_weekend_nights: int}
      */
-    public function compute(Collection $blocks, array $apartmentIds, CarbonImmutable $from, CarbonImmutable $to): array
+    public function compute(Collection $blocks, EloquentCollection $apartments, CarbonImmutable $from, CarbonImmutable $to): array
     {
-        $days = (int) $from->diffInDays($to);
+        // Brouillons hors chiffres : pas encore à la vente.
+        $market = $this->nights->onMarket($apartments);
+        $blocks = $blocks->whereIn('apartment_id', $market->modelKeys());
         $nights = $this->nights->count($blocks, $from, $to);
         $arrivals = $this->nights->arrivals($blocks, $from, $to);
 
         $free = 0;
         $freeWeekend = 0;
-        foreach ($apartmentIds as $apartmentId) {
-            $own = $blocks->filter(fn (AvailabilityBlock $block) => $block->apartment_id === $apartmentId);
-            for ($day = $from; $day->lt($to); $day = $day->addDay()) {
+        foreach ($market as $apartment) {
+            $own = $blocks->filter(fn (AvailabilityBlock $block) => $block->apartment_id === $apartment->id);
+            // Pas de nuit libre avant la création du logement.
+            $start = $apartment->created_at === null ? $from : $from->max(CarbonImmutable::parse($apartment->created_at)->startOfDay());
+            for ($day = $start; $day->lt($to); $day = $day->addDay()) {
                 // Une réservation en attente de paiement ne prend pas la nuit : libres + vendues
                 // + fermées = nuits de la période, comme les autres chiffres.
                 $taken = $own->contains(fn (AvailabilityBlock $block) => $block->starts_on->lte($day) && $block->ends_on->gt($day) && $this->nights->kind($block) !== null);
@@ -45,8 +51,8 @@ class PlanningFigures
 
         return [
             'sold_nights' => $nights['direct'] + $nights['platform'],
-            'open_nights' => $this->nights->openNights($nights, count($apartmentIds), $days),
-            'occupancy' => $this->nights->occupancy($nights, count($apartmentIds), $days),
+            'open_nights' => $this->nights->openNights($nights, $this->nights->marketNights($market, $from, $to)),
+            'occupancy' => $this->nights->occupancy($nights, $this->nights->marketNights($market, $from, $to)),
             'arrivals' => $arrivals['all'],
             'direct_arrivals' => $arrivals['direct'],
             'free_nights' => $free,

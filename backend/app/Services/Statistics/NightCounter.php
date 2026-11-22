@@ -2,10 +2,13 @@
 
 namespace App\Services\Statistics;
 
+use App\Enums\ApartmentStatus;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
+use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -117,14 +120,42 @@ class NightCounter
     }
 
     /**
-     * Taux d'occupation : nuits vendues sur nuits ouvertes (les nuits fermées ne comptent
-     * pas comme disponibles). Null s'il n'y avait aucune nuit ouverte.
+     * Logements sur le marché, ceux qui comptent dans l'occupation : publiés (un brouillon n'est
+     * pas encore à la vente).
+     *
+     * @param  EloquentCollection<int, Apartment>  $apartments
+     * @return EloquentCollection<int, Apartment>
+     */
+    public function onMarket(EloquentCollection $apartments): EloquentCollection
+    {
+        return $apartments->filter(fn (Apartment $apartment) => $apartment->status === ApartmentStatus::Published)->values();
+    }
+
+    /**
+     * Nuits de [from, to[ où ces logements existaient : chacun compte à partir du jour de sa
+     * création, pas avant.
+     *
+     * @param  Collection<int, Apartment>  $apartments
+     */
+    public function marketNights(Collection $apartments, CarbonImmutable $from, CarbonImmutable $to): int
+    {
+        return (int) $apartments->sum(function (Apartment $apartment) use ($from, $to): int {
+            $start = $apartment->created_at === null ? $from : $from->max(CarbonImmutable::parse($apartment->created_at)->startOfDay());
+
+            return $to->gt($start) ? (int) $start->diffInDays($to) : 0;
+        });
+    }
+
+    /**
+     * Taux d'occupation : nuits vendues sur nuits ouvertes (nuits sur le marché moins les
+     * fermetures). Null s'il n'y avait aucune nuit ouverte.
      *
      * @param  array{direct: int, platform: int, closed: int}  $nights
+     * @param  int  $marketNights  voir marketNights()
      */
-    public function occupancy(array $nights, int $apartments, int $days): ?float
+    public function occupancy(array $nights, int $marketNights): ?float
     {
-        $open = $apartments * $days - $nights['closed'];
+        $open = $marketNights - $nights['closed'];
 
         return $open > 0 ? round(($nights['direct'] + $nights['platform']) / $open * 100, 1) : null;
     }
@@ -150,12 +181,12 @@ class NightCounter
     }
 
     /**
-     * Nuits ouvertes à la vente : nuits de la période moins les fermetures.
+     * Nuits ouvertes à la vente : nuits sur le marché moins les fermetures.
      *
      * @param  array{direct: int, platform: int, closed: int}  $nights
      */
-    public function openNights(array $nights, int $apartments, int $days): int
+    public function openNights(array $nights, int $marketNights): int
     {
-        return $apartments * $days - $nights['closed'];
+        return $marketNights - $nights['closed'];
     }
 }

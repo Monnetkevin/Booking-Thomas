@@ -240,3 +240,24 @@ function monthlyRevenue(Apartment $apartment, string $platform, string $month, i
 {
     PlatformMonthlyRevenue::query()->create(['platform' => $platform, 'apartment_id' => $apartment->id, 'month' => $month.'-01', 'net_amount' => $net]);
 }
+
+it('laisse les brouillons hors de l’occupation, et compte un logement depuis sa création', function () {
+    // Le Cocon (publié depuis 2024) : 3 nuits vendues en novembre.
+    soldBooking($this->cocon, '2026-11-02', '2026-11-05', 30000);
+    // Le Nid devient un brouillon : ni ses nuits ni ses nuits ouvertes ne comptent.
+    $this->nid->update(['status' => 'draft']);
+    soldBooking($this->nid, '2026-11-10', '2026-11-20', 90000);
+    // Logement publié créé le 21 novembre : 10 nuits ouvertes en novembre, pas 30.
+    $recent = Apartment::factory()->create(['name' => ['fr' => 'Récent', 'en' => 'Recent'], 'position' => 3, 'created_at' => '2026-11-21 10:00:00']);
+    soldBooking($recent, '2026-11-25', '2026-11-27', 20000);
+
+    // (3 + 2) vendues sur 30 + 10 nuits ouvertes.
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.5.occupancy', 12.5)
+        ->assertJsonCount(2, 'data.apartments');
+    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.figures.occupancy.value', 12.5);
+    $this->getJson('/api/admin/planning?from=2026-11-01&days=30')
+        ->assertJsonPath('data.figures.sold_nights', 5)
+        ->assertJsonPath('data.figures.open_nights', 40);
+    $this->getJson('/api/admin/apartments')->assertJsonPath("meta.occupancy.{$recent->id}", 20);
+});
