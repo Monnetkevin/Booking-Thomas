@@ -107,7 +107,7 @@ class IcalCalendarMerger
 
     private function create(IcalFeed $feed, ImportedEvent $event): AvailabilityBlock
     {
-        $overlap = $this->overlap($feed->apartment_id, $event);
+        $overlap = $this->overlap($feed, $event);
         $block = $this->availability->createBlock([
             'apartment_id' => $feed->apartment_id,
             'type' => BlockType::Ical,
@@ -142,7 +142,7 @@ class IcalCalendarMerger
 
         $previous = $block->is_active ? [$block->starts_on, $block->ends_on] : null;
         $housekeeping = $block->knownToHousekeeping();
-        $overlap = $this->overlap($block->apartment_id, $event, $block->id);
+        $overlap = $this->overlap($feed, $event, $block->id);
         $this->availability->updateBlock($block, [...$this->placement($feed, $event, $overlap), ...$this->details($event)]);
 
         if (! $moved) {
@@ -185,15 +185,17 @@ class IcalCalendarMerger
 
     /**
      * Blocs déjà sur ces nuits. Une réservation directe encore en attente de paiement
-     * cède sa place : le séjour existe déjà chez la plateforme, elle est expirée
-     * sur-le-champ (pas de conflit).
+     * cède sa place à un séjour de la plateforme : il existe déjà chez elle, elle est expirée
+     * sur-le-champ (pas de conflit). Pas devant une simple date fermée (« Not available ») :
+     * c'est souvent l'écho de l'export du site, la réservation en cours de paiement reste.
      */
-    private function overlap(int $apartmentId, ImportedEvent $event, ?int $exceptBlockId = null): BlockOverlap
+    private function overlap(IcalFeed $feed, ImportedEvent $event, ?int $exceptBlockId = null): BlockOverlap
     {
+        $apartmentId = $feed->apartment_id;
         $overlap = $this->conflicts->check($apartmentId, $event->startsOn, $event->endsOn, $exceptBlockId);
 
         $pending = $overlap->pendingBookings();
-        if ($pending->isEmpty()) {
+        if ($pending->isEmpty() || $feed->provider->isClosure($event->summary)) {
             return $overlap;
         }
         $pending->each(fn (Booking $booking) => $this->bookings->expire($booking));
@@ -231,9 +233,15 @@ class IcalCalendarMerger
         ])->setRelation('icalFeed', $feed);
     }
 
-    /** Deux voyageurs attendus sur les mêmes nuits : l'hôte est prévenu sans attendre. */
+    /**
+     * Deux voyageurs attendus sur les mêmes nuits : l'hôte est prévenu sans attendre. Une date
+     * fermée de la plateforme n'amène aucun voyageur : pas d'alerte.
+     */
     private function alertIfDoubleBooked(AvailabilityBlock $block, BlockOverlap $overlap): void
     {
+        if ($block->isClosure()) {
+            return;
+        }
         $bookings = $overlap->confirmedBookings();
         if ($bookings->isNotEmpty()) {
             IcalConflictDetected::dispatch($block, $bookings);

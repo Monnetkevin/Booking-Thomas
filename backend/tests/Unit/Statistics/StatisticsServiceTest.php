@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ApartmentStatus;
 use App\Enums\BookingStatus;
 use App\Enums\StatisticsPeriod;
 use App\Models\Apartment;
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\Collection;
 function statisticsReport(array $blocks, array $earning = [], array $revenues = []): array
 {
     $apartments = Mockery::mock(ApartmentRepositoryInterface::class);
-    $apartments->allows('allOrdered')->andReturn(new Collection([(new Apartment)->forceFill(['id' => 1])->setTranslation('name', 'fr', 'Le Cocon')]));
+    $apartments->allows('allOrdered')->andReturn(new Collection([(new Apartment)->forceFill(['id' => 1, 'status' => ApartmentStatus::Published])->setTranslation('name', 'fr', 'Le Cocon')]));
     $availability = Mockery::mock(AvailabilityRepositoryInterface::class);
     $availability->allows('planningBlocks')->andReturn(new Collection($blocks));
     $bookings = Mockery::mock(BookingRepositoryInterface::class);

@@ -2,8 +2,10 @@
 
 namespace App\Services\Statistics;
 
+use App\Enums\ApartmentStatus;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
+use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -117,14 +119,57 @@ class NightCounter
     }
 
     /**
-     * Taux d'occupation : nuits vendues sur nuits ouvertes (les nuits fermées ne comptent
-     * pas comme disponibles). Null s'il n'y avait aucune nuit ouverte.
+     * Logements sur le marché, ceux qui comptent dans l'occupation : publiés (un brouillon n'est
+     * pas encore à la vente). Les revenus et les séjours, eux, comptent pour tout logement non
+     * supprimé : dépublier un logement n'efface pas l'argent qu'il a rapporté.
+     *
+     * @template TCollection of Collection<int, Apartment>
+     *
+     * @param  TCollection  $apartments
+     * @return TCollection
+     */
+    public function onMarket(Collection $apartments): Collection
+    {
+        return $apartments->filter(fn (Apartment $apartment) => $apartment->status === ApartmentStatus::Published)->values();
+    }
+
+    /**
+     * Occupation de [from, to[, règle unique et volontairement simple : nuits vendues sur nuits
+     * ouvertes des logements publiés aujourd'hui (logements × nuits de la période − fermetures).
+     * Imprécisions assumées : un logement créé en cours de période compte toute la période, et un
+     * logement dépublié sort aussi de l'occupation des mois passés (ses revenus, eux, restent).
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks
+     * @param  Collection<int, Apartment>  $apartments  logements concernés, publiés ou non
+     */
+    public function marketOccupancy(Collection $blocks, Collection $apartments, CarbonImmutable $from, CarbonImmutable $to): ?float
+    {
+        $market = $this->onMarket($apartments);
+        $nights = $this->count($blocks->whereIn('apartment_id', $market->pluck('id')->all()), $from, $to);
+
+        return $this->occupancy($nights, $this->marketNights($market, $from, $to));
+    }
+
+    /**
+     * Nuits de [from, to[ de ces logements : logements × nuits de la période.
+     *
+     * @param  Collection<int, Apartment>  $apartments
+     */
+    public function marketNights(Collection $apartments, CarbonImmutable $from, CarbonImmutable $to): int
+    {
+        return $apartments->count() * (int) $from->diffInDays($to);
+    }
+
+    /**
+     * Taux d'occupation : nuits vendues sur nuits ouvertes (nuits sur le marché moins les
+     * fermetures). Null s'il n'y avait aucune nuit ouverte.
      *
      * @param  array{direct: int, platform: int, closed: int}  $nights
+     * @param  int  $marketNights  voir marketNights()
      */
-    public function occupancy(array $nights, int $apartments, int $days): ?float
+    public function occupancy(array $nights, int $marketNights): ?float
     {
-        $open = $apartments * $days - $nights['closed'];
+        $open = $marketNights - $nights['closed'];
 
         return $open > 0 ? round(($nights['direct'] + $nights['platform']) / $open * 100, 1) : null;
     }
@@ -150,12 +195,12 @@ class NightCounter
     }
 
     /**
-     * Nuits ouvertes à la vente : nuits de la période moins les fermetures.
+     * Nuits ouvertes à la vente : nuits sur le marché moins les fermetures.
      *
      * @param  array{direct: int, platform: int, closed: int}  $nights
      */
-    public function openNights(array $nights, int $apartments, int $days): int
+    public function openNights(array $nights, int $marketNights): int
     {
-        return $apartments * $days - $nights['closed'];
+        return $marketNights - $nights['closed'];
     }
 }

@@ -72,6 +72,11 @@ class StayRules
             ))]);
         }
 
+        // Séjour trop long : inutile (et coûteux) de vérifier les tarifs nuit par nuit.
+        if ($stay->nights() > $apartment->max_stay) {
+            return $violations;
+        }
+
         $covered = collect($stay->nightDates())->every(
             fn (CarbonImmutable $night) => $periods->contains(fn (RatePeriod $p) => $night->betweenIncluded($p->starts_on, $p->ends_on)),
         );

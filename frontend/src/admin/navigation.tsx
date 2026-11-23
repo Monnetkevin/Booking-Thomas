@@ -33,9 +33,9 @@ export interface AdminNavItem {
   end?: boolean
 }
 
-/** Administrateur et gestionnaire : tout le back-office sauf tarifs, utilisateurs et réglages. */
-const STAFF: Role[] = ['admin', 'manager']
-const EVERYONE: Role[] = ['admin', 'manager', 'housekeeping']
+/** Le propriétaire (administrateur) gère tout le back-office. */
+const STAFF: Role[] = ['admin']
+const EVERYONE: Role[] = ['admin', 'housekeeping']
 
 /** Groupes du menu latéral, dans l'ordre d'affichage. */
 const NAV_GROUPS = ['pilotage', 'catalogue', 'suivi'] as const satisfies readonly NavGroup[]
@@ -71,7 +71,7 @@ export function navigationFor(role: Role, items: AdminNavItem[] = adminNavigatio
 }
 
 /**
- * Page accessible au rôle : l'administrateur va partout ; les autres (gestionnaire, ménage) seulement sous leurs
+ * Page accessible au rôle : l'administrateur va partout ; les autres (ménage) seulement sous leurs
  * entrées de menu. L'API reste seule juge (403) ; ceci évite d'afficher une page vide.
  */
 export function canVisit(pathname: string, role: Role, items: AdminNavItem[] = adminNavigation): boolean {

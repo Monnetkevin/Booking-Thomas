@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Date;
 
 beforeEach(function () {
     Date::setTestNow('2026-11-20 10:00:00');
-    $this->actingAs(User::factory()->manager()->create());
+    $this->actingAs(User::factory()->create());
     $this->cocon = Apartment::factory()->create(['name' => ['fr' => 'Le Cocon', 'en' => 'Cocoon']]);
     Apartment::factory()->create(['name' => ['fr' => 'L’élégance Mancelle', 'en' => 'Elegance']]);
 });

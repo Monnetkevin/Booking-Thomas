@@ -39,7 +39,7 @@ class PlanningService
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             // Chiffres : une date Booking.com qui répète une fermeture du site compte comme fermée.
-            'figures' => $this->figures->compute($this->soldStays->classify($all->toBase()), $ids, $from, $to),
+            'figures' => $this->figures->compute($this->soldStays->classify($all->toBase()), $apartments, $from, $to),
             'apartments' => $apartments->map(fn (Apartment $apartment) => [
                 'id' => $apartment->id,
                 'name' => $apartment->getTranslation('name', 'fr'),

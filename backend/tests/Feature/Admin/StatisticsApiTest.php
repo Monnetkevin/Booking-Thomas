@@ -240,3 +240,50 @@ function monthlyRevenue(Apartment $apartment, string $platform, string $month, i
 {
     PlatformMonthlyRevenue::query()->create(['platform' => $platform, 'apartment_id' => $apartment->id, 'month' => $month.'-01', 'net_amount' => $net]);
 }
+
+it('laisse les brouillons hors de l’occupation, mais garde leurs séjours vendus', function () {
+    // Le Cocon : 3 nuits vendues en novembre.
+    soldBooking($this->cocon, '2026-11-02', '2026-11-05', 30000);
+    // Le Nid devient un brouillon : ni ses nuits ni ses nuits ouvertes ne comptent dans l'occupation.
+    $this->nid->update(['status' => 'draft']);
+    soldBooking($this->nid, '2026-11-10', '2026-11-20', 90000);
+    // Logement publié créé le 21 novembre : compte tout le mois (imprécision assumée).
+    $recent = Apartment::factory()->create(['name' => ['fr' => 'Récent', 'en' => 'Recent'], 'position' => 3, 'created_at' => '2026-11-21 10:00:00']);
+    soldBooking($recent, '2026-11-25', '2026-11-27', 20000);
+
+    // (3 + 2) vendues sur 2 × 30 nuits ouvertes.
+    $this->getJson('/api/admin/statistics?period=six_months')
+        ->assertJsonPath('data.months.5.occupancy', 8.3)
+        ->assertJsonPath('data.months.5.nights_direct', 15)
+        ->assertJsonCount(3, 'data.apartments')
+        ->assertJsonPath('data.apartments.1.occupancy', null);
+    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.figures.occupancy.value', 8.3);
+    // Planning : les séjours du brouillon restent vendus, ses nuits ne sont ni ouvertes ni libres.
+    $this->getJson('/api/admin/planning?from=2026-11-01&days=30')
+        ->assertJsonPath('data.figures.sold_nights', 15)
+        ->assertJsonPath('data.figures.arrivals', 3)
+        ->assertJsonPath('data.figures.open_nights', 60)
+        ->assertJsonPath('data.figures.free_nights', 55);
+    $this->getJson('/api/admin/apartments')->assertJsonPath("meta.occupancy.{$recent->id}", 6.7);
+});
+
+it('garde les revenus et les séjours d’un logement dépublié, hors de l’occupation', function () {
+    soldBooking($this->nid, '2026-10-10', '2026-10-14', 40000);
+    soldBooking($this->nid, '2026-11-02', '2026-11-04', 20000);
+    // Dépublié pour l'intersaison : l'argent encaissé ne disparaît pas.
+    $this->nid->update(['status' => 'draft']);
+
+    $this->getJson('/api/admin/statistics')
+        ->assertJsonPath('data.totals.revenue', 68000)
+        ->assertJsonPath('data.months.10.nights_direct', 4)
+        ->assertJsonPath('data.months.10.revenue', 44000)
+        // Seul Le Cocon est sur le marché : rien de vendu.
+        ->assertJsonPath('data.months.10.occupancy', 0)
+        ->assertJsonCount(2, 'data.apartments')
+        ->assertJsonPath('data.apartments.1.revenue', 68000)
+        ->assertJsonPath('data.apartments.1.occupancy', null);
+    $this->getJson('/api/admin/dashboard')
+        ->assertJsonPath('data.figures.revenue.value', 24000)
+        ->assertJsonPath('data.figures.stays.value', 1)
+        ->assertJsonPath('data.figures.occupancy.value', 0);
+});

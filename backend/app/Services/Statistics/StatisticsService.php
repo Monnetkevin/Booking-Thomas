@@ -50,9 +50,9 @@ class StatisticsService
     {
         $to = $today->startOfMonth()->addMonth();
         $from = $this->start($period, $to);
+        // Logements non supprimés : leurs revenus et séjours comptent même s'ils ne sont plus
+        // publiés. L'occupation, elle, ne retient que ceux sur le marché (marketOccupancy).
         $apartments = $this->apartments->allOrdered();
-        // Seuls les logements existants comptent : sinon les nuits d'un logement supprimé
-        // gonfleraient l'occupation sans compter parmi les nuits disponibles.
         $ids = $apartments->modelKeys();
         $blocks = $this->soldStays->between($from, $to, $ids);
         $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
@@ -74,11 +74,10 @@ class StatisticsService
                 'platform_revenue' => $this->ledger->totals($cells),
                 // Nuits vendues ce mois-ci sur une plateforme sans montant saisi (mois écoulés seulement).
                 'platform_revenue_missing' => $month->lt($closed) && $this->ledger->missing($cells) > 0,
-                'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $month->diffInDays($end)),
+                'occupancy' => $this->nights->marketOccupancy($blocks, $apartments, $month, $end),
             ];
         }
 
-        $days = (int) $from->diffInDays($to);
         $total = $this->nights->count($blocks, $from, $to);
         $direct = $this->revenue->of($earning);
         $cells = $this->mergeMonths($ledger);
@@ -99,11 +98,12 @@ class StatisticsService
                 'nights_platform' => $total['platform'],
                 'average_nightly_price' => $this->averageNightlyPrice($sold),
                 'average_stay' => $this->averageStay($blocks),
-                'occupancy' => $this->nights->occupancy($total, $apartments->count(), $days),
+                'occupancy' => $this->nights->marketOccupancy($blocks, $apartments, $from, $to),
             ],
             'months' => $months,
-            'apartments' => $apartments->map(function (Apartment $apartment) use ($blocks, $earning, $cells, $from, $to, $days): array {
-                $nights = $this->nights->count($blocks->where('apartment_id', $apartment->id), $from, $to);
+            'apartments' => $apartments->map(function (Apartment $apartment) use ($blocks, $earning, $cells, $from, $to): array {
+                $own = $blocks->where('apartment_id', $apartment->id);
+                $nights = $this->nights->count($own, $from, $to);
 
                 return [
                     'id' => $apartment->id,
@@ -112,7 +112,7 @@ class StatisticsService
                     'nights_platform' => $nights['platform'],
                     'revenue' => $this->revenue->of($earning->where('apartment_id', $apartment->id)),
                     'platform_revenue' => array_sum($this->ledger->totals([$apartment->id => $cells[$apartment->id] ?? []])),
-                    'occupancy' => $this->nights->occupancy($nights, 1, $days),
+                    'occupancy' => $this->nights->marketOccupancy($own, collect([$apartment]), $from, $to),
                     'rating' => null,
                 ];
             })->values()->all(),

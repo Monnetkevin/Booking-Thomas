@@ -48,7 +48,7 @@ class ApartmentService
      * Un logement naît toujours en brouillon : il n'est publié qu'une fois complet.
      *
      * @param  array<string, mixed>  $data
-     * @param  bool  $canManagePricing  faux pour le gestionnaire : prix ignorés
+     * @param  bool  $canManagePricing  faux sans le droit de fixer les prix : prix ignorés
      */
     public function create(array $data, bool $canManagePricing = true): Apartment
     {
@@ -63,6 +63,10 @@ class ApartmentService
         $data['position'] = $this->apartments->nextPosition();
 
         $apartment = $this->apartments->create($data);
+        // Frais de ménage fixés dès la création : journalisés comme leurs modifications.
+        if ((int) $data['cleaning_fee'] !== 0) {
+            $this->audit->record(AuditAction::ApartmentPriceUpdated, $apartment, before: ['cleaning_fee' => 0], after: ['cleaning_fee' => (int) $data['cleaning_fee']]);
+        }
 
         if (is_array($amenityIds)) {
             $this->apartments->syncAmenities($apartment, $amenityIds);
@@ -77,7 +81,7 @@ class ApartmentService
 
     /**
      * @param  array<string, mixed>  $data
-     * @param  bool  $canManagePricing  faux pour le gestionnaire : prix ignorés
+     * @param  bool  $canManagePricing  faux sans le droit de fixer les prix : prix ignorés
      */
     public function update(Apartment $apartment, array $data, bool $canManagePricing = true): Apartment
     {
@@ -98,7 +102,12 @@ class ApartmentService
             $data += ['latitude' => null, 'longitude' => null, 'geocoded_at' => null];
         }
 
+        $previousFee = $apartment->cleaning_fee;
         $this->apartments->update($apartment, $data);
+        // Frais de ménage : un prix, journalisé comme les tarifs.
+        if (array_key_exists('cleaning_fee', $data) && (int) $data['cleaning_fee'] !== $previousFee) {
+            $this->audit->record(AuditAction::ApartmentPriceUpdated, $apartment, before: ['cleaning_fee' => $previousFee], after: ['cleaning_fee' => (int) $data['cleaning_fee']]);
+        }
 
         if (is_array($amenityIds)) {
             $this->apartments->syncAmenities($apartment, $amenityIds);
@@ -155,7 +164,11 @@ class ApartmentService
             throw new ApartmentNotPublishableException($missing);
         }
 
+        $wasPublished = $apartment->status === ApartmentStatus::Published;
         $this->apartments->update($apartment, ['status' => ApartmentStatus::Published]);
+        if (! $wasPublished) {
+            $this->audit->record(AuditAction::ApartmentPublished, $apartment, after: ['name' => $apartment->getTranslation('name', 'fr')]);
+        }
 
         $this->catalog->flush();
 
@@ -165,7 +178,11 @@ class ApartmentService
     /** Retire le logement du site ; les réservations existantes ne bougent pas. */
     public function unpublish(Apartment $apartment): Apartment
     {
+        $wasPublished = $apartment->status === ApartmentStatus::Published;
         $this->apartments->update($apartment, ['status' => ApartmentStatus::Draft]);
+        if ($wasPublished) {
+            $this->audit->record(AuditAction::ApartmentUnpublished, $apartment, before: ['name' => $apartment->getTranslation('name', 'fr')]);
+        }
 
         $this->catalog->flush();
 

@@ -6,15 +6,15 @@ type RightKey = 'bookings' | 'apartments' | 'messages' | 'rates' | 'settings' | 
 
 /** Droits de chaque rôle, tels que l'API les applique (routes role: et Policies). */
 const RIGHTS: { key: RightKey; roles: Role[] }[] = [
-  { key: 'bookings', roles: ['admin', 'manager'] },
-  { key: 'apartments', roles: ['admin', 'manager'] },
-  { key: 'messages', roles: ['admin', 'manager'] },
+  { key: 'bookings', roles: ['admin'] },
+  { key: 'apartments', roles: ['admin'] },
+  { key: 'messages', roles: ['admin'] },
   { key: 'rates', roles: ['admin'] },
   { key: 'settings', roles: ['admin'] },
   { key: 'audit', roles: ['admin'] },
-  { key: 'housekeeping', roles: ['admin', 'manager', 'housekeeping'] },
+  { key: 'housekeeping', roles: ['admin', 'housekeeping'] },
 ]
-const ROLES: Role[] = ['admin', 'manager', 'housekeeping']
+const ROLES: Role[] = ['admin', 'housekeeping']
 
 /** Tableau en lecture seule des droits par rôle. */
 export function RoleRightsTable() {

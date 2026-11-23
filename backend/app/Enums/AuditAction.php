@@ -11,6 +11,9 @@ enum AuditAction: string
     case BlockCreated = 'block.created';
     case BlockDeleted = 'block.deleted';
     case ApartmentDeleted = 'apartment.deleted';
+    case ApartmentPublished = 'apartment.published';
+    case ApartmentUnpublished = 'apartment.unpublished';
+    case ApartmentPriceUpdated = 'apartment.price_updated';
     case RatePeriodCreated = 'rate_period.created';
     case RatePeriodUpdated = 'rate_period.updated';
     case RatePeriodDeleted = 'rate_period.deleted';

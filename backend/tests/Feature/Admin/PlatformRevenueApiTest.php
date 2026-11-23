@@ -102,7 +102,7 @@ it('réserve la saisie à l’administrateur', function (string $role) {
     $this->getJson('/api/admin/platform-revenues')->assertForbidden();
     $this->getJson('/api/admin/platform-revenues/history')->assertForbidden();
     $this->putJson('/api/admin/platform-revenues', ['month' => '2026-10', 'entries' => []])->assertForbidden();
-})->with(['manager', 'housekeeping']);
+})->with(['housekeeping']);
 
 it('résume les douze derniers mois, le plus récent d’abord', function () {
     platformStay($this->airbnb, '2026-10-05', '2026-10-10', 'A1');

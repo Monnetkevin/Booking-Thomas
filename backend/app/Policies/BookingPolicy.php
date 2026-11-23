@@ -10,26 +10,26 @@ class BookingPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function view(User $user, Booking $booking): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function create(User $user): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function update(User $user, Booking $booking): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function cancel(User $user, Booking $booking): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 }

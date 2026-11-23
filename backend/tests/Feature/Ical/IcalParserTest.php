@@ -61,3 +61,17 @@ it('refuse un fichier qui n’est pas un calendrier', function (string $content)
     app(IcalParser::class)->parse($content);
 })->with(['page HTML' => '<html></html>', 'calendrier tronqué' => "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:x"])
     ->throws(IcalSyncException::class);
+
+it('refuse un calendrier coupé en route : sinon les séjours manquants passeraient pour des annulations', function (string $content) {
+    app(IcalParser::class)->parse($content);
+})->throws(IcalSyncException::class)->with([
+    'sans fin de calendrier' => [substr(calendarWith("UID:a\r\nDTSTART;VALUE=DATE:20261121\r\nDTEND;VALUE=DATE:20261125", "UID:b\r\nDTSTART;VALUE=DATE:20261201\r\nDTEND;VALUE=DATE:20261203"), 0, -15)],
+    'événement coupé' => ["BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:a\r\nDTSTART;VALUE=DATE:20261121\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:b\r\nEND:VCALENDAR\r\n"],
+]);
+
+it('accepte un calendrier complet sans dernier saut de ligne, ou suivi de lignes vides', function () {
+    $complete = calendarWith("UID:a\r\nDTSTART;VALUE=DATE:20261121\r\nDTEND;VALUE=DATE:20261125");
+
+    expect(parsed(rtrim($complete)))->toHaveCount(1)
+        ->and(parsed($complete."\r\n\r\n"))->toHaveCount(1);
+});

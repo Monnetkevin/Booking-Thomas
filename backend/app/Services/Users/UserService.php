@@ -42,7 +42,7 @@ class UserService
         return $this->users->all();
     }
 
-    /** Nouveau compte (gestionnaire ou ménage), actif, sans mot de passe utilisable avant l'invitation. */
+    /** Nouveau compte (ménage), actif, sans mot de passe utilisable avant l'invitation. */
     public function invite(string $name, string $email, UserRole $role = UserRole::Housekeeping): User
     {
         $user = $this->users->create([

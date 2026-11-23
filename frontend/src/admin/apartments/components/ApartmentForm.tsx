@@ -26,7 +26,7 @@ interface ApartmentFormProps {
   visibleSections?: ApartmentFormSection[]
   /** Appelé avec la section de la première erreur, pour y amener l'hôte. */
   onErrorsIn?: (section: ApartmentFormSection) => void
-  /** Faux pour le gestionnaire : les prix (frais de ménage) restent à l'administrateur. */
+  /** Faux sans le droit de fixer les prix (frais de ménage), décidé par l'API. */
   canEditPricing?: boolean
 }
 
