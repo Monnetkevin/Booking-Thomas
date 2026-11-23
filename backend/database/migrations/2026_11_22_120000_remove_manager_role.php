@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\NotificationType;
-use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +23,9 @@ return new class extends Migration
                 return;
             }
 
-            $kept = array_map(fn (NotificationType $type) => $type->value, NotificationType::for(UserRole::Housekeeping));
+            // Types du ménage à la date de la migration, écrits en dur : la migration doit donner
+            // le même résultat même si NotificationType change plus tard.
+            $kept = ['stay_changed', 'daily_summary'];
             DB::table('notifications')
                 ->where('notifiable_type', (new User)->getMorphClass())
                 ->whereIn('notifiable_id', $ids)
