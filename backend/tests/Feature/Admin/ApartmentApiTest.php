@@ -149,6 +149,15 @@ describe('publication', function () {
         expect(AuditLog::query()->orderBy('id')->pluck('action')->map->value->all())->toBe(['apartment.published', 'apartment.unpublished']);
     });
 
+    it('journalise des frais de ménage fixés dès la création', function () {
+        $this->postJson('/api/admin/apartments', apartmentPayload())->assertCreated();
+
+        $log = AuditLog::query()->sole();
+        expect($log->action->value)->toBe('apartment.price_updated')
+            ->and($log->before)->toBe(['cleaning_fee' => 0])
+            ->and($log->after)->toBe(['cleaning_fee' => 4500]);
+    });
+
     it('journalise un changement de frais de ménage, pas une modification sans changement de prix', function () {
         $apartment = Apartment::factory()->create(['cleaning_fee' => 4000]);
 

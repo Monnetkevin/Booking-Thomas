@@ -34,14 +34,15 @@ class QuoteService
 
     /**
      * Aperçu de l'hôte (écran Tarifs) : prix affiché dès que chaque nuit a un tarif, les
-     * règles non respectées (séjour minimum…) étant signalées à côté.
+     * règles non respectées (séjour minimum…) étant signalées à côté. Un séjour plus long
+     * que le maximum n'est pas chiffré : les tarifs n'y sont pas vérifiés nuit par nuit.
      *
      * @return array{quote: Quote|null, warnings: list<array{code: string, message: string}>}
      */
     public function preview(Apartment $apartment, Stay $stay): array
     {
         $warnings = $this->rules->violations($apartment, $stay, forHost: true);
-        $priceable = ! in_array('no_rate', array_column($warnings, 'code'), true);
+        $priceable = array_intersect(['no_rate', 'max_stay'], array_column($warnings, 'code')) === [];
 
         return [
             'quote' => $priceable ? $this->calculator->calculate($apartment, $stay) : null,

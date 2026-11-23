@@ -8,7 +8,6 @@ use App\Enums\BookingStatus;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -121,29 +120,44 @@ class NightCounter
 
     /**
      * Logements sur le marché, ceux qui comptent dans l'occupation : publiés (un brouillon n'est
-     * pas encore à la vente).
+     * pas encore à la vente). Les revenus et les séjours, eux, comptent pour tout logement non
+     * supprimé : dépublier un logement n'efface pas l'argent qu'il a rapporté.
      *
-     * @param  EloquentCollection<int, Apartment>  $apartments
-     * @return EloquentCollection<int, Apartment>
+     * @template TCollection of Collection<int, Apartment>
+     *
+     * @param  TCollection  $apartments
+     * @return TCollection
      */
-    public function onMarket(EloquentCollection $apartments): EloquentCollection
+    public function onMarket(Collection $apartments): Collection
     {
         return $apartments->filter(fn (Apartment $apartment) => $apartment->status === ApartmentStatus::Published)->values();
     }
 
     /**
-     * Nuits de [from, to[ où ces logements existaient : chacun compte à partir du jour de sa
-     * création, pas avant.
+     * Occupation de [from, to[, règle unique et volontairement simple : nuits vendues sur nuits
+     * ouvertes des logements publiés aujourd'hui (logements × nuits de la période − fermetures).
+     * Imprécisions assumées : un logement créé en cours de période compte toute la période, et un
+     * logement dépublié sort aussi de l'occupation des mois passés (ses revenus, eux, restent).
+     *
+     * @param  Collection<int, AvailabilityBlock>  $blocks
+     * @param  Collection<int, Apartment>  $apartments  logements concernés, publiés ou non
+     */
+    public function marketOccupancy(Collection $blocks, Collection $apartments, CarbonImmutable $from, CarbonImmutable $to): ?float
+    {
+        $market = $this->onMarket($apartments);
+        $nights = $this->count($blocks->whereIn('apartment_id', $market->pluck('id')->all()), $from, $to);
+
+        return $this->occupancy($nights, $this->marketNights($market, $from, $to));
+    }
+
+    /**
+     * Nuits de [from, to[ de ces logements : logements × nuits de la période.
      *
      * @param  Collection<int, Apartment>  $apartments
      */
     public function marketNights(Collection $apartments, CarbonImmutable $from, CarbonImmutable $to): int
     {
-        return (int) $apartments->sum(function (Apartment $apartment) use ($from, $to): int {
-            $start = $apartment->created_at === null ? $from : $from->max(CarbonImmutable::parse($apartment->created_at)->startOfDay());
-
-            return $to->gt($start) ? (int) $start->diffInDays($to) : 0;
-        });
+        return $apartments->count() * (int) $from->diffInDays($to);
     }
 
     /**

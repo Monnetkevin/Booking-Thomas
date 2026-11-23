@@ -40,9 +40,7 @@ class ApartmentListMeta
         $occupancy = [];
         foreach ($all as $apartment) {
             $own = $blocks->filter(fn (AvailabilityBlock $block) => $block->apartment_id === $apartment->id);
-            $occupancy[$apartment->id] = $apartment->status === ApartmentStatus::Published
-                ? $this->nights->occupancy($this->nights->count($own, $from, $to), $this->nights->marketNights(collect([$apartment]), $from, $to))
-                : null;
+            $occupancy[$apartment->id] = $this->nights->marketOccupancy($own, collect([$apartment]), $from, $to);
         }
 
         return ['counts' => $counts, 'occupancy' => $occupancy];

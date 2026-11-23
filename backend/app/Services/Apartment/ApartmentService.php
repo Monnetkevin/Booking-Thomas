@@ -63,6 +63,10 @@ class ApartmentService
         $data['position'] = $this->apartments->nextPosition();
 
         $apartment = $this->apartments->create($data);
+        // Frais de ménage fixés dès la création : journalisés comme leurs modifications.
+        if ((int) $data['cleaning_fee'] !== 0) {
+            $this->audit->record(AuditAction::ApartmentPriceUpdated, $apartment, before: ['cleaning_fee' => 0], after: ['cleaning_fee' => (int) $data['cleaning_fee']]);
+        }
 
         if (is_array($amenityIds)) {
             $this->apartments->syncAmenities($apartment, $amenityIds);

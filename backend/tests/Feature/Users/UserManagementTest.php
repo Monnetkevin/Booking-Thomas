@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 beforeEach(function () {
     // Requêtes de la SPA : session par cookie (Sanctum).
@@ -150,7 +151,37 @@ it('n’accepte plus le rôle gestionnaire, ni à l’invitation ni au changemen
 it('fait d’un ancien gestionnaire un compte ménage désactivé, jamais un administrateur', function () {
     $id = DB::table('users')->insertGetId(['name' => 'Ancien', 'email' => 'ancien@example.com', 'password' => 'x', 'role' => 'manager', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
 
+    DB::table('users')->where('id', $id)->update(['notification_preferences' => json_encode(['email' => ['booking_confirmed' => true]])]);
+    $notification = fn (string $type) => DB::table('notifications')->insert([
+        'id' => (string) Str::uuid(), 'type' => $type, 'notifiable_type' => (new User)->getMorphClass(), 'notifiable_id' => $id,
+        'level' => 'info', 'data' => json_encode(['title' => 'Réservation de Léa Martin', 'body' => '480 €']), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $notification('booking_confirmed');
+    $notification('contact_message');
+    $notification('stay_changed');
+
     (require database_path('migrations/2026_11_22_120000_remove_manager_role.php'))->up();
 
-    expect(User::query()->find($id))->role->value->toBe('housekeeping')->is_active->toBeFalse();
+    // Comme un changement de rôle : plus rien de ce que voyait le gestionnaire (noms, montants).
+    $user = User::query()->find($id);
+    expect($user)->role->value->toBe('housekeeping')->is_active->toBeFalse()->notification_preferences->toBeNull()
+        ->and($user->notifications()->pluck('type')->map(fn ($type) => $type instanceof BackedEnum ? $type->value : $type)->all())->toBe(['stay_changed']);
+});
+
+it('note la dernière connexion', function () {
+    $user = User::factory()->housekeeping()->create(['password' => 'secret-de-test-123']);
+
+    $this->postJson('/api/auth/login', ['email' => $user->email, 'password' => 'secret-de-test-123'])->assertSuccessful();
+
+    expect($user->fresh()->last_login_at)->not->toBeNull();
+});
+
+it('donne la dernière connexion dans la liste des comptes', function () {
+    $housekeeper = User::factory()->housekeeping()->create();
+    $housekeeper->forceFill(['last_login_at' => '2026-11-19 08:30:00'])->save();
+
+    $accounts = collect($this->actingAs($this->admin)->getJson('/api/admin/users')->json('data'))->keyBy('id');
+
+    expect($accounts[$housekeeper->id]['last_login_at'])->toStartWith('2026-11-19T08:30:00')
+        ->and($accounts[$this->admin->id]['last_login_at'])->toBeNull();
 });

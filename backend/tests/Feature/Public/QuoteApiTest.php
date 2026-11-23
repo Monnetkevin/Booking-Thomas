@@ -144,6 +144,15 @@ describe('aperçu de l’hôte', function () {
         ])->assertJsonPath('data.quote', null)
             ->assertJsonPath('data.warnings.*.code', fn (array $codes) => in_array('no_rate', $codes, true));
     });
+
+    it('ne chiffre pas un séjour plus long que la durée maximale, même en partie sans tarif', function () {
+        // 20 nuits pour 14 au plus, dont des nuits après la dernière période tarifaire.
+        $this->postJson("/api/admin/apartments/{$this->apartment->id}/quote-preview", [
+            'arrival' => '2026-12-26', 'departure' => '2027-01-15', 'adults' => 2,
+        ])->assertOk()
+            ->assertJsonPath('data.quote', null)
+            ->assertJsonPath('data.warnings.*.code', fn (array $codes) => in_array('max_stay', $codes, true));
+    });
 });
 
 it('refuse des dates trop lointaines avant tout calcul nuit par nuit', function (array $dates, string $field) {

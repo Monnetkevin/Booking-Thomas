@@ -94,16 +94,16 @@ it('calcule l’occupation sur les nuits ouvertes, nulle sans nuit ouverte', fun
         ->and($this->counter->occupancy(['direct' => 0, 'platform' => 0, 'closed' => 30], 30))->toBeNull();
 });
 
-it('ne compte que les logements publiés, chacun depuis sa création', function () {
+it('ne compte que les logements publiés, sur toute la période', function () {
     $old = (new Apartment)->forceFill(['id' => 1, 'status' => ApartmentStatus::Published, 'created_at' => '2025-01-01 09:00:00']);
     $new = (new Apartment)->forceFill(['id' => 2, 'status' => ApartmentStatus::Published, 'created_at' => '2026-11-21 15:00:00']);
     $draft = (new Apartment)->forceFill(['id' => 3, 'status' => ApartmentStatus::Draft, 'created_at' => '2025-01-01 09:00:00']);
 
     $market = $this->counter->onMarket(new EloquentCollection([$old, $new, $draft]));
 
-    // Novembre : 30 nuits pour le premier, 10 (du 21 au 30) pour le second, rien pour le brouillon.
+    // Novembre : 30 nuits pour chaque logement publié, même créé en cours de mois ; rien pour le brouillon.
     expect($market->modelKeys())->toBe([1, 2])
-        ->and($this->counter->marketNights($market, $this->from, $this->to))->toBe(40);
+        ->and($this->counter->marketNights($market, $this->from, $this->to))->toBe(60);
 });
 
 it('compte les arrivées de séjours vendus, et celles du site', function () {

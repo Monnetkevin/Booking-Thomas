@@ -38,8 +38,6 @@ class ApartmentFactory extends Factory
             'cancellation_policy' => CancellationPolicy::Moderate,
             'status' => ApartmentStatus::Published,
             'position' => 0,
-            // Sur le marché depuis longtemps : l'occupation ne compte un logement qu'après sa création.
-            'created_at' => '2024-01-01 00:00:00',
         ];
     }
 
