@@ -26,8 +26,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Réservation saisie par l'hôte (téléphone, connaissance), spec « Réservation manuelle » :
  * confirmée tout de suite, sans paiement en ligne ni étape de validation. Elle respecte
- * l'occupation des nuits et la capacité du logement, mais ni le préavis ni le séjour
- * minimum. Le prix est calculé par PriceCalculator ; l'hôte peut fixer un autre total
+ * l'occupation des nuits et la capacité du logement, mais ni le préavis, ni le séjour
+ * minimum, ni le battement de ménage (turnover_days) : l'hôte peut enchaîner deux séjours
+ * le même jour s'il le décide. Le prix est calculé par PriceCalculator ; l'hôte peut fixer un autre total
  * (écart noté comme ajustement), ou le prix convenu si aucun tarif ne couvre les nuits.
  * Un règlement reçu hors ligne est noté comme paiement réussi. Une réservation a toujours
  * un montant : un séjour sans montant se saisit comme une fermeture de dates.
