@@ -33,9 +33,10 @@ class IcalParser
             throw IcalSyncException::invalid();
         }
         // Réponse coupée en route : sabre la lit sans erreur avec les premiers événements, et les
-        // séjours manquants passeraient pour des annulations. Le fichier doit se terminer.
-        if (! preg_match('/END:VCALENDAR\s*$/i', $content)
-            || substr_count(strtoupper($content), 'BEGIN:VEVENT') !== substr_count(strtoupper($content), 'END:VEVENT')) {
+        // séjours manquants passeraient pour des annulations. Le fichier doit se terminer. Seuls les
+        // débuts de ligne comptent : une description peut citer « BEGIN:VEVENT ».
+        if (! preg_match('/^END:VCALENDAR\s*$/mi', $content)
+            || preg_match_all('/^BEGIN:VEVENT\s*$/mi', $content) !== preg_match_all('/^END:VEVENT\s*$/mi', $content)) {
             throw IcalSyncException::invalid();
         }
 

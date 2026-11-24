@@ -49,7 +49,7 @@ export function AccountRow({ account }: { account: Account }) {
       </div>
       {!account.is_self && (
         <div className="flex flex-wrap items-center gap-2">
-          {account.role !== 'admin' && (
+          {account.role !== 'admin' && ASSIGNABLE_ROLES.length > 1 && (
             <>
               <span id={roleLabelId} className="sr-only">
                 {t('admin.users.changeRole', { name: account.name })}
