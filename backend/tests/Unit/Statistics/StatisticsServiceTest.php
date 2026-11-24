@@ -32,7 +32,6 @@ function statisticsReport(array $blocks, array $earning = [], array $revenues = 
     $availability->allows('planningBlocks')->andReturn(new Collection($blocks));
     $bookings = Mockery::mock(BookingRepositoryInterface::class);
     $bookings->allows('earningArrivingBetween')->andReturn(new Collection($earning));
-    $bookings->allows('soldArrivingBetween')->andReturn(new Collection(array_filter($earning, fn ($booking) => $booking->status !== BookingStatus::Cancelled)));
     $repository = Mockery::mock(PlatformRevenueRepositoryInterface::class);
     $repository->allows('between')->andReturnUsing(fn ($from, $to) => new Collection(array_values(
         array_filter($revenues, fn ($revenue) => $revenue->month->gte($from) && $revenue->month->lt($to)),

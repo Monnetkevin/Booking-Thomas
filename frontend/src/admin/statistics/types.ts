@@ -33,7 +33,6 @@ export interface Statistics {
     revenue_per_night: number | null
     nights_direct: number
     nights_platform: number
-    average_nightly_price: number | null
     average_stay: number | null
     occupancy: number | null
   }

@@ -77,7 +77,8 @@ class BlockConflictService
      * - une date fermée certaine (Airbnb « Not available ») n'amène aucun voyageur, quoi qu'elle
      *   recouvre : posée sur une réservation du site, c'est l'écho de l'export du site ;
      * - un bloc Booking.com (séjour ou fermeture, on ne sait pas) posé sur des nuits toutes
-     *   déjà fermées est pris pour l'écho de ces fermetures.
+     *   déjà tenues par le site (réservation ou fermeture) ou fermées est pris pour leur écho :
+     *   l'hôte ne ferme que sur le site et accepte lui-même chaque réservation Booking.com.
      */
     public function isRedundantClosure(AvailabilityBlock $block, BlockOverlap $overlap): bool
     {
@@ -85,6 +86,6 @@ class BlockConflictService
             return $overlap->isConflict();
         }
 
-        return $block->mayBeClosure() && $overlap->onlyClosuresCovering($block->starts_on, $block->ends_on);
+        return $block->mayBeClosure() && $overlap->onlySiteOrClosuresCovering($block->starts_on, $block->ends_on);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Availability;
 
+use App\Enums\BlockType;
 use App\Enums\BookingStatus;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
@@ -23,12 +24,13 @@ final readonly class BlockOverlap
     }
 
     /**
-     * Toutes les nuits [from, to[ sont déjà tenues par des fermetures, et rien d'autre ne les
-     * recouvre : un bloc qui n'est lui-même qu'une fermeture n'y change rien.
+     * Toutes les nuits [from, to[ sont déjà tenues par le site (réservation ou fermeture) ou par
+     * des fermetures, et rien d'autre ne les recouvre : un bloc qui reprend ces nuits n'est que
+     * leur écho (le site les exporte toutes sous « Réservé »).
      */
-    public function onlyClosuresCovering(CarbonImmutable $from, CarbonImmutable $to): bool
+    public function onlySiteOrClosuresCovering(CarbonImmutable $from, CarbonImmutable $to): bool
     {
-        if (! $this->isConflict() || ! $this->blocks->every(fn (AvailabilityBlock $block) => $block->mayBeClosure())) {
+        if (! $this->isConflict() || ! $this->blocks->every(fn (AvailabilityBlock $block) => $block->type !== BlockType::Ical || $block->mayBeClosure())) {
             return false;
         }
         for ($day = $from; $day->lt($to); $day = $day->addDay()) {

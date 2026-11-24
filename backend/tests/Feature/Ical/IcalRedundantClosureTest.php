@@ -123,13 +123,15 @@ it('fait de même pour une date fermée sur Airbnb, mais garde le conflit d’un
     $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 1);
 });
 
-it('garde le conflit d’une date Booking.com qui recouvre une réservation du site', function () {
+it('prend pour un écho une date Booking.com posée sur une réservation et une fermeture du site', function () {
+    Event::fake([IcalConflictDetected::class]);
     AvailabilityBlock::factory()->for($this->apartment)->between('2026-11-20', '2026-11-22')->create(['type' => BlockType::Manual]);
     directBooking($this->apartment, '2026-11-22', '2026-11-24');
 
     feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-24', 'CLOSED - Not available']]);
 
-    expect(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeFalse();
+    expect(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeTrue();
+    Event::assertNotDispatched(IcalConflictDetected::class);
 });
 
 it('rend la date Booking.com normale quand la fermeture du site est retirée', function () {
