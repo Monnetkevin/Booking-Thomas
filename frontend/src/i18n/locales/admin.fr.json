@@ -923,8 +923,6 @@
     "revenueDetail": "Réservations du site et saisies à la main : encaissé moins les remboursements, hors taxe de séjour, au mois d’arrivée.",
     "nights": "Nuits vendues",
     "occupancy": "Occupation",
-    "averagePrice": "Prix moyen d’une nuit",
-    "averagePriceDetail": "Hébergement seul, réservations directes.",
     "averageStay": "Durée moyenne d’un séjour",
     "averageStayDetail": "Séjours directs et des plateformes.",
     "nightsValue": "{{value}} nuits",

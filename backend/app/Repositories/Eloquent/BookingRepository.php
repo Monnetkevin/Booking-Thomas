@@ -186,13 +186,4 @@ class BookingRepository implements BookingRepositoryInterface
             ->where('arrival', '<', $to->toDateString())
             ->get();
     }
-
-    public function soldArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection
-    {
-        return Booking::query()
-            ->whereIn('status', [BookingStatus::Confirmed, BookingStatus::Completed])
-            ->where('arrival', '>=', $from->toDateString())
-            ->where('arrival', '<', $to->toDateString())
-            ->get();
-    }
 }

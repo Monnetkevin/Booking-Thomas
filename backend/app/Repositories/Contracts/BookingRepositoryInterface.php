@@ -88,11 +88,4 @@ interface BookingRepositoryInterface
      * @return Collection<int, Booking>
      */
     public function earningArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
-
-    /**
-     * Réservations vendues (confirmées ou terminées) qui arrivent dans [from, to[.
-     *
-     * @return Collection<int, Booking>
-     */
-    public function soldArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
 }

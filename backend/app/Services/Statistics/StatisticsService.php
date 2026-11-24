@@ -55,7 +55,6 @@ class StatisticsService
         $apartments = $this->apartments->allOrdered();
         $ids = $apartments->modelKeys();
         $blocks = $this->soldStays->between($from, $to, $ids);
-        $sold = $this->bookings->soldArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
         $earning = $this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids);
         $ledger = $this->ledger->months($blocks, $this->platformRevenues->between($from, $to), $from, $to, $ids);
         // Le mois en cours n'est pas encore versé : ses montants ne manquent pas.
@@ -96,7 +95,6 @@ class StatisticsService
                 'revenue_per_night' => $this->revenuePerNight($earning, $ledger),
                 'nights_direct' => $total['direct'],
                 'nights_platform' => $total['platform'],
-                'average_nightly_price' => $this->averageNightlyPrice($sold),
                 'average_stay' => $this->averageStay($blocks),
                 'occupancy' => $this->nights->marketOccupancy($blocks, $apartments, $from, $to),
             ],
@@ -208,18 +206,6 @@ class StatisticsService
         }
 
         return $this->csvWriter->write($rows);
-    }
-
-    /**
-     * Prix moyen d'une nuit vendue en direct (hébergement seul), en centimes.
-     *
-     * @param  Collection<int, Booking>  $bookings
-     */
-    private function averageNightlyPrice(Collection $bookings): ?int
-    {
-        $nights = $bookings->sum(fn (Booking $booking) => $booking->nights());
-
-        return $nights > 0 ? (int) round($bookings->sum('accommodation_amount') / $nights) : null;
     }
 
     /**

@@ -73,6 +73,13 @@ class ApartmentRepository implements ApartmentRepositoryInterface
 
     public function update(Apartment $apartment, array $attributes): Apartment
     {
+        // Spatie fusionne les langues : une traduction vidée resterait. On les remplace.
+        foreach (['name', 'tagline', 'description'] as $field) {
+            if (array_key_exists($field, $attributes)) {
+                $apartment->replaceTranslations($field, $attributes[$field] ?? []);
+                unset($attributes[$field]);
+            }
+        }
         $apartment->update($attributes);
 
         return $apartment;
@@ -80,6 +87,8 @@ class ApartmentRepository implements ApartmentRepositoryInterface
 
     public function delete(Apartment $apartment): void
     {
+        // Plus de synchronisation pour un logement supprimé (ni import, ni alerte d'échec).
+        $apartment->icalFeeds()->update(['is_active' => false]);
         $apartment->delete();
     }
 

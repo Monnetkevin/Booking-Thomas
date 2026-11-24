@@ -2,6 +2,7 @@
 
 namespace App\Services\Ical;
 
+use App\Enums\BlockType;
 use App\Models\AvailabilityBlock;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
@@ -35,7 +36,10 @@ class IcalExportService
         $today = CarbonImmutable::instance(Date::today());
         $host = SiteUrl::host();
 
+        // Une date fermée importée n'est que l'écho de l'export du site (l'hôte ne ferme que sur
+        // le site) : la réexporter la renverrait d'une plateforme à l'autre sans fin.
         $events = $this->availability->exportable($feed->apartment_id, $feed->id, $today->toDateString())
+            ->reject(fn (AvailabilityBlock $block) => $block->type === BlockType::Ical && $block->isClosure())
             ->map(fn (AvailabilityBlock $block) => Event::create('Réservé')
                 ->uniqueIdentifier("block-{$block->id}@$host")
                 ->createdAt($today)

@@ -55,7 +55,7 @@ class IcalCalendarMerger
     public function merge(IcalFeed $feed, array $events, array $unreadableUids = [], bool $acceptEmpty = false): SyncResult
     {
         $today = CarbonImmutable::instance(Date::today());
-        $upcoming = array_values(array_filter($events, fn (ImportedEvent $event) => $event->endsOn->gt($today)));
+        $upcoming = array_values(array_filter($events, fn (ImportedEvent $event) => $event->endsOn->gte($today)));
 
         $result = DB::transaction(function () use ($feed, $upcoming, $today, $unreadableUids, $acceptEmpty): SyncResult {
             $this->availability->lockApartment($feed->apartment_id);
@@ -130,6 +130,8 @@ class IcalCalendarMerger
      */
     private function apply(IcalFeed $feed, AvailabilityBlock $block, ImportedEvent $event): bool
     {
+        // Relu : un bloc précédent du même flux a pu lever son conflit en base (release).
+        $block->refresh();
         $moved = ! $block->is_active
             || ! $block->starts_on->equalTo($event->startsOn)
             || ! $block->ends_on->equalTo($event->endsOn);

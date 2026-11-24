@@ -55,8 +55,6 @@ it('donne les chiffres des 12 derniers mois, par mois et par logement', function
         ->assertJsonPath('data.totals.revenue', 84000)
         ->assertJsonPath('data.totals.nights_direct', 7)
         ->assertJsonPath('data.totals.nights_platform', 6)
-        // 76 000 c d'hébergement pour 8 nuits vendues (dont une en décembre).
-        ->assertJsonPath('data.totals.average_nightly_price', 9500)
         ->assertJsonPath('data.apartments.0.name', 'Le Cocon')
         ->assertJsonPath('data.apartments.0.revenue', 84000)
         ->assertJsonPath('data.apartments.1.nights_platform', 6)

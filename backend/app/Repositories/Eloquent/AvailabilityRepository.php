@@ -81,6 +81,7 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->where('is_active', true)
             ->where('ends_on', '>', $from)
             ->where(fn (Builder $query) => $query->whereNull('ical_feed_id')->orWhere('ical_feed_id', '!=', $exceptFeedId))
+            ->with('icalFeed')
             ->orderBy('starts_on')
             ->get();
     }
