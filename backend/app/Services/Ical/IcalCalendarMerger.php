@@ -241,7 +241,8 @@ class IcalCalendarMerger
      */
     private function alertIfDoubleBooked(AvailabilityBlock $block, BlockOverlap $overlap): void
     {
-        if ($block->isClosure()) {
+        // Écho de l'export du site (fermeture redondante) : pas de double réservation.
+        if ($block->isClosure() || $block->is_redundant_closure) {
             return;
         }
         $bookings = $overlap->confirmedBookings();
