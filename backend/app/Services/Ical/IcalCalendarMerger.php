@@ -91,7 +91,8 @@ class IcalCalendarMerger
                 }
             }
 
-            $conflicts = $blocks->filter(
+            // Relus en base : un release() a pu lever le conflit d'un bloc déjà traité.
+            $conflicts = $this->availability->feedBlocks($feed->id)->filter(
                 fn (AvailabilityBlock $block) => $block->is_active && $block->isRealConflict() && $block->ends_on->gt($today),
             )->count();
 
@@ -188,8 +189,9 @@ class IcalCalendarMerger
     /**
      * Blocs déjà sur ces nuits. Une réservation directe encore en attente de paiement
      * cède sa place à un séjour de la plateforme : il existe déjà chez elle, elle est expirée
-     * sur-le-champ (pas de conflit). Pas devant une simple date fermée (« Not available ») :
-     * c'est souvent l'écho de l'export du site, la réservation en cours de paiement reste.
+     * sur-le-champ (pas de conflit). Pas devant ce qui peut n'être qu'une date fermée (Airbnb
+     * « Not available », toute date Booking.com) : c'est l'écho de l'export du site, la
+     * réservation en cours de paiement reste.
      */
     private function overlap(IcalFeed $feed, ImportedEvent $event, ?int $exceptBlockId = null): BlockOverlap
     {
@@ -197,7 +199,7 @@ class IcalCalendarMerger
         $overlap = $this->conflicts->check($apartmentId, $event->startsOn, $event->endsOn, $exceptBlockId);
 
         $pending = $overlap->pendingBookings();
-        if ($pending->isEmpty() || $feed->provider->isClosure($event->summary)) {
+        if ($pending->isEmpty() || $feed->provider->mayBeClosure($event->summary)) {
             return $overlap;
         }
         $pending->each(fn (Booking $booking) => $this->bookings->expire($booking));
