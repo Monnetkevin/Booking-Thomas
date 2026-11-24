@@ -240,6 +240,15 @@ it('ne fait pas expirer une réservation en cours de paiement devant l’écho B
         ->and(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeTrue();
 });
 
+it('fait expirer une réservation en cours de paiement devant une date Booking.com qui déborde sur des nuits libres', function () {
+    $pending = directBooking($this->apartment, '2026-11-20', '2026-11-23', BookingStatus::Pending);
+
+    feedNow($this->booking, ['B1' => ['2026-11-22', '2026-11-25', 'CLOSED - Not available']]);
+
+    expect($pending->fresh()->status)->toBe(BookingStatus::Expired)
+        ->and(importedBlock('B1'))->has_conflict->toBeFalse()->is_redundant_closure->toBeFalse();
+});
+
 it('prend pour un écho une date Booking.com posée sur un séjour Airbnb (exporté par le site)', function () {
     feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-23', 'Reserved']]);
 
