@@ -38,7 +38,8 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
         <div
           key={slide.slug}
           aria-hidden="true"
-          className={cn('absolute inset-0 -z-20 transition-opacity duration-500', i === current ? 'opacity-100' : 'opacity-0')}
+          // Pas de fondu : le fond change sous la carte agrandie, qui montre déjà la même photo.
+          className={cn('absolute inset-0 -z-20', i === current ? 'opacity-100' : 'opacity-0')}
         >
           <Picture photo={slide.cover} sizes="100vw" priority={i === 0} alt="" />
         </div>
