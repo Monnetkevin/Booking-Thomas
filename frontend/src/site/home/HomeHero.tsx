@@ -33,7 +33,8 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
   const others = slides.map((_, i) => (current + i) % slides.length).slice(1, MAX_CARDS + 1)
 
   return (
-    <section ref={sectionRef} className="relative isolate -mt-[72px] overflow-hidden bg-[#1b1612] text-white">
+    // Remonte sous l'en-tête (72 px + filet de 1 px) pour que la photo parte du haut de l'écran.
+    <section ref={sectionRef} className="relative isolate -mt-[73px] overflow-hidden bg-[#1b1612] text-white">
       {slides.map((slide, i) => (
         <div
           key={slide.slug}
@@ -64,8 +65,8 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
         className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(20,14,10,0.7)_0%,rgba(20,14,10,0.55)_45%,rgba(20,14,10,0.8)_100%)] lg:bg-[linear-gradient(90deg,rgba(20,14,10,0.9)_0%,rgba(20,14,10,0.64)_46%,rgba(20,14,10,0.12)_100%),linear-gradient(180deg,rgba(20,14,10,0.62)_0%,rgba(20,14,10,0)_26%,rgba(20,14,10,0.55)_100%)]"
       />
 
-      <Container className="flex min-h-[min(820px,100svh)] items-end justify-between gap-8 pt-[120px] pb-10 lg:pb-[52px]">
-        <div className="flex w-full max-w-[560px] min-w-0 flex-col gap-6">
+      <Container wide className="flex min-h-svh items-end justify-between gap-8 pt-[120px] pb-10 lg:pb-[52px]">
+        <div className="flex w-full max-w-[600px] min-w-0 flex-col gap-6">
           <StatusPill tone="glass">{t('home.badge')}</StatusPill>
           <h1 className="text-[40px] leading-[1.02] text-white min-[400px]:text-[46px] sm:text-6xl lg:text-[68px]">
             <NoBreakHyphens text={t('home.titleStart')} /> <span className="text-[#f3b08e]">{t('home.titleAccent')}</span>

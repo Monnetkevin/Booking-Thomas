@@ -27,7 +27,8 @@ export function SiteHeader() {
   const menuId = useId()
   const scrolled = useScrolled()
   // Menu ouvert : fond clair, pour que le panneau déroulé reste lisible.
-  const overPhoto = stripLocale(pathname) === '/' && !scrolled && !open
+  const isHome = stripLocale(pathname) === '/'
+  const overPhoto = isHome && !scrolled && !open
 
   const linkClass = (active: boolean) =>
     cn(
@@ -67,7 +68,7 @@ export function SiteHeader() {
         !overPhoto && (scrolled ? 'border-line shadow-[0_6px_24px_rgba(43,38,34,0.08)]' : 'border-transparent'),
       )}
     >
-      <Container className="flex min-h-[72px] items-center justify-between gap-4">
+      <Container wide={isHome} className="flex min-h-[72px] items-center justify-between gap-4">
         <Link to={to('/')} className={cn('no-underline', overPhoto ? 'text-white hover:text-white' : 'text-ink hover:text-ink')}>
           <Logo />
         </Link>
@@ -98,7 +99,7 @@ export function SiteHeader() {
         </div>
       </Container>
       <nav id={menuId} aria-label={t('nav.main')} hidden={!open} className="border-t border-line bg-paper md:hidden">
-        <Container className="py-2">
+        <Container wide={isHome} className="py-2">
           <ul className="flex flex-col">
             {links}
           </ul>
