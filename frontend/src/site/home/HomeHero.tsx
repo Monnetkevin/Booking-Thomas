@@ -65,16 +65,19 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
         className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(20,14,10,0.7)_0%,rgba(20,14,10,0.55)_45%,rgba(20,14,10,0.8)_100%)] lg:bg-[linear-gradient(90deg,rgba(20,14,10,0.9)_0%,rgba(20,14,10,0.64)_46%,rgba(20,14,10,0.12)_100%),linear-gradient(180deg,rgba(20,14,10,0.62)_0%,rgba(20,14,10,0)_26%,rgba(20,14,10,0.55)_100%)]"
       />
 
-      <Container wide className="flex min-h-svh items-end justify-between gap-8 pt-[120px] pb-10 lg:pb-[52px]">
-        <div className="flex w-full max-w-[600px] min-w-0 flex-col gap-6">
-          <StatusPill tone="glass">{t('home.badge')}</StatusPill>
-          <h1 className="text-[40px] leading-[1.02] text-white min-[400px]:text-[46px] sm:text-6xl lg:text-[68px]">
+      {/* Exactement la hauteur de l'écran : le contenu se resserre sur les écrans peu hauts. */}
+      <Container wide className="flex h-svh items-end justify-between gap-8 pt-[96px] pb-6 sm:pb-10 lg:pb-[52px] short:pb-6">
+        <div className="flex w-full max-w-[600px] min-w-0 flex-col gap-5 sm:gap-6 short:gap-4 tiny:gap-3">
+          <div className="flex tiny:hidden">
+            <StatusPill tone="glass">{t('home.badge')}</StatusPill>
+          </div>
+          <h1 className="text-[40px] leading-[1.02] text-white min-[400px]:text-[46px] sm:text-6xl lg:text-[68px] short:lg:text-6xl tiny:text-[34px] tiny:sm:text-[40px] tiny:lg:text-5xl">
             <NoBreakHyphens text={t('home.titleStart')} /> <span className="text-[#f3b08e]">{t('home.titleAccent')}</span>
           </h1>
-          <p className="max-w-[480px] text-[17px] leading-relaxed text-[#f4ebdd] sm:text-lg">{intro}</p>
+          <p className="max-w-[480px] text-[17px] leading-relaxed text-[#f4ebdd] sm:text-lg short:hidden">{intro}</p>
 
           {shown && (
-            <div className="flex items-center justify-between gap-4 border-t border-white/35 pt-5" aria-live="polite">
+            <div className="flex items-center justify-between gap-4 border-t border-white/35 pt-5 short:pt-4" aria-live="polite">
               <div className="flex min-w-0 flex-col gap-0.5">
                 <h2 className="text-2xl text-white">{shown.name}</h2>
                 <p className="text-sm text-[#f4ebdd]">
@@ -93,7 +96,7 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
 
           {/* Message d'erreur de la recherche lisible sur la photo. */}
           <div className="text-ink [&_[role=alert]]:text-[#ffc2ad]">
-            <SearchForm />
+            <SearchForm compact />
           </div>
         </div>
 

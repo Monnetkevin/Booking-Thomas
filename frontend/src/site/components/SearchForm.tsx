@@ -30,8 +30,19 @@ function Divider() {
   return <span aria-hidden="true" className="hidden h-8 w-px shrink-0 bg-[#e4d8c8] md:block" />
 }
 
-/** Recherche par dates et voyageurs, en pilule : accueil et page des logements. */
-export function SearchForm({ initial, submitLabel }: { initial?: SearchCriteria | null; submitLabel?: string }) {
+/**
+ * Recherche par dates et voyageurs, en pilule : accueil et page des logements.
+ * `compact` : arrivée et départ côte à côte sur téléphone, pour tenir dans le haut de l'accueil.
+ */
+export function SearchForm({
+  initial,
+  submitLabel,
+  compact = false,
+}: {
+  initial?: SearchCriteria | null
+  submitLabel?: string
+  compact?: boolean
+}) {
   const { t } = useTranslation()
   const form = useSearchForm(initial)
 
@@ -43,31 +54,33 @@ export function SearchForm({ initial, submitLabel }: { initial?: SearchCriteria 
         aria-label={t('search.label')}
         className="flex flex-col gap-3 rounded-[28px] border border-[#e4d8c8] bg-white p-4 shadow-[0_12px_32px_rgba(43,38,34,0.08)] md:flex-row md:items-center md:gap-4 md:rounded-full md:py-2 md:pr-2 md:pl-6"
       >
-        <SearchField label={t('search.arrival')}>
-          {(labelId) => (
-            <DatePicker
-              appearance="pill"
-              label={t('search.arrival')}
-              aria-labelledby={labelId}
-              value={form.arrival}
-              min={form.minArrival}
-              onChange={form.setArrival}
-            />
-          )}
-        </SearchField>
-        <Divider />
-        <SearchField label={t('search.departure')}>
-          {(labelId) => (
-            <DatePicker
-              appearance="pill"
-              label={t('search.departure')}
-              aria-labelledby={labelId}
-              value={form.departure}
-              min={form.minDeparture}
-              onChange={form.setDeparture}
-            />
-          )}
-        </SearchField>
+        <div className={compact ? 'grid grid-cols-2 gap-3 md:contents' : 'contents'}>
+          <SearchField label={t('search.arrival')}>
+            {(labelId) => (
+              <DatePicker
+                appearance="pill"
+                label={t('search.arrival')}
+                aria-labelledby={labelId}
+                value={form.arrival}
+                min={form.minArrival}
+                onChange={form.setArrival}
+              />
+            )}
+          </SearchField>
+          <Divider />
+          <SearchField label={t('search.departure')}>
+            {(labelId) => (
+              <DatePicker
+                appearance="pill"
+                label={t('search.departure')}
+                aria-labelledby={labelId}
+                value={form.departure}
+                min={form.minDeparture}
+                onChange={form.setDeparture}
+              />
+            )}
+          </SearchField>
+        </div>
         <Divider />
         <SearchField label={t('search.guests')} className="flex flex-col gap-1 md:w-[130px] md:flex-none md:gap-0.5">
           {(labelId) => (
@@ -76,7 +89,10 @@ export function SearchForm({ initial, submitLabel }: { initial?: SearchCriteria 
               aria-labelledby={labelId}
               value={form.guests}
               onChange={(value) => form.setGuests(Number(value))}
-              options={Array.from({ length: MAX_GUESTS }, (_, i) => ({ value: i + 1, label: t('search.guests', { count: i + 1 }) }))}
+              options={Array.from({ length: MAX_GUESTS }, (_, i) => ({
+                value: i + 1,
+                label: t('search.guests', { count: i + 1 }),
+              }))}
             />
           )}
         </SearchField>
