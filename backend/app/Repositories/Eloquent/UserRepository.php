@@ -17,9 +17,9 @@ class UserRepository implements UserRepositoryInterface
 
     public function all(): Collection
     {
-        // Administrateurs, puis gestionnaires, puis ménage ; par nom dans chaque rôle.
+        // Administrateurs, puis ménage ; par nom dans chaque rôle.
         return User::query()
-            ->orderByRaw('case role when ? then 0 when ? then 1 else 2 end', [UserRole::Admin->value, UserRole::Manager->value])
+            ->orderByRaw('case role when ? then 0 else 1 end', [UserRole::Admin->value])
             ->orderBy('name')
             ->get();
     }

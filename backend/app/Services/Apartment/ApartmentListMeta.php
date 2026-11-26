@@ -31,7 +31,6 @@ class ApartmentListMeta
         $from = $today->startOfMonth();
         $to = $from->addMonth();
         $blocks = $this->soldStays->between($from, $to);
-        $days = (int) $from->diffInDays($to);
 
         $counts = ['all' => $all->count()];
         foreach (ApartmentStatus::cases() as $status) {
@@ -41,9 +40,7 @@ class ApartmentListMeta
         $occupancy = [];
         foreach ($all as $apartment) {
             $own = $blocks->filter(fn (AvailabilityBlock $block) => $block->apartment_id === $apartment->id);
-            $occupancy[$apartment->id] = $apartment->status === ApartmentStatus::Published
-                ? $this->nights->occupancy($this->nights->count($own, $from, $to), 1, $days)
-                : null;
+            $occupancy[$apartment->id] = $this->nights->marketOccupancy($own, collect([$apartment]), $from, $to);
         }
 
         return ['counts' => $counts, 'occupancy' => $occupancy];

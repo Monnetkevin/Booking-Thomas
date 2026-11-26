@@ -540,7 +540,6 @@
     "listTitle": "Équipe",
     "roles": {
       "admin": "Administrateur",
-      "manager": "Gestionnaire",
       "housekeeping": "Ménage"
     },
     "inactive": "Désactivé",
@@ -559,7 +558,6 @@
     "invited": "Invitation envoyée à {{email}}.",
     "role": "Rôle",
     "roleHints": {
-      "manager": "Réservations, planning, logements, calendriers, messages et statistiques.",
       "housekeeping": "Planning du ménage et ses notifications, sans noms, coordonnées ni montants."
     },
     "lastLogin": "Dernière connexion : {{when}}",
@@ -607,6 +605,9 @@
       "block.created": "Dates bloquées",
       "block.deleted": "Blocage retiré",
       "apartment.deleted": "Logement supprimé",
+      "apartment.published": "Logement mis en ligne",
+      "apartment.unpublished": "Logement retiré du site",
+      "apartment.price_updated": "Frais de ménage modifiés",
       "rate_period.created": "Tarif créé",
       "rate_period.updated": "Tarif modifié",
       "rate_period.deleted": "Tarif supprimé",
@@ -922,8 +923,6 @@
     "revenueDetail": "Réservations du site et saisies à la main : encaissé moins les remboursements, hors taxe de séjour, au mois d’arrivée.",
     "nights": "Nuits vendues",
     "occupancy": "Occupation",
-    "averagePrice": "Prix moyen d’une nuit",
-    "averagePriceDetail": "Hébergement seul, réservations directes.",
     "averageStay": "Durée moyenne d’un séjour",
     "averageStayDetail": "Séjours directs et des plateformes.",
     "nightsValue": "{{value}} nuits",

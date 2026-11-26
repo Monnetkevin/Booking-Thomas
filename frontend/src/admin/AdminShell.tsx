@@ -25,7 +25,7 @@ export function AdminShell() {
   const navigate = useNavigate()
   const { data: user, isPending, isError, refetch } = useCurrentUser()
   const logout = useLogout()
-  const staff = user?.role === 'admin' || user?.role === 'manager'
+  const staff = user?.role === 'admin'
   const overview = useOverview(staff)
   // Le ménage n'a pas le bouton « Alertes » : ses non lues s'affichent sur l'entrée Notifications.
   const unread = useUnreadCount(user?.role === 'housekeeping')

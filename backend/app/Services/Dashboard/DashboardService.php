@@ -114,14 +114,15 @@ class DashboardService
      */
     private function periodFigures(CarbonImmutable $from, CarbonImmutable $to): array
     {
+        // Revenus et séjours de tout logement non supprimé, même dépublié ; l'occupation ne
+        // retient que les logements sur le marché (marketOccupancy).
         $apartments = $this->apartments->allOrdered();
         $ids = $apartments->modelKeys();
         $blocks = $this->soldStays->between($from, $to, $ids);
-        $nights = $this->nights->count($blocks, $from, $to);
         $arrivals = $this->nights->arrivals($blocks, $from, $to);
 
         return [
-            'occupancy' => $this->nights->occupancy($nights, $apartments->count(), (int) $from->diffInDays($to)),
+            'occupancy' => $this->nights->marketOccupancy($blocks, $apartments, $from, $to),
             'revenue' => $this->revenue->of($this->bookings->earningArrivingBetween($from, $to)->whereIn('apartment_id', $ids)),
             'stays' => $arrivals['all'],
             'direct_stays' => $arrivals['direct'],

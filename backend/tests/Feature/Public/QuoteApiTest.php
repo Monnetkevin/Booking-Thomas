@@ -144,4 +144,27 @@ describe('aperçu de l’hôte', function () {
         ])->assertJsonPath('data.quote', null)
             ->assertJsonPath('data.warnings.*.code', fn (array $codes) => in_array('no_rate', $codes, true));
     });
+
+    it('ne chiffre pas un séjour plus long que la durée maximale, même en partie sans tarif', function () {
+        // 20 nuits pour 14 au plus, dont des nuits après la dernière période tarifaire.
+        $this->postJson("/api/admin/apartments/{$this->apartment->id}/quote-preview", [
+            'arrival' => '2026-12-26', 'departure' => '2027-01-15', 'adults' => 2,
+        ])->assertOk()
+            ->assertJsonPath('data.quote', null)
+            ->assertJsonPath('data.warnings.*.code', fn (array $codes) => in_array('max_stay', $codes, true));
+    });
+});
+
+it('refuse des dates trop lointaines avant tout calcul nuit par nuit', function (array $dates, string $field) {
+    quote($dates)->assertJsonValidationErrors($field);
+})->with([
+    'départ en 9999' => [['arrival' => '2027-01-01', 'departure' => '9999-12-31'], 'departure'],
+    'arrivée trop ancienne' => [['arrival' => '0001-01-01', 'departure' => '2026-12-01'], 'arrival'],
+]);
+
+it('ne parcourt pas les nuits d’un séjour plus long que la durée maximale', function () {
+    // 1 000 nuits dans la plage acceptée : la durée maximale est signalée, pas les tarifs nuit par nuit.
+    $codes = violationCodes(quote(['arrival' => '2027-01-04', 'departure' => '2029-09-30'])->assertUnprocessable());
+
+    expect($codes)->toContain('max_stay')->not->toContain('no_rate');
 });

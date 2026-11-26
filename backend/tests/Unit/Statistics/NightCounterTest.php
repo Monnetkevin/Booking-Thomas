@@ -1,10 +1,13 @@
 <?php
 
+use App\Enums\ApartmentStatus;
 use App\Enums\BlockType;
 use App\Enums\BookingStatus;
+use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
 use App\Services\Statistics\NightCounter;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 beforeEach(function () {
     $this->counter = new NightCounter;
@@ -86,9 +89,21 @@ it('ne compte qu’une fois, par plateforme, les nuits de deux séjours en confl
 it('calcule l’occupation sur les nuits ouvertes, nulle sans nuit ouverte', function () {
     $nights = ['direct' => 10, 'platform' => 5, 'closed' => 30];
 
-    expect($this->counter->occupancy($nights, 2, 30))->toBe(50.0)
-        ->and($this->counter->openNights($nights, 2, 30))->toBe(30)
-        ->and($this->counter->occupancy(['direct' => 0, 'platform' => 0, 'closed' => 30], 1, 30))->toBeNull();
+    expect($this->counter->occupancy($nights, 60))->toBe(50.0)
+        ->and($this->counter->openNights($nights, 60))->toBe(30)
+        ->and($this->counter->occupancy(['direct' => 0, 'platform' => 0, 'closed' => 30], 30))->toBeNull();
+});
+
+it('ne compte que les logements publiés, sur toute la période', function () {
+    $old = (new Apartment)->forceFill(['id' => 1, 'status' => ApartmentStatus::Published, 'created_at' => '2025-01-01 09:00:00']);
+    $new = (new Apartment)->forceFill(['id' => 2, 'status' => ApartmentStatus::Published, 'created_at' => '2026-11-21 15:00:00']);
+    $draft = (new Apartment)->forceFill(['id' => 3, 'status' => ApartmentStatus::Draft, 'created_at' => '2025-01-01 09:00:00']);
+
+    $market = $this->counter->onMarket(new EloquentCollection([$old, $new, $draft]));
+
+    // Novembre : 30 nuits pour chaque logement publié, même créé en cours de mois ; rien pour le brouillon.
+    expect($market->modelKeys())->toBe([1, 2])
+        ->and($this->counter->marketNights($market, $this->from, $this->to))->toBe(60);
 });
 
 it('compte les arrivées de séjours vendus, et celles du site', function () {

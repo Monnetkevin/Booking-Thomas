@@ -25,22 +25,16 @@ describe('navigation du back-office', () => {
     expect(canVisit('/admin/appartements', 'admin', items)).toBe(true)
   })
 
-  it('donne au gestionnaire tout sauf tarifs, utilisateurs, réglages et revenus des plateformes', () => {
-    const pages = navigationFor('manager').map((item) => item.to)
-    expect(pages).toContain('/admin/reservations')
-    expect(pages).toContain('/admin/appartements')
-    expect(pages).not.toContain('/admin/tarifs')
-    expect(pages).not.toContain('/admin/utilisateurs')
-    expect(pages).not.toContain('/admin/reglages')
-    expect(pages).not.toContain('/admin/journal')
+  it('ne laisse au ménage aucune page de gestion', () => {
+    const pages = navigationFor('housekeeping').map((item) => item.to)
+    expect(pages).not.toContain('/admin/reservations')
     expect(pages).not.toContain('/admin/revenus-plateformes')
-    expect(canVisit('/admin/reservations/BT-1', 'manager')).toBe(true)
-    expect(canVisit('/admin/reglages', 'manager')).toBe(false)
-    expect(canVisit('/admin/tarifs', 'manager')).toBe(false)
+    expect(canVisit('/admin/reservations/BT-1', 'housekeeping')).toBe(false)
+    expect(canVisit('/admin/reglages', 'housekeeping')).toBe(false)
   })
 
   it('range les entrées par groupe du menu, sans le menu du compte', () => {
-    const groups = sidebarGroups(navigationFor('manager'))
+    const groups = sidebarGroups(navigationFor('admin'))
     expect(groups.map((entry) => entry.group)).toEqual(['pilotage', 'catalogue', 'suivi'])
     expect(groups.flatMap((entry) => entry.items).some((item) => item.group === 'account')).toBe(false)
     expect(sidebarGroups(navigationFor('housekeeping')).map((entry) => entry.group)).toEqual(['suivi'])

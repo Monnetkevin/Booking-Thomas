@@ -7,7 +7,7 @@ import { SelectField, TextField } from '@/components/ui/Field'
 import { ApiError } from '@/lib/api'
 import { useInviteAccount } from '../useUsers'
 
-/** Invitation d'un compte gestionnaire ou ménage : un e-mail lui permet de choisir son mot de passe. */
+/** Invitation d'un compte ménage : un e-mail lui permet de choisir son mot de passe. */
 export function InviteAccountForm() {
   const { t } = useTranslation()
   const [name, setName] = useState('')

@@ -10,27 +10,27 @@ class IcalFeedPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function view(User $user, IcalFeed $feed): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     /** « Tout synchroniser ». */
     public function syncAll(User $user): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function create(User $user): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 
     public function update(User $user, IcalFeed $feed): bool
     {
-        return $user->canOperate();
+        return $user->isActiveAdmin();
     }
 }

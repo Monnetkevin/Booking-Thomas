@@ -6,7 +6,7 @@ use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Nom d'un compte, activation ou désactivation, rôle (gestionnaire ou ménage). */
+/** Nom d'un compte, activation ou désactivation, rôle (ménage seulement : le rôle d'un administrateur ne change pas). */
 class UpdateUserRequest extends FormRequest
 {
     /**

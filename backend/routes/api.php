@@ -63,7 +63,7 @@ Route::prefix('auth')->group(function () {
     // Mot de passe choisi depuis le lien d'invitation ou de réinitialisation.
     Route::post('password', [PasswordController::class, 'update'])->middleware('throttle:5,1');
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('me', [SessionController::class, 'show'])->middleware('role:admin,manager,housekeeping');
+        Route::get('me', [SessionController::class, 'show'])->middleware('role:admin,housekeeping');
         Route::post('logout', [SessionController::class, 'destroy']);
     });
 });
@@ -71,7 +71,7 @@ Route::prefix('auth')->group(function () {
 /*
 | Back-office, pour tous les rôles : notifications et préférences du compte connecté
 */
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager,housekeeping'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index']);
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
@@ -81,10 +81,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager,housekee
 });
 
 /*
-| Back-office : administrateurs et gestionnaires (les Policies affinent). Tarifs, comptes
-| et réglages sont regroupés plus bas, réservés aux administrateurs.
+| Back-office : administrateurs (les Policies affinent). Tarifs, comptes et réglages sont
+| regroupés plus bas.
 */
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,manager'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Logements (identifiés par leur id dans l'admin : le slug peut changer)
     Route::put('apartments/order', [ApartmentController::class, 'reorder']);
     Route::get('apartments', [ApartmentController::class, 'index']);
