@@ -13,6 +13,7 @@ use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\PlatformRevenueRepositoryInterface;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
+use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\AmenityRepository;
@@ -26,6 +27,7 @@ use App\Repositories\Eloquent\IcalFeedRepository;
 use App\Repositories\Eloquent\NotificationRepository;
 use App\Repositories\Eloquent\PlatformRevenueRepository;
 use App\Repositories\Eloquent\RatePeriodRepository;
+use App\Repositories\Eloquent\ReviewRepository;
 use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Eloquent\UserRepository;
 use App\Services\AuthService;
@@ -53,6 +55,7 @@ class RepositoryServiceProvider extends ServiceProvider
         SettingRepositoryInterface::class => SettingRepository::class,
         NotificationRepositoryInterface::class => NotificationRepository::class,
         AuditLogRepositoryInterface::class => AuditLogRepository::class,
+        ReviewRepositoryInterface::class => ReviewRepository::class,
     ];
 
     public function register(): void

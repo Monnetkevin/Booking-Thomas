@@ -10,6 +10,7 @@ import { apartmentFacts } from '@/site/catalog/apartmentFacts'
 import type { ApartmentSummary, PublicPhoto } from '@/site/catalog/types'
 import { Picture } from '@/site/components/Picture'
 import { SearchForm } from '@/site/components/SearchForm'
+import { HeroRating } from './HeroRating'
 import { GROW_DURATION, useHeroSlides } from './useHeroSlides'
 
 /** Cartes des logements suivants, à droite : la quatrième n'apparaît qu'à partir de 1440 px, pour laisser sa place à la recherche. */
@@ -68,8 +69,9 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
       {/* Exactement la hauteur de l'écran : le contenu se resserre sur les écrans peu hauts. */}
       <Container wide className="flex h-svh items-end justify-between gap-8 pt-[96px] pb-6 sm:pb-10 lg:pb-[52px] short:pb-6">
         <div className="flex w-full max-w-[600px] min-w-0 flex-col gap-5 sm:gap-6 short:gap-4 tiny:gap-3">
-          <div className="flex tiny:hidden">
+          <div className="flex flex-wrap gap-2 tiny:hidden">
             <StatusPill tone="glass">{t('home.badge')}</StatusPill>
+            <HeroRating />
           </div>
           <h1 className="text-[40px] leading-[1.02] text-white min-[400px]:text-[46px] sm:text-6xl lg:text-[68px] short:lg:text-6xl tiny:text-[34px] tiny:sm:text-[40px] tiny:lg:text-5xl">
             <NoBreakHyphens text={t('home.titleStart')} /> <span className="text-[#f3b08e]">{t('home.titleAccent')}</span>

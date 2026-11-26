@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatDateTime, nightsBetween, formatLongDate, fromIso, toIso } from './dates'
+import { formatDate, formatDateTime, formatMonth, nightsBetween, formatLongDate, fromIso, toIso } from './dates'
 
 describe('dates', () => {
   it('affiche une date courte en français, sans décalage de fuseau', () => {
@@ -24,5 +24,10 @@ describe('dates', () => {
 
   it('écrit un instant avec sa date et son heure', () => {
     expect(formatDateTime('2026-11-13T10:15:00Z', 'fr-FR')).toMatch(/^13 nov\. 2026( à|,) \d{2}:15$/)
+  })
+
+  it('écrit le mois d’un séjour', () => {
+    expect(formatMonth('2026-10')).toBe('octobre 2026')
+    expect(formatMonth('2027-01', 'en-GB')).toBe('January 2027')
   })
 })

@@ -50,4 +50,12 @@ return [
         'host_reply' => 'Reply to this email to write to :name.',
         'host_reason' => 'Direct booking confirmed on the website.',
     ],
+    'review_invitation' => [
+        'subject' => 'Your stay at :apartment: share your feedback',
+        'title' => 'How was your stay?',
+        'intro' => 'Hello :name, thank you for staying with us.',
+        'ask' => 'A few words and a rating from 1 to 5 are enough: your review helps future guests and helps us improve. It is checked before publication and only your first name is shown.',
+        'button' => 'Leave a review',
+        'validity' => 'This personal link can be used once and is valid until :date.',
+    ],
 ];

@@ -13,7 +13,7 @@ import { useDashboard } from '@/admin/dashboard/useDashboard'
 import { addDays } from '@/admin/planning/planningLayout'
 import { usePlanning } from '@/admin/planning/usePlanning'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { BarChartIcon, CalendarIcon, GridIcon, PlusIcon } from '@/components/icons'
+import { BarChartIcon, CalendarIcon, GridIcon, PlusIcon, StarIcon } from '@/components/icons'
 import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Section } from '@/components/ui/Section'
 import { SegmentedControl } from '@/components/ui/SegmentedControl'
@@ -84,7 +84,7 @@ export function DashboardPage() {
         <ErrorState onRetry={() => void dashboard.refetch()} />
       ) : (
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
               icon={<GridIcon />}
               label={t('admin.dashboard.occupancy')}
@@ -105,6 +105,23 @@ export function DashboardPage() {
               value={dashboard.data.figures.stays.value}
               detail={t('admin.dashboard.staysDetail', { count: dashboard.data.figures.stays.direct })}
               delta={countDelta(dashboard.data.figures.stays.value, dashboard.data.figures.stays.previous)}
+            />
+            <KpiCard
+              icon={<StarIcon />}
+              label={t('admin.dashboard.rating')}
+              value={
+                dashboard.data.reviews.average === null ? '—' : t('admin.dashboard.ratingValue', { average: percent.format(dashboard.data.reviews.average) })
+              }
+              detail={
+                dashboard.data.alerts.pending_reviews > 0 ? (
+                  <Link to="/admin/avis">{t('admin.dashboard.todo.reviews.title', { count: dashboard.data.alerts.pending_reviews })}</Link>
+                ) : dashboard.data.reviews.count > 0 ? (
+                  t('admin.dashboard.ratingDetail', { count: dashboard.data.reviews.count })
+                ) : (
+                  t('admin.dashboard.ratingNone')
+                )
+              }
+              delta={null}
             />
           </div>
 

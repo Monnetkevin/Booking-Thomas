@@ -51,7 +51,7 @@ export function AdminShell() {
       navigation={navigation}
       search={staff ? <SearchPalette pages={navigation.map((item) => ({ to: item.to, label: t(item.labelKey) }))} /> : undefined}
       badges={{
-        ...(counts && { conflicts: counts.conflicts, failingFeeds: counts.failing_feeds, unreadMessages: counts.unread_messages }),
+        ...(counts && { conflicts: counts.conflicts, failingFeeds: counts.failing_feeds, unreadMessages: counts.unread_messages, pendingReviews: counts.pending_reviews }),
         unreadNotifications: unread.data ?? 0,
       }}
       account={<AccountMenu user={user} items={navigation.filter((item) => item.group === 'account')} onLogout={handleLogout} />}

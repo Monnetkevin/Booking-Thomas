@@ -27,7 +27,8 @@
       "suivi": "Suivi"
     },
     "platformRevenue": "Revenus des plateformes",
-    "cleaning": "Planning du ménage"
+    "cleaning": "Planning du ménage",
+    "reviews": "Avis"
   },
   "login": {
     "title": "Connexion",
@@ -100,6 +101,11 @@
         "title_one": "{{count}} message non lu",
         "title_other": "{{count}} messages non lus",
         "text": "Questions envoyées depuis le formulaire de contact."
+      },
+      "reviews": {
+        "title_one": "{{count}} avis en attente",
+        "title_other": "{{count}} avis en attente",
+        "text": "À valider avant publication sur le site."
       }
     },
     "movementsHint": "7 prochains jours",
@@ -111,7 +117,12 @@
     "platformGuest": "Voyageur de la plateforme",
     "occupancyStrip": "Occupation",
     "occupancyStripHint": "{{days}} prochains jours",
-    "free": "Libre"
+    "free": "Libre",
+    "rating": "Note moyenne",
+    "ratingValue": "{{average}} / 5",
+    "ratingDetail_one": "{{count}} avis publié",
+    "ratingDetail_other": "{{count}} avis publiés",
+    "ratingNone": "Pas encore d’avis publié"
   },
   "forbidden": "Votre compte n'a pas accès à cette page.",
   "common": {
@@ -517,6 +528,7 @@
       "ical_feed_recovered": "Calendrier de nouveau à jour",
       "booking_confirmed": "Réservation confirmée",
       "contact_message": "Nouveau message de contact",
+      "review_submitted": "Avis à modérer",
       "stay_changed": "Séjour ajouté, annulé ou déplacé",
       "daily_summary": "Récapitulatif du lendemain"
     },
@@ -618,7 +630,10 @@
       "user.password_link_sent": "Lien de mot de passe envoyé",
       "platform_revenues.saved": "Revenus des plateformes saisis",
       "bookings.exported": "Réservations exportées (CSV)",
-      "platform_payouts.imported": "Revenus importés (ancien import CSV)"
+      "platform_payouts.imported": "Revenus importés (ancien import CSV)",
+      "review.published": "Avis publié",
+      "review.rejected": "Avis refusé ou retiré",
+      "review.replied": "Réponse à un avis"
     }
   },
   "notFound": {
@@ -1066,5 +1081,75 @@
     "guests_other": "{{count}} voyageurs",
     "turnover": "Départ et arrivée le même jour",
     "notes": "Notes : {{notes}}"
+  },
+  "reviews": {
+    "title": "Avis",
+    "subtitle": "Avis laissés après un séjour réservé sur le site.",
+    "filter": "Statut",
+    "filters": {
+      "pending": "À modérer ({{count}})",
+      "published": "Publiés ({{count}})",
+      "rejected": "Refusés ({{count}})",
+      "invited": "Invitations sans réponse ({{count}})"
+    },
+    "statuses": {
+      "pending": "À modérer",
+      "published": "Publié",
+      "rejected": "Refusé",
+      "invited": "Invitation envoyée"
+    },
+    "apartment": "Logement",
+    "allApartments": "Tous les logements",
+    "rating_one": "{{count}} sur 5",
+    "rating_other": "{{count}} sur 5",
+    "noAnswer": "Pas encore de réponse",
+    "stay": "séjour du {{from}} au {{to}}",
+    "receivedOn": "Reçu le {{date}}",
+    "invitedOn": "Invitation envoyée le {{date}}, valable jusqu’au {{expires}}",
+    "reason": "Motif interne : {{reason}}",
+    "yourReply": "Votre réponse publique",
+    "publish": "Publier",
+    "reject": "Refuser",
+    "unpublish": "Retirer du site",
+    "reply": "Répondre",
+    "editReply": "Modifier la réponse",
+    "resend": "Renvoyer l’invitation",
+    "failed": "L’action n’a pas abouti. Réessayez.",
+    "empty": {
+      "pending": "Aucun avis à modérer.",
+      "published": "Aucun avis publié pour le moment.",
+      "rejected": "Aucun avis refusé.",
+      "invited": "Aucune invitation en attente de réponse."
+    },
+    "pages": "Pages des avis",
+    "page": "Page {{page}} sur {{total}}",
+    "fairness": "Tous les avis reçus sont traités de la même façon, sans tri selon la note. Un avis refusé garde un motif interne, communicable au voyageur sur demande.",
+    "dialogs": {
+      "reject": {
+        "title": "Refuser l’avis",
+        "label": "Motif interne (facultatif)",
+        "hint": "Jamais publié ; communicable au voyageur s’il le demande.",
+        "submit": "Refuser l’avis"
+      },
+      "reply": {
+        "title": "Réponse publique",
+        "label": "Votre réponse",
+        "hint": "Affichée sous l’avis, sur le site. Laissez vide pour l’effacer.",
+        "submit": "Enregistrer la réponse"
+      }
+    },
+    "kpi": {
+      "average": "Note moyenne",
+      "averageValue": "{{average}} / 5",
+      "averageDetail_one": "{{count}} avis publié",
+      "averageDetail_other": "{{count}} avis publiés",
+      "pending": "En attente",
+      "pendingDetail": "à modérer",
+      "replyRate": "Taux de réponse",
+      "replyRateDetail": "des invitations envoyées sur 30 jours",
+      "fiveStars": "5 étoiles",
+      "fiveStarsDetail": "des avis publiés",
+      "none": "—"
+    }
   }
 }

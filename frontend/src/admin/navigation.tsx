@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BarChartIcon, BellIcon, BroomIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
+import { BarChartIcon, BellIcon, BroomIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, StarIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
 
 /** Compteur affiché à côté d'une entrée, lu dans les compteurs de la barre. */
-export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages' | 'unreadNotifications'
+export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages' | 'pendingReviews' | 'unreadNotifications'
 
 /** Groupe du menu latéral ; « account » : menu du compte, en haut à droite. */
 export type NavGroup = 'pilotage' | 'catalogue' | 'suivi' | 'account'
@@ -26,6 +26,7 @@ export interface AdminNavItem {
     | 'admin.nav.users'
     | 'admin.nav.audit'
     | 'admin.nav.messages'
+    | 'admin.nav.reviews'
     | 'admin.nav.settings'
   icon: ReactNode
   roles: Role[]
@@ -54,6 +55,7 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: STAFF, group: 'catalogue' },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'], group: 'catalogue' },
   { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: STAFF, group: 'suivi', badge: 'unreadMessages' },
+  { to: '/admin/avis', labelKey: 'admin.nav.reviews', icon: <StarIcon />, roles: STAFF, group: 'suivi', badge: 'pendingReviews' },
   { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: STAFF, group: 'suivi' },
   { to: '/admin/revenus-plateformes', labelKey: 'admin.nav.platformRevenue', icon: <WalletIcon />, roles: ['admin'], group: 'suivi' },
   { to: '/admin/synchronisation', labelKey: 'admin.nav.sync', icon: <SyncIcon />, roles: STAFF, group: 'suivi', badge: 'failingFeeds' },

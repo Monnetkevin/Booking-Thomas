@@ -9,7 +9,8 @@ it('donne les préférences de l’hôte : chaque type de son rôle, e-mail et r
         ->assertJsonPath('data.types.1', ['type' => 'ical_feed_failing', 'email' => true, 'editable' => true])
         ->assertJsonPath('data.types.3', ['type' => 'ical_feed_recovered', 'email' => false, 'editable' => true])
         ->assertJsonPath('data.types.4', ['type' => 'booking_confirmed', 'email' => false, 'editable' => false])
-        ->assertJsonCount(6, 'data.types');
+        ->assertJsonPath('data.types.6', ['type' => 'review_submitted', 'email' => false, 'editable' => true])
+        ->assertJsonCount(7, 'data.types');
 });
 
 it('donne au ménage ses seuls types et son récapitulatif', function () {

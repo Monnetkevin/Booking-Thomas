@@ -82,4 +82,12 @@ return [
         'action' => 'Vérifiez l’URL d’import (copiée depuis :provider) puis lancez une synchronisation depuis le back-office.',
         'open_admin' => 'Ouvrir la synchronisation',
     ],
+    'review_invitation' => [
+        'subject' => 'Votre séjour à :apartment : votre avis compte',
+        'title' => 'Comment s’est passé votre séjour ?',
+        'intro' => 'Bonjour :name, merci d’avoir séjourné chez nous.',
+        'ask' => 'Quelques mots et une note de 1 à 5 suffisent : votre avis aide les prochains voyageurs, et nous aide à nous améliorer. Il est relu avant publication et seul votre prénom apparaît.',
+        'button' => 'Donner mon avis',
+        'validity' => 'Ce lien personnel ne sert qu’une fois et reste valable jusqu’au :date.',
+    ],
 ];

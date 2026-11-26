@@ -11,6 +11,7 @@ use App\Repositories\Contracts\ApartmentRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
+use App\Services\Review\ReviewStatistics;
 use App\Services\Statistics\NightCounter;
 use App\Services\Statistics\RevenueCalculator;
 use App\Services\Statistics\SoldStayBlocks;
@@ -38,6 +39,7 @@ class DashboardService
         private readonly NightCounter $nights,
         private readonly RevenueCalculator $revenue,
         private readonly SoldStayBlocks $soldStays,
+        private readonly ReviewStatistics $reviews,
     ) {}
 
     /**
@@ -54,6 +56,8 @@ class DashboardService
             'revenue_months' => $this->revenueMonths($today),
             'movements' => $this->movements($today),
             'alerts' => $this->alerts($today),
+            // Note moyenne des avis publiés (carte du tableau de bord).
+            'reviews' => array_intersect_key($this->reviews->summary(), array_flip(['average', 'count'])),
         ];
     }
 
@@ -171,6 +175,7 @@ class DashboardService
                 'failures' => $feed->consecutive_failures,
             ])->all(),
             'unread_messages' => $this->messages->unreadCount(),
+            'pending_reviews' => $this->reviews->pending(),
         ];
     }
 }

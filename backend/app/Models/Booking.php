@@ -82,6 +82,12 @@ class Booking extends Model
         return $this->hasOne(AvailabilityBlock::class);
     }
 
+    /** @return HasOne<Review, $this> */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
     /** @return HasMany<Payment, $this> */
     public function payments(): HasMany
     {

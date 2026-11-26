@@ -19,6 +19,9 @@ export type AuditAction =
   /** Ancien import CSV des revenus (abandonné), encore au journal. */
   | 'platform_payouts.imported'
   | 'bookings.exported'
+  | 'review.published'
+  | 'review.rejected'
+  | 'review.replied'
 
 export const AUDIT_ACTIONS: AuditAction[] = [
   'booking.created',
@@ -40,6 +43,9 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'platform_revenues.saved',
   'platform_payouts.imported',
   'bookings.exported',
+  'review.published',
+  'review.rejected',
+  'review.replied',
 ]
 
 export type AuditValues = Record<string, unknown>

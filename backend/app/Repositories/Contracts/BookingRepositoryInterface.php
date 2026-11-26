@@ -91,4 +91,19 @@ interface BookingRepositoryInterface
      * @return Collection<int, Booking>
      */
     public function earningArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection;
+
+    /**
+     * Passe en « terminées » les réservations confirmées dont le départ est passé (avant ce jour).
+     *
+     * @return int nombre de réservations terminées
+     */
+    public function completeDepartedBefore(CarbonInterface $day): int;
+
+    /**
+     * Séjours terminés à inviter à laisser un avis : réservations du site (en ligne ou saisies à
+     * la main) avec un e-mail, parties entre ces deux jours inclus, sans invitation envoyée.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function awaitingReviewInvitation(CarbonInterface $from, CarbonInterface $to): Collection;
 }
