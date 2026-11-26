@@ -26,7 +26,8 @@
       "catalogue": "Catalogue",
       "suivi": "Suivi"
     },
-    "platformRevenue": "Revenus des plateformes"
+    "platformRevenue": "Revenus des plateformes",
+    "cleaning": "Planning du ménage"
   },
   "login": {
     "title": "Connexion",
@@ -1039,5 +1040,31 @@
     "edit": "Modifier",
     "unavailable": "Ce mois n’est pas disponible.",
     "backToDefault": "Revenir au mois précédent"
+  },
+  "cleaning": {
+    "title": "Planning du ménage",
+    "subtitle": "Départs à nettoyer et arrivées à préparer, jour par jour.",
+    "period": "Période",
+    "days_one": "{{count}} jour",
+    "days_other": "{{count}} jours",
+    "today": "Aujourd’hui, {{date}}",
+    "tomorrow": "Demain, {{date}}",
+    "empty_one": "Rien de prévu dans le prochain jour.",
+    "empty_other": "Rien de prévu dans les {{count}} prochains jours.",
+    "kinds": {
+      "departure": "Départ",
+      "arrival": "Arrivée",
+      "blocked": "Fermé, pas d’arrivée",
+      "occupied": "Occupé par des proches",
+      "occupied_end": "Fin d’occupation, ménage à prévoir"
+    },
+    "time": {
+      "before": "avant {{time}}",
+      "from": "à partir de {{time}}"
+    },
+    "guests_one": "{{count}} voyageur",
+    "guests_other": "{{count}} voyageurs",
+    "turnover": "Départ et arrivée le même jour",
+    "notes": "Notes : {{notes}}"
   }
 }

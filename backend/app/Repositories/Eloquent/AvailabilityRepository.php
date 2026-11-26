@@ -153,11 +153,11 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->contains(fn (AvailabilityBlock $block) => $block->concernsHousekeeping());
     }
 
-    public function movementsOn(string $date): Collection
+    public function movementsBetween(string $from, string $to): Collection
     {
         return AvailabilityBlock::query()
             ->where('is_active', true)
-            ->where(fn (Builder $query) => $query->whereDate('starts_on', $date)->orWhereDate('ends_on', $date))
+            ->where(fn (Builder $query) => $query->whereBetween('starts_on', [$from, $to])->orWhereBetween('ends_on', [$from, $to]))
             ->whereHas('apartment', fn (Builder $query) => $query->whereNull('deleted_at'))
             ->where(fn (Builder $query) => $this->realStay($query))
             ->withoutRedundantClosures()

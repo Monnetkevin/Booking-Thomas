@@ -37,11 +37,11 @@ describe('navigation du back-office', () => {
     const groups = sidebarGroups(navigationFor('admin'))
     expect(groups.map((entry) => entry.group)).toEqual(['pilotage', 'catalogue', 'suivi'])
     expect(groups.flatMap((entry) => entry.items).some((item) => item.group === 'account')).toBe(false)
-    expect(sidebarGroups(navigationFor('housekeeping')).map((entry) => entry.group)).toEqual(['suivi'])
+    expect(sidebarGroups(navigationFor('housekeeping')).map((entry) => entry.group)).toEqual(['pilotage', 'suivi'])
   })
 
-  it('donne au ménage les notifications, et la gestion des comptes au seul administrateur', () => {
-    expect(navigationFor('housekeeping').map((item) => item.to)).toEqual(['/admin/notifications', '/admin/notifications/preferences'])
+  it('donne au ménage son planning (sa page d’arrivée) et ses notifications, la gestion des comptes au seul administrateur', () => {
+    expect(navigationFor('housekeeping').map((item) => item.to)).toEqual(['/admin/menage', '/admin/notifications', '/admin/notifications/preferences'])
     expect(navigationFor('admin').map((item) => item.to)).toContain('/admin/utilisateurs')
   })
 })
