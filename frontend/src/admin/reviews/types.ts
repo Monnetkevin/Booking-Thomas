@@ -23,7 +23,16 @@ export interface AdminReview {
 
 export interface AdminReviewPage {
   data: AdminReview[]
-  meta: { current_page: number; last_page: number; total: number; counts: Record<ReviewStatus, number> }
+  meta: { current_page: number; last_page: number; total: number; counts: Record<ReviewStatus, number>; summary: ReviewSummary }
+}
+
+/** Chiffres de l'écran : moyenne et nombre d'avis publiés, à modérer, part des 5 étoiles, taux de réponse sur 30 jours. */
+export interface ReviewSummary {
+  average: number | null
+  count: number
+  pending: number
+  five_star_share: number | null
+  reply_rate: number | null
 }
 
 export interface ReviewFilters {

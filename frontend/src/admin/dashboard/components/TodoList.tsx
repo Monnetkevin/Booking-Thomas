@@ -13,7 +13,7 @@ export function TodoList({ items }: { items: TodoItem[] }) {
     <ul className="divide-y divide-line">
       {items.map((item) => (
         <li key={item.key} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-          <span aria-hidden="true" className={item.kind === 'messages' ? 'mt-1.5 size-2.5 shrink-0 rounded-full bg-accent' : 'mt-1.5 size-2.5 shrink-0 rounded-full bg-danger'} />
+          <span aria-hidden="true" className={item.kind === 'messages' || item.kind === 'reviews' ? 'mt-1.5 size-2.5 shrink-0 rounded-full bg-accent' : 'mt-1.5 size-2.5 shrink-0 rounded-full bg-danger'} />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold">{t(`admin.dashboard.todo.${item.kind}.title`, { count: item.count ?? 0 })}</p>
             <p className="text-sm text-muted">

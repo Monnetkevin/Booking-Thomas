@@ -10,6 +10,7 @@ use App\Http\Resources\Admin\AdminReviewResource;
 use App\Models\Review;
 use App\Services\Review\ReviewInvitationService;
 use App\Services\Review\ReviewModerationService;
+use App\Services\Review\ReviewStatistics;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 
@@ -19,6 +20,7 @@ class ReviewController extends Controller
     public function __construct(
         private readonly ReviewModerationService $moderation,
         private readonly ReviewInvitationService $invitations,
+        private readonly ReviewStatistics $statistics,
     ) {}
 
     public function index(ListReviewsRequest $request): AnonymousResourceCollection
@@ -26,7 +28,10 @@ class ReviewController extends Controller
         Gate::authorize('viewAny', Review::class);
 
         return AdminReviewResource::collection($this->moderation->list($request->status(), $request->apartmentId()))
-            ->additional(['meta' => ['counts' => $this->moderation->counts($request->apartmentId())]]);
+            ->additional(['meta' => [
+                'counts' => $this->moderation->counts($request->apartmentId()),
+                'summary' => $this->statistics->summary(),
+            ]]);
     }
 
     public function publish(Review $review): AdminReviewResource

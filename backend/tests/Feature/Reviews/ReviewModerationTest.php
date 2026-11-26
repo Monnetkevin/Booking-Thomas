@@ -83,6 +83,18 @@ describe('modération', function () {
         $this->postJson("/api/admin/reviews/{$submitted->id}/resend-invitation")->assertStatus(422)->assertJsonPath('code', 'review_already_submitted');
     });
 
+    it('donne les chiffres de l’écran et du tableau de bord : moyenne, à modérer, 5 étoiles, taux de réponse', function () {
+        reviewFor($this->cocon, '2026-10-01', 'published', 5)->update(['host_reply' => 'Merci !']);
+        reviewFor($this->cocon, '2026-09-01', 'published', 4);
+        reviewFor($this->nid, '2026-08-01', 'published', 5)->update(['submitted_at' => now()->subDays(40)]);
+        reviewFor($this->nid, '2026-10-10');
+
+        $summary = ['average' => 4.7, 'count' => 3, 'pending' => 1, 'five_star_share' => 67, 'reply_rate' => 33];
+        $this->getJson('/api/admin/reviews')->assertOk()->assertJsonPath('meta.summary', $summary);
+        $this->getJson('/api/admin/dashboard')->assertOk()->assertJsonPath('data.reviews', ['average' => 4.7, 'count' => 3])
+            ->assertJsonPath('data.alerts.pending_reviews', 1);
+    });
+
     it('compte les avis à modérer dans la barre', function () {
         reviewFor($this->cocon, '2026-10-01');
         reviewFor($this->cocon, '2026-09-01', 'published');

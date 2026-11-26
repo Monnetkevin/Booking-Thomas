@@ -26,8 +26,10 @@ describe('chiffres du tableau de bord', () => {
       conflicts: [{ apartment: 'Nid', starts_on: '2026-12-14', ends_on: '2026-12-16' }],
       failing_feeds: [{ apartment: 'Loft', provider: 'Airbnb', empty_refused: false, failures: 4 }],
       unread_messages: 2,
+      pending_reviews: 3,
     })
-    expect(items.map((item) => item.kind)).toEqual(['conflict', 'failingFeed', 'messages'])
-    expect(items.map((item) => item.link)).toEqual(['/admin/planning', '/admin/synchronisation', '/admin/messages'])
+    expect(items.map((item) => item.kind)).toEqual(['conflict', 'failingFeed', 'messages', 'reviews'])
+    expect(items.map((item) => item.link)).toEqual(['/admin/planning', '/admin/synchronisation', '/admin/messages', '/admin/avis'])
+    expect(items.at(-1)?.count).toBe(3)
   })
 })

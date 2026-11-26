@@ -6,6 +6,7 @@ use App\Enums\ApartmentStatus;
 use App\Enums\ReviewStatus;
 use App\Models\Review;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -73,6 +74,17 @@ class ReviewRepository implements ReviewRepositoryInterface
             ->pluck('total', 'rating')
             ->map(fn ($total) => (int) $total)
             ->all();
+    }
+
+    public function repliesSince(CarbonInterface $since): array
+    {
+        $row = Review::query()
+            ->whereNotNull('submitted_at')
+            ->where('submitted_at', '>=', $since)
+            ->selectRaw('count(*) as received, count(host_reply) as replied')
+            ->first();
+
+        return ['received' => (int) ($row->received ?? 0), 'replied' => (int) ($row->replied ?? 0)];
     }
 
     /**

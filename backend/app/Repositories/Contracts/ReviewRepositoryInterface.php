@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Enums\ReviewStatus;
 use App\Models\Review;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ReviewRepositoryInterface
@@ -48,4 +49,12 @@ interface ReviewRepositoryInterface
      * @return array<int, int>
      */
     public function publishedRatings(?int $apartmentId): array;
+
+    /**
+     * Avis déposés depuis ce jour (publiés ou refusés compris) et, parmi eux, ceux qui ont une
+     * réponse de l'hôte.
+     *
+     * @return array{received: int, replied: int}
+     */
+    public function repliesSince(CarbonInterface $since): array;
 }

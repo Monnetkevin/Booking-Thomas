@@ -101,6 +101,11 @@
         "title_one": "{{count}} message non lu",
         "title_other": "{{count}} messages non lus",
         "text": "Questions envoyées depuis le formulaire de contact."
+      },
+      "reviews": {
+        "title_one": "{{count}} avis en attente",
+        "title_other": "{{count}} avis en attente",
+        "text": "À valider avant publication sur le site."
       }
     },
     "movementsHint": "7 prochains jours",
@@ -112,7 +117,12 @@
     "platformGuest": "Voyageur de la plateforme",
     "occupancyStrip": "Occupation",
     "occupancyStripHint": "{{days}} prochains jours",
-    "free": "Libre"
+    "free": "Libre",
+    "rating": "Note moyenne",
+    "ratingValue": "{{average}} / 5",
+    "ratingDetail_one": "{{count}} avis publié",
+    "ratingDetail_other": "{{count}} avis publiés",
+    "ratingNone": "Pas encore d’avis publié"
   },
   "forbidden": "Votre compte n'a pas accès à cette page.",
   "common": {
@@ -1127,6 +1137,19 @@
         "hint": "Affichée sous l’avis, sur le site. Laissez vide pour l’effacer.",
         "submit": "Enregistrer la réponse"
       }
+    },
+    "kpi": {
+      "average": "Note moyenne",
+      "averageValue": "{{average}} / 5",
+      "averageDetail_one": "{{count}} avis publié",
+      "averageDetail_other": "{{count}} avis publiés",
+      "pending": "En attente",
+      "pendingDetail": "à modérer",
+      "replyRate": "Taux de réponse",
+      "replyRateDetail": "aux avis reçus sur 30 jours",
+      "fiveStars": "5 étoiles",
+      "fiveStarsDetail": "des avis publiés",
+      "none": "—"
     }
   }
 }

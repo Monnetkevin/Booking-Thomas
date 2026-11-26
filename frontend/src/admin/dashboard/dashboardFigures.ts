@@ -14,7 +14,7 @@ export function movementRows(movements: Dashboard['movements']): MovementRow[] {
   ])
 }
 
-export type TodoKind = 'conflict' | 'failingFeed' | 'emptyFeed' | 'messages'
+export type TodoKind = 'conflict' | 'failingFeed' | 'emptyFeed' | 'messages' | 'reviews'
 
 export interface TodoItem {
   kind: TodoKind
@@ -27,7 +27,7 @@ export interface TodoItem {
   link: string
 }
 
-/** Situations à traiter, dans l'ordre d'urgence : conflits, calendriers, messages. */
+/** Situations à traiter, dans l'ordre d'urgence : conflits, calendriers, messages, avis. */
 export function todoItems(alerts: Dashboard['alerts']): TodoItem[] {
   return [
     ...alerts.conflicts.map((conflict, index): TodoItem => ({
@@ -47,5 +47,6 @@ export function todoItems(alerts: Dashboard['alerts']): TodoItem[] {
       link: '/admin/synchronisation',
     })),
     ...(alerts.unread_messages > 0 ? [{ kind: 'messages' as const, key: 'messages', count: alerts.unread_messages, link: '/admin/messages' }] : []),
+    ...(alerts.pending_reviews > 0 ? [{ kind: 'reviews' as const, key: 'reviews', count: alerts.pending_reviews, link: '/admin/avis' }] : []),
   ]
 }

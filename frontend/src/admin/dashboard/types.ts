@@ -26,5 +26,9 @@ export interface Dashboard {
     conflicts: Array<{ apartment: string; starts_on: string; ends_on: string }>
     failing_feeds: Array<{ apartment: string; provider: string; empty_refused: boolean; failures: number }>
     unread_messages: number
+    /** Avis déposés, à publier ou refuser. */
+    pending_reviews: number
   }
+  /** Note moyenne des avis publiés (null sans avis). */
+  reviews: { average: number | null; count: number }
 }

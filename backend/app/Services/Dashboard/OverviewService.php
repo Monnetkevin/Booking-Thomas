@@ -2,10 +2,9 @@
 
 namespace App\Services\Dashboard;
 
-use App\Enums\ReviewStatus;
 use App\Models\IcalFeed;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
-use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Services\Review\ReviewStatistics;
 use Carbon\CarbonImmutable;
 
 /**
@@ -18,7 +17,7 @@ class OverviewService
     public function __construct(
         private readonly AlertCollector $alerts,
         private readonly ContactMessageRepositoryInterface $messages,
-        private readonly ReviewRepositoryInterface $reviews,
+        private readonly ReviewStatistics $reviews,
     ) {}
 
     /**
@@ -35,7 +34,7 @@ class OverviewService
             'conflicts' => $this->alerts->conflicts($today)->count(),
             'failing_feeds' => $this->alerts->failingFeeds()->count(),
             'unread_messages' => $this->messages->unreadCount(),
-            'pending_reviews' => $this->reviews->countByStatus(null)[ReviewStatus::Pending->value] ?? 0,
+            'pending_reviews' => $this->reviews->pending(),
             'last_sync_at' => $lastSync?->toIso8601String(),
         ];
     }

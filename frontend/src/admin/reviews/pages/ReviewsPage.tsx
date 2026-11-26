@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApartmentList } from '@/admin/apartments/useApartments'
+import { KpiCard } from '@/admin/components/KpiCard'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { ErrorState } from '@/components/feedback/ErrorState'
+import { BellIcon, MailIcon, StarIcon } from '@/components/icons'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { SelectField } from '@/components/ui/Field'
@@ -15,6 +17,8 @@ import { REVIEW_STATUSES, type AdminReview, type ReviewFilters } from '../types'
 import { useAdminReviews, useReviewAction } from '../useAdminReviews'
 
 type Editing = { kind: 'reject' | 'reply'; review: AdminReview } | null
+
+const decimal = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
 
 /**
  * Avis des voyageurs : file de modération (à modérer, publiés, refusés, invitations sans
@@ -34,6 +38,8 @@ export function ReviewsPage() {
 
   const change = (next: Partial<ReviewFilters>) => setFilters((current) => ({ ...current, page: 1, ...next }))
   const counts = list.data?.meta.counts
+  const summary = list.data?.meta.summary
+  const rate = (value: number | null | undefined) => (value === null || value === undefined ? t('admin.reviews.kpi.none') : `${value} %`)
   const submitText = (text: string) => {
     if (!editing) return
     const action = editing.kind === 'reject' ? reject : reply
@@ -53,6 +59,12 @@ export function ReviewsPage() {
       </Button>
     )
 
+    const replyButton = (
+      <Button variant="secondary" onClick={() => setEditing({ kind: 'reply', review })}>
+        {t(review.host_reply ? 'admin.reviews.editReply' : 'admin.reviews.reply')}
+      </Button>
+    )
+
     switch (review.status) {
       case 'invited':
         return (
@@ -65,14 +77,13 @@ export function ReviewsPage() {
           <>
             {publishButton}
             {rejectButton}
+            {replyButton}
           </>
         )
       case 'published':
         return (
           <>
-            <Button variant="secondary" onClick={() => setEditing({ kind: 'reply', review })}>
-              {t(review.host_reply ? 'admin.reviews.editReply' : 'admin.reviews.reply')}
-            </Button>
+            {replyButton}
             {rejectButton}
           </>
         )
@@ -84,6 +95,20 @@ export function ReviewsPage() {
   return (
     <>
       <PageHeader title={t('admin.reviews.title')} subtitle={t('admin.reviews.subtitle')} />
+      {summary && (
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <KpiCard
+            icon={<StarIcon />}
+            label={t('admin.reviews.kpi.average')}
+            value={summary.average === null ? t('admin.reviews.kpi.none') : t('admin.reviews.kpi.averageValue', { average: decimal.format(summary.average) })}
+            detail={t('admin.reviews.kpi.averageDetail', { count: summary.count })}
+            delta={null}
+          />
+          <KpiCard icon={<BellIcon />} label={t('admin.reviews.kpi.pending')} value={summary.pending} detail={t('admin.reviews.kpi.pendingDetail')} delta={null} />
+          <KpiCard icon={<MailIcon />} label={t('admin.reviews.kpi.replyRate')} value={rate(summary.reply_rate)} detail={t('admin.reviews.kpi.replyRateDetail')} delta={null} />
+          <KpiCard icon={<StarIcon />} label={t('admin.reviews.kpi.fiveStars')} value={rate(summary.five_star_share)} detail={t('admin.reviews.kpi.fiveStarsDetail')} delta={null} />
+        </div>
+      )}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <FilterChips
           label={t('admin.reviews.filter')}
