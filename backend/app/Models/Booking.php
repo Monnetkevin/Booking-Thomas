@@ -30,7 +30,7 @@ use Illuminate\Support\Carbon;
     'reference', 'apartment_id', 'source', 'status', 'guest_name', 'guest_email', 'guest_phone',
     'guest_country', 'guest_message', 'locale', 'adults', 'children', 'housekeeping_notes',
     'arrival', 'departure', 'accommodation_amount', 'cleaning_fee', 'extras_amount', 'tourist_tax',
-    'discount_amount', 'total_amount', 'price_breakdown', 'cancellation_policy',
+    'discount_amount', 'extras_discount_amount', 'total_amount', 'price_breakdown', 'cancellation_policy',
     'stripe_customer_id', 'stripe_checkout_session_id', 'expires_at', 'confirmed_at', 'cancelled_at',
 ])]
 class Booking extends Model

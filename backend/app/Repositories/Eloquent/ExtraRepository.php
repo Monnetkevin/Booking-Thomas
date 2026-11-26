@@ -72,8 +72,9 @@ class ExtraRepository implements ExtraRepositoryInterface
         return [
             'bookings' => (clone $bookings)->count(),
             'with_extras' => (clone $bookings)->whereHas('extras')->count(),
-            // Options facturées (extras_amount) : un prix convenu les comprend déjà (0 ici).
-            'revenue' => (int) (clone $bookings)->sum('extras_amount'),
+            // Options facturées, moins la remise d'un code ou d'une offre sur les options : un prix
+            // convenu les comprend déjà (0 ici).
+            'revenue' => (int) (clone $bookings)->sum('extras_amount') - (int) (clone $bookings)->sum('extras_discount_amount'),
         ];
     }
 }

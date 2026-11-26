@@ -105,6 +105,7 @@ class BookingService
                     'cleaning_fee' => $quote->cleaningFee,
                     'extras_amount' => $quote->extras,
                     'discount_amount' => $quote->discount,
+                    'extras_discount_amount' => $quote->extrasDiscount,
                     'tourist_tax' => $quote->touristTax,
                     'total_amount' => $quote->total,
                     'price_breakdown' => $quote->toArray(),

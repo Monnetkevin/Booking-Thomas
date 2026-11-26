@@ -5,8 +5,10 @@ namespace App\Http\Requests\Admin\Coupons;
 use App\Enums\CouponTarget;
 use App\Enums\CouponType;
 use App\Models\Coupon;
+use App\Models\Extra;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * Code promo ou offre : code (lettres, chiffres, tirets, enregistré en majuscules), cible,
@@ -55,6 +57,30 @@ class SaveCouponRequest extends FormRequest
             'apartment_ids' => ['present', 'array'],
             'apartment_ids.*' => ['integer', 'distinct', Rule::exists('apartments', 'id')->whereNull('deleted_at')],
         ];
+    }
+
+    /**
+     * L'option visée ou offerte doit être active et proposée dans un des logements du code
+     * (dans au moins un logement si le code vaut partout) : sinon le code ne servirait jamais.
+     *
+     * @return list<callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty() || ! $this->filled('extra_id')) {
+                return;
+            }
+            $apartmentIds = $this->apartmentIds();
+            $offered = Extra::query()
+                ->whereKey($this->integer('extra_id'))
+                ->where('is_active', true)
+                ->whereHas('apartments', fn ($query) => $apartmentIds === [] ? $query : $query->whereIn('apartments.id', $apartmentIds))
+                ->exists();
+            if (! $offered) {
+                $validator->errors()->add('extra_id', __('coupons.extra_not_offered', [], 'fr'));
+            }
+        }];
     }
 
     /**

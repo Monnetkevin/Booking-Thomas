@@ -13,6 +13,7 @@ final readonly class Quote
      * @param  list<array{type: string, label: string, amount: int, quantity?: int, unit_amount?: int}>  $lines
      * @param  list<array{extra_id: int, name: string, pricing: string, quantity: int, unit_amount: int, amount: int}>  $extraItems  options à figer dans la réservation
      * @param  int  $discount  réduction du code ou de l'offre appliqué (jamais sur la taxe de séjour)
+     * @param  int  $extrasDiscount  part de $discount qui porte sur les options
      */
     public function __construct(
         public array $nights,
@@ -26,6 +27,7 @@ final readonly class Quote
         public int $discount = 0,
         public ?int $couponId = null,
         public ?string $couponCode = null,
+        public int $extrasDiscount = 0,
     ) {}
 
     /**

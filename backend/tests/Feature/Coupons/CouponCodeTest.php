@@ -114,3 +114,17 @@ it('ne rend pas à l’annulation la part du ménage couverte par la réduction'
     // Barème à 0 % : l'hébergement n'est pas rendu, le ménage seulement pour sa part payée (80 €), la taxe en entier.
     expect(app(RefundCalculator::class)->propose($booking, CarbonImmutable::parse('2026-11-20'))->byPolicy)->toBe(8000 + 100);
 });
+
+it('rend au remboursement la part du ménage et des options vraiment payée, selon la cible du code', function () {
+    $booking = fn (int $discount, int $extrasDiscount) => Booking::factory()->for($this->apartment)->create([
+        'arrival' => '2026-12-10', 'departure' => '2026-12-11', 'accommodation_amount' => 10000, 'cleaning_fee' => 5000, 'extras_amount' => 3000,
+        'discount_amount' => $discount, 'extras_discount_amount' => $extrasDiscount, 'tourist_tax' => 100, 'total_amount' => 18100 - $discount,
+        'cancellation_policy' => ['policy' => 'strict', 'tiers' => [['days_before' => 0, 'refund_percent' => 0]]],
+    ]);
+    $refund = fn (Booking $booking) => app(RefundCalculator::class)->propose($booking, CarbonImmutable::parse('2026-11-20'))->byPolicy;
+
+    // Code de 120 € sur le séjour : 100 € sur l'hébergement, 20 € sur le ménage ; seuls 30 € de ménage ont été payés.
+    expect($refund($booking(12000, 0)))->toBe(3000 + 100)
+        // Option offerte (30 €) : le ménage, payé en entier, est rendu en entier.
+        ->and($refund($booking(3000, 3000)))->toBe(5000 + 100);
+});

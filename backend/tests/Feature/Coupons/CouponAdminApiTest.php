@@ -14,6 +14,7 @@ beforeEach(function () {
     $this->actingAs(User::factory()->create());
     $this->loft = Apartment::factory()->create(['name' => ['fr' => 'Le Loft', 'en' => 'The Loft']]);
     $this->champagne = Extra::factory()->create(['name' => ['fr' => 'Champagne']]);
+    $this->champagne->apartments()->attach($this->loft);
 });
 
 function couponPayload(array $overrides = []): array
@@ -50,6 +51,14 @@ it('valide le code, la valeur selon le type, l’option visée et les dates', fu
         ->assertJsonValidationErrors(['code', 'value', 'ends_on']);
     $this->postJson('/api/admin/coupons', couponPayload(['code' => 'a b', 'target' => 'extra']))
         ->assertJsonValidationErrors(['code', 'extra_id']);
+
+    // Option qui ne serait jamais commandable avec ce code : inactive, ou absente des logements visés.
+    $nid = Apartment::factory()->create();
+    $offer = ['type' => 'free_extra', 'value' => null, 'extra_id' => $this->champagne->id];
+    $this->postJson('/api/admin/coupons', couponPayload([...$offer, 'apartment_ids' => [$nid->id]]))->assertJsonValidationErrors('extra_id');
+    $this->postJson('/api/admin/coupons', couponPayload([...$offer, 'apartment_ids' => [$nid->id, $this->loft->id]]))->assertCreated();
+    $this->champagne->update(['is_active' => false]);
+    $this->postJson('/api/admin/coupons', couponPayload([...$offer, 'code' => 'AUTRE']))->assertJsonValidationErrors('extra_id');
 });
 
 it('liste les codes avec leurs utilisations et le montant remisé, sans les réservations expirées', function () {

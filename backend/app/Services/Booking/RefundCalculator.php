@@ -31,10 +31,13 @@ class RefundCalculator
             }
         }
 
-        $stayPart = max(0, $booking->accommodation_amount + $booking->extras_amount - $booking->discount_amount);
-        // Une réduction plus grande que l'hébergement et les options porte sur le ménage : cette
-        // part, jamais payée, n'est pas rendue.
-        $cleaning = max(0, $booking->cleaning_fee - max(0, $booking->discount_amount - $booking->accommodation_amount - $booking->extras_amount));
+        // La réduction se partage entre les options (part figée à la réservation) et le séjour :
+        // celle du séjour porte d'abord sur l'hébergement, puis sur le ménage. Un ménage remisé,
+        // jamais payé, n'est pas rendu.
+        $stayDiscount = $booking->discount_amount - $booking->extras_discount_amount;
+        $stayPart = max(0, $booking->accommodation_amount - $stayDiscount)
+            + max(0, $booking->extras_amount - $booking->extras_discount_amount);
+        $cleaning = max(0, $booking->cleaning_fee - max(0, $stayDiscount - $booking->accommodation_amount));
         $byPolicy = $days >= 0
             ? (int) round($stayPart * $percent / 100) + $cleaning + $booking->tourist_tax
             : 0;

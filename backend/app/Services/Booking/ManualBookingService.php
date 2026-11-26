@@ -182,7 +182,7 @@ class ManualBookingService
             'tourist_tax' => $touristTax,
             'discount_amount' => $discount,
             'total_amount' => $total,
-            'price_breakdown' => [...$quote->toArray(), 'cleaning_fee' => $cleaningFee, 'tourist_tax' => $touristTax, 'lines' => $lines, 'total' => $total],
+            'price_breakdown' => [...$quote->toArray(), 'cleaning_fee' => $cleaningFee, 'extras' => $quote->extras - $extrasWaived, 'tourist_tax' => $touristTax, 'lines' => $lines, 'total' => $total],
         ], $quote->extraItems];
     }
 

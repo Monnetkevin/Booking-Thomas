@@ -84,6 +84,7 @@ class PriceCalculator
             $discount,
             $applied?->id,
             $applied?->code,
+            $applied === null ? 0 : $this->discounts->extrasShare($applied, $discount, $accommodation + $cleaning, $items),
         );
     }
 

@@ -49,4 +49,25 @@ class DiscountCalculator
             ? (int) round($base * min(100, $coupon->value) / 100)
             : min($coupon->value, $base);
     }
+
+    /**
+     * Part d'une réduction qui porte sur les options : toute la réduction pour une option
+     * visée ou offerte, rien pour le séjour, au prorata de la base pour les deux.
+     *
+     * @param  int  $stayAmount  hébergement + ménage, en centimes
+     * @param  list<array{extra_id: int, pricing: string, quantity: int, unit_amount: int, amount: int}>  $extraItems
+     */
+    public function extrasShare(Coupon $coupon, int $discount, int $stayAmount, array $extraItems): int
+    {
+        if ($coupon->type === CouponType::FreeExtra) {
+            return $discount;
+        }
+        $extraAmount = collect($extraItems)->firstWhere('extra_id', $coupon->extra_id)['amount'] ?? 0;
+
+        return match ($coupon->target) {
+            CouponTarget::Stay => 0,
+            CouponTarget::Extra => $discount,
+            CouponTarget::Both => $stayAmount + $extraAmount > 0 ? intdiv($discount * $extraAmount, $stayAmount + $extraAmount) : 0,
+        };
+    }
 }

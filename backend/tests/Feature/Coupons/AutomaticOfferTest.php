@@ -11,6 +11,8 @@ use App\Models\CouponRedemption;
 use App\Models\Extra;
 use App\Models\RatePeriod;
 use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Services\Coupon\CouponRedeemer;
+use App\Services\Pricing\Quote;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
@@ -72,6 +74,7 @@ it('ne propose pas une option offerte qui n’est plus commandable, et compte l�
 
     $booking = Booking::query()->sole();
     expect($booking->discount_amount)->toBe(4500)
+        ->and($booking->extras_discount_amount)->toBe(4500)
         ->and($booking->extras()->sole()->name)->toBe('Champagne')
         ->and(CouponRedemption::query()->sole()->code)->toBe('LOFT4');
 });
@@ -96,4 +99,17 @@ it('ne compte pas l’option offerte dans le montant minimum de son offre', func
     // 3 nuits = 300 € : atteint ; 2 nuits = 200 € + champagne 45 € : pas atteint.
     offerQuote('2026-11-20')->assertJsonPath('data.coupon', 'LOFT4');
     offerQuote('2026-11-19')->assertJsonPath('data.coupon', null)->assertJsonPath('data.extras', 0);
+});
+
+it('ne refuse pas une réservation dont l’offre automatique s’est épuisée depuis le devis', function () {
+    $offer = Coupon::query()->where('code', 'LOFT4')->sole();
+    $offer->update(['max_uses' => 1]);
+    $first = Booking::factory()->for($this->loft)->create();
+    CouponRedemption::query()->create(['coupon_id' => $offer->id, 'booking_id' => $first->id, 'email' => 'autre@example.com', 'code' => 'LOFT4', 'discount_amount' => 4500]);
+    // Devis fait juste avant que l'autre voyageur ne prenne la dernière utilisation.
+    $quote = new Quote([], 40000, 0, 0, [], 40000, 4500, [], 4500, $offer->id, 'LOFT4', 4500);
+
+    app(CouponRedeemer::class)->redeem($quote, Booking::factory()->for($this->loft)->create(), 'camille@example.com');
+
+    expect(CouponRedemption::query()->count())->toBe(2);
 });
