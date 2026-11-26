@@ -58,6 +58,7 @@ it('liste les réservations, arrivées les plus proches d’abord, et les filtre
     $this->getJson('/api/admin/bookings?search=100%25')->assertJsonCount(0, 'data');
     $this->getJson('/api/admin/bookings?from=2026-12-03&to=2026-12-11')->assertJsonCount(2, 'data');
     $this->getJson('/api/admin/bookings?status=inconnu')->assertJsonValidationErrors('status');
+    $this->getJson('/api/admin/bookings?apartment_id=99999999999')->assertJsonValidationErrors('apartment_id');
 });
 
 it('montre la fiche, ses paiements et le remboursement proposé selon le barème', function () {
