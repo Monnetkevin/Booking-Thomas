@@ -1,3 +1,4 @@
+import type { ExtraChoice } from '@/lib/pricing/types'
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'expired'
 export type BookingSource = 'direct' | 'manual'
 
@@ -99,6 +100,8 @@ export interface ManualBookingInput {
   total_amount: number | null
   paid: boolean
   send_confirmation: boolean
+  /** Options choisies par l'hôte (sans délai de commande). */
+  extras: ExtraChoice[]
 }
 
 export interface GuestInput {

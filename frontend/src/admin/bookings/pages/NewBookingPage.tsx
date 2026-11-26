@@ -4,6 +4,8 @@ import { useCurrentUser } from '@/admin/auth/useAuth'
 import { Link, useNavigate } from 'react-router'
 import { useApartmentList } from '@/admin/apartments/useApartments'
 import { PageHeader } from '@/admin/components/PageHeader'
+import { ExtraPicker } from '@/admin/extras/components/ExtraPicker'
+import { useExtraCatalog } from '@/admin/extras/useExtras'
 import { useQuotePreview } from '@/admin/rates/useRates'
 import { QuoteBreakdown } from '@/components/QuoteBreakdown'
 import { ArrowLeftIcon } from '@/components/icons'
@@ -13,10 +15,10 @@ import { Checkbox, DateField, SelectField, TextArea, TextField } from '@/compone
 import { Section } from '@/components/ui/Section'
 import { ApiError } from '@/lib/api'
 import { toIso } from '@/lib/dates'
-import { emptyManualBooking, manualBookingInput, type ManualBookingFormErrors, type ManualBookingFormValues } from '../manualBookingForm'
+import { emptyManualBooking, extraChoices, manualBookingInput, type ManualBookingFormErrors, type ManualBookingFormValues } from '../manualBookingForm'
 import { useCreateBooking } from '../useAdminBookings'
 
-const QUOTE_FIELDS: readonly (keyof ManualBookingFormValues)[] = ['apartmentId', 'arrival', 'departure', 'adults', 'children']
+const QUOTE_FIELDS: readonly (keyof ManualBookingFormValues)[] = ['apartmentId', 'arrival', 'departure', 'adults', 'children', 'extras']
 
 /**
  * Réservation prise par téléphone ou par une connaissance : confirmée tout de suite, au
@@ -31,6 +33,9 @@ export function NewBookingPage() {
   const [errors, setErrors] = useState<ManualBookingFormErrors>({})
   const create = useCreateBooking()
   const preview = useQuotePreview(Number(values.apartmentId))
+  const catalog = useExtraCatalog()
+  // Options actives du logement choisi ; changer de logement retire celles qui n'y sont pas proposées.
+  const offered = (catalog.data?.data ?? []).filter((extra) => extra.is_active && extra.apartments.some((apartment) => String(apartment.id) === values.apartmentId))
   const serverErrors = create.error instanceof ApiError ? create.error.fieldErrors : {}
   const set = <K extends keyof ManualBookingFormValues>(key: K, value: ManualBookingFormValues[K]) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -72,7 +77,10 @@ export function NewBookingPage() {
               label={t('admin.bookings.apartment')}
               value={values.apartmentId}
               error={error('apartmentId', 'apartment_id')}
-              onChange={(value) => set('apartmentId', value)}
+              onChange={(value) => {
+                set('apartmentId', value)
+                set('extras', {})
+              }}
               options={[{ value: '', label: t('admin.manual.chooseApartment') }, ...(apartments.data ?? []).map((apartment) => ({ value: String(apartment.id), label: apartment.name }))]}
             />
             <div className="grid grid-cols-2 gap-4">
@@ -82,12 +90,25 @@ export function NewBookingPage() {
             <DateField label={t('admin.manual.arrival')} value={values.arrival} min={today} onChange={(value) => set('arrival', value)} error={error('arrival')} />
             <DateField label={t('admin.manual.departure')} value={values.departure} min={values.arrival || today} onChange={(value) => set('departure', value)} error={error('departure')} />
           </div>
+          {offered.length > 0 && (
+            <div className="mt-4">
+              <ExtraPicker extras={offered} value={values.extras} onChange={(extras) => set('extras', extras)} />
+            </div>
+          )}
           <div className="mt-4">
             <Button
               variant="secondary"
               disabled={!canPreview}
               loading={preview.isPending}
-              onClick={() => preview.mutate({ arrival: values.arrival, departure: values.departure, adults: Number(values.adults) || 1, children: Number(values.children) || 0 })}
+              onClick={() =>
+                preview.mutate({
+                  arrival: values.arrival,
+                  departure: values.departure,
+                  adults: Number(values.adults) || 1,
+                  children: Number(values.children) || 0,
+                  extras: extraChoices(values.extras),
+                })
+              }
             >
               {t('admin.manual.computePrice')}
             </Button>

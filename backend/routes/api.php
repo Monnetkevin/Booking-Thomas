@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CleaningScheduleController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ExtraController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OverviewController;
@@ -201,6 +202,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Réglages de l'hôte
     Route::get('settings', [SettingsController::class, 'show']);
     Route::put('settings', [SettingsController::class, 'update']);
+
+    // Options proposées par logement : catalogue, liste « À préparer »
+    Route::get('extras', [ExtraController::class, 'index']);
+    Route::post('extras', [ExtraController::class, 'store']);
+    Route::put('extras/{extra}', [ExtraController::class, 'update'])->whereNumber('extra');
+    Route::get('extras/to-prepare', [ExtraController::class, 'toPrepare']);
 
     // Revenus Airbnb et Booking.com saisis chaque mois, par logement.
     Route::get('platform-revenues', [PlatformRevenueController::class, 'show']);

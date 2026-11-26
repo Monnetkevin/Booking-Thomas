@@ -1,4 +1,5 @@
 import { parseEuros } from '@/lib/money'
+import type { ExtraChoice } from '@/lib/pricing/types'
 import type { ManualBookingInput } from './types'
 
 /** Saisie du formulaire « Saisir une réservation », telle que tapée. */
@@ -17,6 +18,8 @@ export interface ManualBookingFormValues {
   total: string
   paid: boolean
   sendConfirmation: boolean
+  /** Options choisies : identifiant → quantité. */
+  extras: Record<number, number>
 }
 
 export type ManualBookingFormErrors = Partial<Record<keyof ManualBookingFormValues, 'required' | 'invalidNumber' | 'invalidAmount' | 'freeStay'>>
@@ -35,6 +38,7 @@ export const emptyManualBooking: ManualBookingFormValues = {
   total: '',
   paid: false,
   sendConfirmation: true,
+  extras: {},
 }
 
 const optional = (value: string) => (value.trim() === '' ? null : value.trim())
@@ -72,6 +76,12 @@ export function manualBookingInput(
       paid: values.paid,
       // Sans e-mail, il n'y a rien à envoyer.
       send_confirmation: values.sendConfirmation && optional(values.guestEmail) !== null,
+      extras: extraChoices(values.extras),
     },
   }
+}
+
+/** Options choisies, telles qu'envoyées à l'API (devis et réservation). */
+export function extraChoices(extras: Record<number, number>): ExtraChoice[] {
+  return Object.entries(extras).map(([id, quantity]) => ({ id: Number(id), quantity }))
 }
