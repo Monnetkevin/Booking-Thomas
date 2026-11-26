@@ -25,4 +25,7 @@ enum AuditAction: string
     /** Ancien import CSV des revenus (abandonné) : gardé pour lire le journal existant. */
     case PlatformPayoutsImported = 'platform_payouts.imported';
     case BookingsExported = 'bookings.exported';
+    case ReviewPublished = 'review.published';
+    case ReviewRejected = 'review.rejected';
+    case ReviewReplied = 'review.replied';
 }

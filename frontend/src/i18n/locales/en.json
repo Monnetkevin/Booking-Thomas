@@ -11,7 +11,8 @@
     "close": "Close menu",
     "main": "Main navigation",
     "skip": "Skip to content",
-    "book": "Book"
+    "book": "Book",
+    "reviews": "Reviews"
   },
   "language": {
     "label": "Language",
@@ -349,5 +350,27 @@
     "invalidText": "It has expired or has already been used to leave a review. Any question? Write to us.",
     "contact": "Contact us",
     "backHome": "Back to home"
+  },
+  "reviews": {
+    "title": "Guest reviews",
+    "metaDescription": "Reviews from guests who booked and stayed in our apartments in Le Mans.",
+    "intro": "Every review comes from a guest who booked and stayed with us. Each one is checked before publication to make sure it matches a real stay; we never sort them by rating.",
+    "filter": "Apartment",
+    "allApartments": "All apartments",
+    "empty": "No published review yet.",
+    "average": "Average rating: {{average}} out of 5",
+    "count_one": "from {{count}} review",
+    "count_other": "from {{count}} reviews",
+    "stars_one": "{{count}} ★",
+    "stars_other": "{{count}} ★",
+    "rating_one": "{{count}} out of 5",
+    "rating_other": "{{count}} out of 5",
+    "verified": "Verified stay",
+    "verifiedIn": "{{apartment}} · verified stay",
+    "hostReply": "Host’s reply",
+    "more": "Show more reviews",
+    "sectionTitle": "Guest reviews",
+    "seeAll_one": "See the review",
+    "seeAll_other": "See all {{count}} reviews"
   }
 }

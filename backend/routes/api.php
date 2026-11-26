@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PlanningController;
 use App\Http\Controllers\Admin\PlatformRevenueController;
 use App\Http\Controllers\Admin\QuotePreviewController;
 use App\Http\Controllers\Admin\RatePeriodController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\StatisticsController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\QuoteController;
+use App\Http\Controllers\Public\ReviewController as PublicReviewController;
 use App\Http\Controllers\Public\ReviewInvitationController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +39,7 @@ Route::middleware(['throttle:public', 'cache.headers:public;max_age=60;etag'])->
     Route::get('apartments', [PublicApartmentController::class, 'index']);
     Route::get('apartments/{slug}', [PublicApartmentController::class, 'show'])->where('slug', '[a-z0-9-]+');
     Route::get('apartments/{slug}/availability', [AvailabilityController::class, 'calendar'])->where('slug', '[a-z0-9-]+');
+    Route::get('reviews', [PublicReviewController::class, 'index']);
 });
 
 // Recherche par dates : calculée à chaque fois (prix et disponibilités du moment).
@@ -163,6 +166,13 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('messages', [ContactMessageController::class, 'index']);
     Route::get('messages/unread-count', [ContactMessageController::class, 'unreadCount']);
     Route::patch('messages/{message}', [ContactMessageController::class, 'update'])->whereNumber('message');
+
+    // Avis des voyageurs : modération, réponse publique, renvoi de l'invitation
+    Route::get('reviews', [ReviewController::class, 'index']);
+    Route::post('reviews/{review}/publish', [ReviewController::class, 'publish'])->whereNumber('review');
+    Route::post('reviews/{review}/reject', [ReviewController::class, 'reject'])->whereNumber('review');
+    Route::put('reviews/{review}/reply', [ReviewController::class, 'reply'])->whereNumber('review');
+    Route::post('reviews/{review}/resend-invitation', [ReviewController::class, 'resendInvitation'])->whereNumber('review')->middleware('throttle:6,1');
 
     // Journal des actions sensibles (lecture seule)
     Route::get('audit-logs', [AuditLogController::class, 'index']);

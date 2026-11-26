@@ -11,7 +11,8 @@
     "close": "Fermer le menu",
     "main": "Navigation principale",
     "skip": "Aller au contenu",
-    "book": "Réserver"
+    "book": "Réserver",
+    "reviews": "Avis"
   },
   "language": {
     "label": "Langue",
@@ -351,5 +352,27 @@
     "invalidText": "Il a expiré ou a déjà servi à laisser un avis. Une question ? Écrivez-nous.",
     "contact": "Nous contacter",
     "backHome": "Retour à l’accueil"
+  },
+  "reviews": {
+    "title": "Avis des voyageurs",
+    "metaDescription": "Les avis des voyageurs qui ont réservé et séjourné dans nos logements au Mans.",
+    "intro": "Tous les avis viennent de voyageurs ayant réservé et séjourné chez nous. Chaque avis est relu avant publication pour vérifier qu’il correspond à un vrai séjour ; nous ne les trions pas selon la note.",
+    "filter": "Logement",
+    "allApartments": "Tous les logements",
+    "empty": "Pas encore d’avis publié.",
+    "average": "Note moyenne : {{average}} sur 5",
+    "count_one": "sur {{count}} avis",
+    "count_other": "sur {{count}} avis",
+    "stars_one": "{{count}} ★",
+    "stars_other": "{{count}} ★",
+    "rating_one": "{{count}} sur 5",
+    "rating_other": "{{count}} sur 5",
+    "verified": "Séjour vérifié",
+    "verifiedIn": "{{apartment}} · séjour vérifié",
+    "hostReply": "Réponse de l’hôte",
+    "more": "Voir plus d’avis",
+    "sectionTitle": "Avis des voyageurs",
+    "seeAll_one": "Voir l’avis",
+    "seeAll_other": "Voir les {{count}} avis"
   }
 }

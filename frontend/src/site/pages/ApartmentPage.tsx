@@ -14,6 +14,7 @@ import { BookingPanel } from '@/site/components/BookingPanel'
 import { CancellationTiers } from '@/site/components/CancellationTiers'
 import { PhotoGallery } from '@/site/components/PhotoGallery'
 import { Seo } from '@/site/components/Seo'
+import { ApartmentReviews } from '@/site/reviews/components/ApartmentReviews'
 
 // Leaflet n'est chargé que sur les fiches, et seulement si le logement a une position.
 const LocationMap = lazy(() => import('@/site/components/LocationMap'))
@@ -182,6 +183,7 @@ export function ApartmentPage() {
             </div>
           </section>
 
+          <ApartmentReviews slug={apartment.slug} />
 
           <section>
             <h2 className="mb-2 text-[22px] font-semibold">{t('detail.location')}</h2>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { buttonClasses } from '@/components/ui/buttonClasses'
 import { Card } from '@/components/ui/Card'
 import { FilterChips } from '@/components/ui/FilterChips'
+import { Pager } from '@/components/ui/Pager'
 import { Spinner } from '@/components/ui/Spinner'
 import { NotificationItem } from '../components/NotificationItem'
 import { useOpenNotification } from '../components/useOpenNotification'
@@ -77,19 +78,14 @@ export function NotificationsPage() {
               </li>
             ))}
           </ul>
-          {list.data.meta.last_page > 1 && (
-            <nav aria-label={t('admin.notifications.pages')} className="flex items-center justify-between gap-3 px-3 pt-3">
-              <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>
-                {t('common.previous')}
-              </Button>
-              <span className="text-sm text-muted">
-                {t('admin.notifications.page', { page: list.data.meta.current_page, total: list.data.meta.last_page })}
-              </span>
-              <Button variant="secondary" disabled={page >= list.data.meta.last_page} onClick={() => setPage((value) => value + 1)}>
-                {t('common.next')}
-              </Button>
-            </nav>
-          )}
+          <Pager
+            className="px-3 pt-3"
+            page={page}
+            lastPage={list.data.meta.last_page}
+            onChange={setPage}
+            label={t('admin.notifications.pages')}
+            position={t('admin.notifications.page', { page: list.data.meta.current_page, total: list.data.meta.last_page })}
+          />
         </Card>
       )}
     </>

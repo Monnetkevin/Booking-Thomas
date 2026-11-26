@@ -5,11 +5,12 @@
  */
 export interface SiteLink {
   path: string
-  labelKey: 'nav.apartments' | 'nav.contact' | 'footer.legal' | 'footer.terms' | 'footer.privacy'
+  labelKey: 'nav.apartments' | 'nav.reviews' | 'nav.contact' | 'footer.legal' | 'footer.terms' | 'footer.privacy'
 }
 
 export const mainNavigation: SiteLink[] = [
   { path: '/logements', labelKey: 'nav.apartments' },
+  { path: '/avis', labelKey: 'nav.reviews' },
   { path: '/contact', labelKey: 'nav.contact' },
 ]
 

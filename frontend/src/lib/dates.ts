@@ -32,6 +32,11 @@ export function formatLongDate(isoDate: string, locale = 'fr-FR'): string {
   )
 }
 
+/** « 2026-10 » → « octobre 2026 ». */
+export function formatMonth(isoMonth: string, locale = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(toDate(`${isoMonth}-01`))
+}
+
 /** Heure d'un instant ISO, dans le fuseau du navigateur : « 14:30 ». */
 export function formatTime(isoDateTime: string, locale = 'fr-FR'): string {
   return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(isoDateTime))
