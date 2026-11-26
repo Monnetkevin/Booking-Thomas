@@ -99,8 +99,14 @@ class UserService
         });
     }
 
+    /**
+     * @throws AccountLockoutException compte désactivé (le lien serait refusé)
+     */
     public function sendPasswordReset(User $user): void
     {
+        if (! $user->is_active) {
+            throw AccountLockoutException::inactive();
+        }
         $this->sendPasswordLink($user, invitation: false);
         $this->audit->record(AuditAction::UserPasswordLinkSent, $user);
     }
