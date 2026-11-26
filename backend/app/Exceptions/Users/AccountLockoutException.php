@@ -5,8 +5,9 @@ namespace App\Exceptions\Users;
 use App\Exceptions\DomainException;
 
 /**
- * Désactivation refusée : son propre compte, ou le dernier administrateur actif (plus
- * personne ne pourrait gérer le site).
+ * Action refusée sur un compte : désactiver son propre compte ou le dernier administrateur
+ * actif (plus personne ne pourrait gérer le site), changer le rôle d'un administrateur,
+ * envoyer un lien de mot de passe à un compte désactivé.
  */
 class AccountLockoutException extends DomainException
 {
@@ -23,6 +24,11 @@ class AccountLockoutException extends DomainException
     public static function adminRole(): self
     {
         return new self('admin_role_fixed');
+    }
+
+    public static function inactive(): self
+    {
+        return new self('inactive_account');
     }
 
     public static function lastAdmin(): self

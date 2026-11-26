@@ -39,11 +39,11 @@ it('journalise la suppression d’un logement et les changements de comptes, san
     $this->deleteJson("/api/admin/apartments/{$this->apartment->id}")->assertNoContent();
     $this->postJson('/api/admin/users', ['name' => 'Alice', 'email' => 'alice@example.com'])->assertCreated();
     $alice = User::query()->where('email', 'alice@example.com')->sole();
-    $this->patchJson("/api/admin/users/{$alice->id}", ['is_active' => false])->assertOk();
     $this->postJson("/api/admin/users/{$alice->id}/password-reset")->assertNoContent();
+    $this->patchJson("/api/admin/users/{$alice->id}", ['is_active' => false])->assertOk();
 
     expect(AuditLog::query()->orderBy('id')->pluck('action')->all())->toBe([
-        AuditAction::ApartmentDeleted, AuditAction::UserInvited, AuditAction::UserUpdated, AuditAction::UserPasswordLinkSent,
+        AuditAction::ApartmentDeleted, AuditAction::UserInvited, AuditAction::UserPasswordLinkSent, AuditAction::UserUpdated,
     ])
         ->and(AuditLog::query()->where('action', 'user.updated')->sole()->only('before', 'after'))
         ->toBe(['before' => ['is_active' => true], 'after' => ['is_active' => false]])

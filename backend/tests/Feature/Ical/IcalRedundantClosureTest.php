@@ -272,3 +272,33 @@ it('garde l’alerte et l’expiration pour un vrai séjour Airbnb sur une rése
         ->and($pending->fresh()->status)->toBe(BookingStatus::Expired);
     Event::assertDispatched(IcalConflictDetected::class);
 });
+
+it('rend les nuits au vrai séjour Airbnb, pas à l’écho Booking.com, quand la fermeture du site est retirée', function () {
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/blocks", ['starts_on' => '2026-11-20', 'ends_on' => '2026-11-24'])->assertCreated();
+    // Écho Booking.com de la fermeture, puis séjour Airbnb pris avant qu'Airbnb relise l'export.
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-24', 'CLOSED - Not available']]);
+    feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-24', 'Reserved']]);
+    $manual = AvailabilityBlock::query()->where('type', BlockType::Manual)->sole();
+
+    $this->deleteJson("/api/admin/blocks/{$manual->id}")->assertSuccessful();
+
+    expect(importedBlock('A1'))->has_conflict->toBeFalse()
+        ->and(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeTrue();
+    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
+});
+
+it('prévient le ménage d’un seul déplacement quand l’écho d’une réservation en attente déborde', function () {
+    $pending = directBooking($this->apartment, '2026-11-20', '2026-11-23', BookingStatus::Pending);
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-23', 'CLOSED - Not available']]);
+    Event::fake([StayScheduleChanged::class]);
+
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-25', 'CLOSED - Not available']]);
+
+    $block = importedBlock('B1');
+    expect($pending->fresh()->status)->toBe(BookingStatus::Expired)
+        ->and($block)->has_conflict->toBeFalse();
+    // Redevenu séjour à l'expiration (anciennes dates), puis déplacé : pas une seconde arrivée.
+    $changes = Event::dispatched(StayScheduleChanged::class)
+        ->map(fn (array $args) => [$args[0]->change->kind, $args[0]->change->endsOn->toDateString()])->all();
+    expect($changes)->toBe([[StayChangeKind::Added, '2026-11-23'], [StayChangeKind::Moved, '2026-11-25']]);
+});

@@ -19,7 +19,7 @@ class ListBookingsRequest extends FormRequest
     {
         return [
             'status' => ['sometimes', 'nullable', Rule::enum(BookingStatus::class)],
-            'apartment_id' => ['sometimes', 'nullable', 'integer'],
+            'apartment_id' => ['sometimes', 'nullable', 'integer', Rule::exists('apartments', 'id')],
             'source' => ['sometimes', 'nullable', Rule::enum(BookingSource::class)],
             'from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'to' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after:from'],

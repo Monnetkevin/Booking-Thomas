@@ -143,9 +143,12 @@ class IcalCalendarMerger
             return false;
         }
 
+        // Avant de relire l'état du bloc : une réservation en attente expirée ici lève ses
+        // conflits (release) et a pu déjà prévenir le ménage de ce bloc.
+        $overlap = $this->overlap($feed, $event, $block->id);
+        $block->refresh();
         $previous = $block->is_active ? [$block->starts_on, $block->ends_on] : null;
         $housekeeping = $block->knownToHousekeeping();
-        $overlap = $this->overlap($feed, $event, $block->id);
         $this->availability->updateBlock($block, [...$this->placement($feed, $event, $overlap), ...$this->details($event)]);
 
         if (! $moved) {
@@ -178,6 +181,8 @@ class IcalCalendarMerger
     /** Séjour annulé chez la plateforme : nuits libérées, conflits qu'elles portaient levés. */
     private function deactivate(AvailabilityBlock $block): void
     {
+        // Relu : un release() plus tôt dans la boucle a pu en faire un séjour connu du ménage.
+        $block->refresh();
         $concernsHousekeeping = $block->concernsHousekeeping();
         $this->availability->updateBlock($block, ['is_active' => false, 'has_conflict' => false, 'is_redundant_closure' => false]);
         $this->conflicts->release($block->apartment_id, $block->starts_on, $block->ends_on);
