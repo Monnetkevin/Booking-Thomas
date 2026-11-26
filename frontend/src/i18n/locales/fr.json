@@ -319,5 +319,37 @@
     "invalidTitle": "Lien invalide",
     "invalidText": "Ce lien de réservation n'est pas valide. Utilisez le lien reçu par e-mail, ou écrivez-nous en indiquant votre référence.",
     "downloadPdf": "Télécharger la confirmation (PDF)"
+  },
+  "review": {
+    "eyebrow": "Votre avis",
+    "title": "Comment s’est passé votre séjour ?",
+    "intro": "Merci d’avoir séjourné chez nous. Votre avis aide les prochains voyageurs, et nous aide à nous améliorer.",
+    "stay_one": "Du {{from}} au {{to}} · {{count}} nuit",
+    "stay_other": "Du {{from}} au {{to}} · {{count}} nuits",
+    "rating": "Note globale",
+    "ratingHint": "Choisissez une note de 1 à 5.",
+    "stars_one": "{{count}} étoile sur 5",
+    "stars_other": "{{count}} étoiles sur 5",
+    "ratingLabel": "{{count}} sur 5 · {{label}}",
+    "labels": {
+      "1": "Décevant",
+      "2": "Moyen",
+      "3": "Bien",
+      "4": "Très bien",
+      "5": "Excellent"
+    },
+    "comment": "Votre commentaire",
+    "commentPlaceholder": "Qu’avez-vous aimé ? Qu’est-ce qui pourrait être mieux ?",
+    "commentHint": "{{count}} caractères maximum.",
+    "displayName": "Prénom affiché",
+    "displayNameHint": "Seul votre prénom sera visible, jamais votre nom ni votre e-mail.",
+    "consent": "J’accepte que mon avis soit publié sur le site avec mon prénom.",
+    "consentRequired": "Cochez cette case pour que votre avis puisse être publié.",
+    "submit": "Envoyer mon avis",
+    "moderation": "Votre avis est relu avant publication, pour vérifier qu’il correspond à un vrai séjour. Ce lien personnel ne sert qu’une fois et reste valable jusqu’au {{date}}.",
+    "invalidTitle": "Ce lien n’est plus valable",
+    "invalidText": "Il a expiré ou a déjà servi à laisser un avis. Une question ? Écrivez-nous.",
+    "contact": "Nous contacter",
+    "backHome": "Retour à l’accueil"
   }
 }

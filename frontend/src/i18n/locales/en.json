@@ -317,5 +317,37 @@
     "invalidTitle": "Invalid link",
     "invalidText": "This booking link is not valid. Use the link received by email, or write to us with your reference.",
     "downloadPdf": "Download the confirmation (PDF)"
+  },
+  "review": {
+    "eyebrow": "Your review",
+    "title": "How was your stay?",
+    "intro": "Thank you for staying with us. Your review helps future guests, and helps us improve.",
+    "stay_one": "From {{from}} to {{to}} · {{count}} night",
+    "stay_other": "From {{from}} to {{to}} · {{count}} nights",
+    "rating": "Overall rating",
+    "ratingHint": "Choose a rating from 1 to 5.",
+    "stars_one": "{{count}} star out of 5",
+    "stars_other": "{{count}} stars out of 5",
+    "ratingLabel": "{{count}} out of 5 · {{label}}",
+    "labels": {
+      "1": "Disappointing",
+      "2": "Average",
+      "3": "Good",
+      "4": "Very good",
+      "5": "Excellent"
+    },
+    "comment": "Your comment",
+    "commentPlaceholder": "What did you like? What could be better?",
+    "commentHint": "{{count}} characters maximum.",
+    "displayName": "Name shown",
+    "displayNameHint": "Only your first name will be shown, never your surname or email.",
+    "consent": "I agree that my review may be published on the website with my first name.",
+    "consentRequired": "Tick this box so that your review can be published.",
+    "submit": "Send my review",
+    "moderation": "Your review is checked before publication to make sure it matches a real stay. This personal link can be used once and is valid until {{date}}.",
+    "invalidTitle": "This link is no longer valid",
+    "invalidText": "It has expired or has already been used to leave a review. Any question? Write to us.",
+    "contact": "Contact us",
+    "backHome": "Back to home"
   }
 }

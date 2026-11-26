@@ -14,6 +14,7 @@ enum NotificationType: string
     case IcalFeedRecovered = 'ical_feed_recovered';
     case BookingConfirmed = 'booking_confirmed';
     case ContactMessage = 'contact_message';
+    case ReviewSubmitted = 'review_submitted';
     case StayChanged = 'stay_changed';
     case DailySummary = 'daily_summary';
 
@@ -44,7 +45,8 @@ enum NotificationType: string
     public function emailByDefault(): bool
     {
         return match ($this) {
-            self::IcalFeedRecovered => false,
+            // Simple information : dans le back-office, par e-mail seulement si l'hôte le choisit.
+            self::IcalFeedRecovered, self::ReviewSubmitted => false,
             default => $this->emailable(),
         };
     }

@@ -7,6 +7,7 @@ export type NotificationType =
   | 'ical_feed_recovered'
   | 'booking_confirmed'
   | 'contact_message'
+  | 'review_submitted'
   | 'stay_changed'
   | 'daily_summary'
 

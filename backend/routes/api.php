@@ -27,6 +27,7 @@ use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\QuoteController;
+use App\Http\Controllers\Public\ReviewInvitationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +53,12 @@ Route::get('bookings/{booking:reference}', [BookingController::class, 'show'])
     ->middleware(['signed:relative', 'throttle:public'])->name('bookings.show');
 Route::get('bookings/{booking:reference}/pdf', [BookingController::class, 'pdf'])
     ->middleware(['signed:relative', 'throttle:public'])->name('bookings.pdf');
+
+// Avis du voyageur : lien personnel reçu après le séjour (jeton à usage unique).
+Route::get('review-invitations/{token}', [ReviewInvitationController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:public');
+Route::post('review-invitations/{token}', [ReviewInvitationController::class, 'store'])
+    ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:10,1');
 
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');

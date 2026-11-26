@@ -21,6 +21,10 @@ return [
         'title' => 'Nouvelle réservation : :apartment',
         'body' => ':guest, :dates, :guests voyageur(s), :total.',
     ],
+    'review_submitted' => [
+        'title' => 'Avis à modérer : :apartment',
+        'body' => ':name, :rating/5 : « :excerpt »',
+    ],
     'contact_message' => [
         'title' => 'Message de :name',
         'body' => ':excerpt',
