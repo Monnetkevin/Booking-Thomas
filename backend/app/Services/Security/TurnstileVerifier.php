@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Cloudflare Turnstile : défi anti-robot invisible pour les visiteurs.
- * Sans clé secrète configurée, la vérification est désactivée en développement local ;
- * en production, tout est refusé : un oubli de configuration n'ouvre pas la porte aux robots.
+ * Sans clé secrète configurée, la vérification est désactivée en développement local et
+ * dans les tests ; ailleurs (recette, production), tout est refusé : un oubli de
+ * configuration n'ouvre pas la porte aux robots.
  */
 class TurnstileVerifier implements HumanVerifier
 {
