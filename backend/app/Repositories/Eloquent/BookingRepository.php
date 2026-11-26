@@ -178,6 +178,11 @@ class BookingRepository implements BookingRepositoryInterface
         $booking->payments()->create(['type' => PaymentType::Payment, 'amount' => $amount, 'status' => PaymentStatus::Succeeded]);
     }
 
+    public function recordOfflineRefund(Booking $booking, int $amount): void
+    {
+        $booking->payments()->create(['type' => PaymentType::Refund, 'amount' => $amount, 'status' => PaymentStatus::Succeeded]);
+    }
+
     public function earningArrivingBetween(CarbonInterface $from, CarbonInterface $to): Collection
     {
         return $this->withPaymentSums(Booking::query())

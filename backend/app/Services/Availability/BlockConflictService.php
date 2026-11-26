@@ -11,8 +11,9 @@ use Carbon\CarbonImmutable;
 /**
  * Conflits de dates entre blocs. Un bloc importé d'une plateforme qui recouvre des nuits
  * déjà occupées est enregistré en conflit : la contrainte d'exclusion ne s'applique pas à
- * lui (il ne peut pas être refusé, la réservation existe déjà chez la plateforme). Une
- * fermeture posée sur des nuits déjà fermées n'est pas un vrai conflit (is_redundant_closure).
+ * lui (il ne peut pas être refusé, la réservation existe déjà chez la plateforme). L'écho de
+ * l'export du site (fermeture importée, ou date Booking.com sur des nuits déjà occupées) n'est
+ * pas un vrai conflit (is_redundant_closure, voir isRedundantClosure).
  * À appeler sous le verrou du logement (AvailabilityRepositoryInterface::lockApartment).
  */
 class BlockConflictService
@@ -77,8 +78,10 @@ class BlockConflictService
      * - une date fermée certaine (Airbnb « Not available ») n'amène aucun voyageur, quoi qu'elle
      *   recouvre : posée sur une réservation du site, c'est l'écho de l'export du site ;
      * - un bloc Booking.com (séjour ou fermeture, on ne sait pas) posé sur des nuits toutes
-     *   déjà tenues par le site (réservation ou fermeture) ou fermées est pris pour leur écho :
+     *   déjà occupées (site ou autre plateforme, toutes exportées) est pris pour leur écho :
      *   l'hôte ne ferme que sur le site et accepte lui-même chaque réservation Booking.com.
+     *   Imprécision assumée : si la réservation du site est annulée, l'écho redevient un séjour
+     *   Booking.com (ménage prévenu) jusqu'à ce que Booking.com relise l'export puis le site.
      */
     public function isRedundantClosure(AvailabilityBlock $block, BlockOverlap $overlap): bool
     {
@@ -86,6 +89,6 @@ class BlockConflictService
             return $overlap->isConflict();
         }
 
-        return $block->mayBeClosure() && $overlap->onlySiteOrClosuresCovering($block->starts_on, $block->ends_on);
+        return $block->mayBeClosure() && $overlap->coversAllNights($block->starts_on, $block->ends_on);
     }
 }

@@ -118,8 +118,9 @@ class StatisticsService
     }
 
     /**
-     * Premier mois de la période. « Tout » : depuis le premier séjour, au plus MAX_MONTHS mois,
-     * et au moins le mois en cours (un premier séjour à venir ne donne pas une période inversée).
+     * Premier mois de la période. « Tout » : depuis le premier séjour ou le premier revenu de
+     * plateforme saisi (les calendriers oublient les vieux séjours), au plus MAX_MONTHS mois, et
+     * au moins le mois en cours (un premier séjour à venir ne donne pas une période inversée).
      */
     private function start(StatisticsPeriod $period, CarbonImmutable $to): CarbonImmutable
     {
@@ -127,8 +128,8 @@ class StatisticsService
         if ($months !== null) {
             return $to->subMonths($months);
         }
-        $earliest = $this->availability->earliestStart();
-        $first = $earliest === null ? $to->subMonth() : CarbonImmutable::parse($earliest)->startOfMonth();
+        $starts = array_filter([$this->availability->earliestStart(), $this->platformRevenues->earliestMonth()]);
+        $first = $starts === [] ? $to->subMonth() : CarbonImmutable::parse(min($starts))->startOfMonth();
 
         return $first->min($to->subMonth())->max($to->subMonths(self::MAX_MONTHS));
     }

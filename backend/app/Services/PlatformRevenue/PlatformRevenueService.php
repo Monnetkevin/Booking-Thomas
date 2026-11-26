@@ -56,7 +56,8 @@ class PlatformRevenueService
                 'platforms' => $this->row($cells[$apartment->id] ?? []),
             ])->values()->all(),
             'totals' => $this->ledger->totals($cells),
-            'missing' => $this->ledger->missing($cells),
+            // Mois en cours : pas encore versé, rien n'est « à saisir » (comme dans les statistiques).
+            'missing' => $month->isSameMonth($today) ? 0 : $this->ledger->missing($cells),
             'last_saved' => $last === null ? null : [
                 'at' => $last->updated_at?->toIso8601String(),
                 'by' => $last->user?->name,
@@ -129,7 +130,7 @@ class PlatformRevenueService
                 'month' => (string) $key,
                 'is_current' => $key === $today->format('Y-m'),
                 'totals' => $this->ledger->totals($cells),
-                'missing' => $this->ledger->missing($cells),
+                'missing' => $key === $today->format('Y-m') ? 0 : $this->ledger->missing($cells),
                 'entered' => $entered->has($key),
             ];
         }
