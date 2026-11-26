@@ -20,6 +20,6 @@ class QuoteController extends Controller
     {
         $apartment = $this->catalog->findPublished($request->string('apartment')->toString());
 
-        return new QuoteResource($this->quotes->quote($apartment, $request->stay()));
+        return new QuoteResource($this->quotes->quote($apartment, $request->stay(), $request->extras()));
     }
 }

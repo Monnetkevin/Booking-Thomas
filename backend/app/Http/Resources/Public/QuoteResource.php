@@ -21,6 +21,7 @@ class QuoteResource extends JsonResource
             'lines' => $this->resource->lines,
             'accommodation' => $this->resource->accommodation,
             'cleaning_fee' => $this->resource->cleaningFee,
+            'extras' => $this->resource->extras,
             'tourist_tax' => $this->resource->touristTax,
             'total' => $this->resource->total,
             'currency' => 'EUR',

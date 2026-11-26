@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Public;
 
+use App\Http\Requests\Concerns\ReadsExtraChoices;
 use App\Services\Booking\Stay;
 use Illuminate\Foundation\Http\FormRequest;
 
 /** Réservation d'un séjour par un voyageur : séjour, coordonnées et acceptation des CGV. */
 class StoreBookingRequest extends FormRequest
 {
+    use ReadsExtraChoices;
+
     protected function prepareForValidation(): void
     {
         if ($this->filled('country')) {
@@ -23,6 +26,7 @@ class StoreBookingRequest extends FormRequest
         return [
             'apartment' => ['required', 'string', 'max:100'],
             ...QuoteRequest::stayRules(),
+            ...self::extraRules(),
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'phone' => ['required', 'string', 'max:40'],

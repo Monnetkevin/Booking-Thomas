@@ -28,7 +28,8 @@
     },
     "platformRevenue": "Revenus des plateformes",
     "cleaning": "Planning du ménage",
-    "reviews": "Avis"
+    "reviews": "Avis",
+    "extras": "Options"
   },
   "login": {
     "title": "Connexion",
@@ -633,7 +634,9 @@
       "platform_payouts.imported": "Revenus importés (ancien import CSV)",
       "review.published": "Avis publié",
       "review.rejected": "Avis refusé ou retiré",
-      "review.replied": "Réponse à un avis"
+      "review.replied": "Réponse à un avis",
+      "extra.created": "Option créée",
+      "extra.updated": "Option modifiée"
     }
   },
   "notFound": {
@@ -880,7 +883,9 @@
       "invalidNumber": "Nombre attendu.",
       "invalidAmount": "Montant invalide.",
       "freeStay": "Une réservation a toujours un montant : pour un séjour sans montant (usage personnel, logement prêté), fermez plutôt les dates depuis le planning."
-    }
+    },
+    "extras": "Options",
+    "extraQuantity": "Quantité (max. {{max}})"
   },
   "planning": {
     "title": "Planning",
@@ -1150,6 +1155,66 @@
       "fiveStars": "5 étoiles",
       "fiveStarsDetail": "des avis publiés",
       "none": "—"
+    }
+  },
+  "extras": {
+    "title": "Options",
+    "subtitle": "Attentions payantes ou gratuites, proposées par logement.",
+    "new": "Nouvelle option",
+    "edit": "Modifier l’option",
+    "catalog": "Catalogue",
+    "empty": "Aucune option pour le moment. Créez la première avec « Nouvelle option ».",
+    "kpi": {
+      "active": "Options actives",
+      "activeDetail_one": "sur {{count}} option",
+      "activeDetail_other": "sur {{count}} options",
+      "chosen": "Choisies ce mois-ci",
+      "chosenDetail_one": "réservations sur {{count}} arrivée du mois",
+      "chosenDetail_other": "réservations sur {{count}} arrivées du mois",
+      "revenue": "Revenu des options",
+      "revenueDetail": "arrivées du mois, réservations confirmées"
+    },
+    "columns": {
+      "option": "Option",
+      "price": "Prix",
+      "apartments": "Logements concernés",
+      "state": "État"
+    },
+    "pricing": {
+      "per_stay": "par séjour",
+      "per_night": "par nuit",
+      "per_guest": "par personne",
+      "per_guest_night": "par personne et par nuit",
+      "per_unit": "à l’unité"
+    },
+    "free": "Gratuit",
+    "active": "Active",
+    "inactive": "Désactivée",
+    "allApartments": "Tous les logements",
+    "noApartment": "Aucun logement",
+    "toPrepare": "À préparer",
+    "toPrepareHint": "Options des arrivées des 14 prochains jours.",
+    "toPrepareEmpty": "Rien à préparer pour les 14 prochains jours.",
+    "saveFailed": "L’enregistrement n’a pas abouti. Vérifiez les champs et réessayez.",
+    "errors": {
+      "required": "Champ obligatoire.",
+      "invalidAmount": "Montant invalide (ou cochez « Option gratuite »).",
+      "invalidNumber": "Nombre invalide."
+    },
+    "form": {
+      "nameFr": "Nom (français)",
+      "nameEn": "Nom (anglais)",
+      "optional": "Facultatif : le nom français est repris.",
+      "descriptionFr": "Description (français)",
+      "descriptionEn": "Description (anglais)",
+      "price": "Prix",
+      "free": "Option gratuite",
+      "pricing": "Tarification",
+      "maxQuantity": "Quantité maximale",
+      "leadTime": "Commande jusqu’à",
+      "leadTimeHint": "heures avant l’arrivée",
+      "apartments": "Logements concernés",
+      "active": "Option active (proposée aux voyageurs)"
     }
   }
 }

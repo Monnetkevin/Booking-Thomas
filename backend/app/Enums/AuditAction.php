@@ -28,4 +28,6 @@ enum AuditAction: string
     case ReviewPublished = 'review.published';
     case ReviewRejected = 'review.rejected';
     case ReviewReplied = 'review.replied';
+    case ExtraCreated = 'extra.created';
+    case ExtraUpdated = 'extra.updated';
 }

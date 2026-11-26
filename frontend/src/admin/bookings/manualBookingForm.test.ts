@@ -9,6 +9,14 @@ describe('saisie d’une réservation à la main', () => {
     expect(manualBookingInput({ ...filled, total: '450,50' }).input?.total_amount).toBe(45050)
   })
 
+  it('envoie les options choisies avec leur quantité', () => {
+    expect(manualBookingInput(filled).input?.extras).toEqual([])
+    expect(manualBookingInput({ ...filled, extras: { 4: 2, 7: 1 } }).input?.extras).toEqual([
+      { id: 4, quantity: 2 },
+      { id: 7, quantity: 1 },
+    ])
+  })
+
   it('n’envoie pas de confirmation sans e-mail', () => {
     expect(manualBookingInput(filled).input?.send_confirmation).toBe(false)
     expect(manualBookingInput({ ...filled, guestEmail: 'paul@example.com' }).input?.send_confirmation).toBe(true)

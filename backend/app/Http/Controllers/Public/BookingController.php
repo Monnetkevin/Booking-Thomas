@@ -37,6 +37,7 @@ class BookingController extends Controller
             app()->getLocale(),
             $request->input('captcha_token'),
             $request->ip(),
+            $request->extras(),
         );
 
         return (new PendingBookingResource($booking))->response()->setStatusCode(201);

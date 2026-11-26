@@ -19,7 +19,7 @@ class QuotePreviewController extends Controller
     {
         Gate::authorize('view', $apartment);
 
-        ['quote' => $quote, 'warnings' => $warnings] = $this->quotes->preview($apartment, $request->stay());
+        ['quote' => $quote, 'warnings' => $warnings] = $this->quotes->preview($apartment, $request->stay(), $request->extras());
 
         return response()->json(['data' => [
             'quote' => $quote ? (new QuoteResource($quote))->resolve($request) : null,

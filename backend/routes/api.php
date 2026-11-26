@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CleaningScheduleController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ExtraController;
 use App\Http\Controllers\Admin\IcalFeedController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OverviewController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Public\ApartmentController as PublicApartmentController
 use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\ExtraController as PublicExtraController;
 use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\ReviewController as PublicReviewController;
 use App\Http\Controllers\Public\ReviewInvitationController;
@@ -41,6 +43,9 @@ Route::middleware(['throttle:public', 'cache.headers:public;max_age=60;etag'])->
     Route::get('apartments/{slug}/availability', [AvailabilityController::class, 'calendar'])->where('slug', '[a-z0-9-]+');
     Route::get('reviews', [PublicReviewController::class, 'index']);
 });
+
+// Options d'un logement pour une arrivée (délai de commande du moment) : jamais en cache.
+Route::get('apartments/{slug}/extras', [PublicExtraController::class, 'index'])->where('slug', '[a-z0-9-]+')->middleware('throttle:public');
 
 // Recherche par dates : calculée à chaque fois (prix et disponibilités du moment).
 Route::get('availability', [AvailabilityController::class, 'search'])->middleware('throttle:public');
@@ -197,6 +202,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Réglages de l'hôte
     Route::get('settings', [SettingsController::class, 'show']);
     Route::put('settings', [SettingsController::class, 'update']);
+
+    // Options proposées par logement : catalogue, liste « À préparer »
+    Route::get('extras', [ExtraController::class, 'index']);
+    Route::post('extras', [ExtraController::class, 'store']);
+    Route::put('extras/{extra}', [ExtraController::class, 'update'])->whereNumber('extra');
+    Route::get('extras/to-prepare', [ExtraController::class, 'toPrepare']);
 
     // Revenus Airbnb et Booking.com saisis chaque mois, par logement.
     Route::get('platform-revenues', [PlatformRevenueController::class, 'show']);
