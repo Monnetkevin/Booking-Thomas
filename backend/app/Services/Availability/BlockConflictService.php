@@ -34,7 +34,8 @@ class BlockConflictService
      * Des nuits [from, to[ viennent d'être libérées (réservation expirée ou annulée,
      * blocage retiré, événement disparu du flux) : chaque bloc en conflit sur ces nuits
      * qui ne recouvre plus rien redevient un bloc normal, l'un après l'autre (deux blocs
-     * en conflit entre eux : le plus ancien l'emporte, l'autre reste en conflit).
+     * en conflit entre eux : le plus ancien l'emporte, l'autre reste en conflit ; les échos
+     * de l'export du site passent en dernier, après les vrais séjours).
      * Un bloc qui n'était qu'une fermeture redondante et redevient un séjour (fermeture du
      * site retirée sous une date Booking.com), ou l'inverse, est signalé au ménage.
      *

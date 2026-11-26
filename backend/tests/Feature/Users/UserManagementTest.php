@@ -84,6 +84,14 @@ it('refuse un lien inconnu, expiré, ou d’un compte désactivé', function () 
     $this->postJson('/api/auth/password', [...$payload, 'token' => $token])->assertJsonValidationErrors('token');
 });
 
+it('n’envoie pas de lien de mot de passe à un compte désactivé', function () {
+    $cleaner = User::factory()->housekeeping()->create(['is_active' => false]);
+
+    $this->actingAs($this->admin)->postJson("/api/admin/users/{$cleaner->id}/password-reset")
+        ->assertUnprocessable()->assertJsonPath('code', 'inactive_account');
+    Mail::assertNothingQueued();
+});
+
 it('exige un mot de passe d’au moins 12 caractères, avec lettres et chiffres', function () {
     $this->postJson('/api/auth/password', ['email' => 'a@example.com', 'token' => 'x', 'password' => 'court', 'password_confirmation' => 'court'])
         ->assertJsonValidationErrors('password');

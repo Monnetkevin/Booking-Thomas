@@ -70,6 +70,8 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
             ->where('has_conflict', true)
             ->overlapping($from, $to)
             ->with('icalFeed')
+            // Les échos (fermetures redondantes) en dernier : un vrai séjour reprend les nuits avant eux.
+            ->orderBy('is_redundant_closure')
             ->orderBy('id')
             ->get();
     }

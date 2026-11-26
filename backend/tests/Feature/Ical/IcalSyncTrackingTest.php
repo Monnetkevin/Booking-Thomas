@@ -11,6 +11,7 @@ use App\Notifications\Channels\InAppChannel;
 use App\Notifications\Host\IcalFeedFailingNotification;
 use App\Notifications\Host\IcalFeedRecoveredNotification;
 use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Services\Ical\IcalCalendarMerger;
 use App\Services\Ical\IcalImportService;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
@@ -39,6 +40,16 @@ it('note chaque lecture dans le journal du calendrier, avec son bilan', function
         ->created_count->toBe(2)->error->toBeNull()
         ->and(IcalSyncLog::count())->toBe(1)
         ->and($this->feed->fresh()->last_succeeded_at?->toDateTimeString())->toBe('2026-11-13 10:00:00');
+});
+
+it('compte une erreur imprévue comme un échec de synchro', function () {
+    Http::fake(['www.airbnb.fr/*' => Http::response(icalFixture('airbnb'), 200)]);
+    $this->mock(IcalCalendarMerger::class)->shouldReceive('merge')->andThrow(new RuntimeException('octet invalide'));
+
+    $log = app(IcalImportService::class)->sync($this->feed);
+
+    expect($log)->status->toBe(IcalSyncStatus::Failed)->error->toBe('Erreur inattendue pendant la lecture du calendrier.')
+        ->and($this->feed->fresh())->consecutive_failures->toBe(1)->content_hash->toBeNull();
 });
 
 it('garde la date du dernier import réussi pendant une panne', function () {

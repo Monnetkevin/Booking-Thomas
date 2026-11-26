@@ -7,6 +7,7 @@ return [
         'http' => 'La plateforme a répondu par une erreur HTTP :status.',
         'too_large' => 'Le fichier du calendrier est anormalement volumineux.',
         'invalid' => 'Le fichier reçu n’est pas un calendrier iCal valide.',
+        'unexpected' => 'Erreur inattendue pendant la lecture du calendrier.',
         'suspicious_empty' => 'Le calendrier reçu est vide alors que des nuits étaient bloquées : il est ignoré par précaution.',
         'no_import_url' => 'Aucune URL d’import n’est renseignée pour ce calendrier.',
         'inactive' => 'Ce calendrier est désactivé : réactivez-le pour le synchroniser.',

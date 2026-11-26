@@ -12,6 +12,7 @@ use App\Exceptions\Ical\IcalSyncException;
 use App\Models\IcalFeed;
 use App\Models\IcalSyncLog;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
+use Throwable;
 
 /**
  * Synchronisation d'un flux (spec « Algorithme d'import ») : téléchargement conditionnel,
@@ -71,6 +72,12 @@ class IcalImportService
             return [$result, ['etag' => $fetched->etag, 'content_hash' => $hash]];
         } catch (IcalSyncException $e) {
             return [SyncResult::failed($e->getMessage(), $e instanceof EmptyCalendarRefusedException), []];
+        } catch (Throwable $e) {
+            // Erreur imprévue (base, contenu inattendu) : un échec comme un autre, journalisé et
+            // compté, pour que l'hôte soit alerté au lieu d'un calendrier qui cesse d'être lu.
+            report($e);
+
+            return [SyncResult::failed(__('ical.errors.unexpected', [], 'fr')), []];
         }
     }
 
