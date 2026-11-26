@@ -3,6 +3,10 @@
 @import '@fontsource-variable/fraunces/opsz.css';
 @import '@fontsource-variable/plus-jakarta-sans';
 
+/* Écrans peu hauts (portable 600–800 px, téléphone en paysage) : le haut de l'accueil se resserre. */
+@custom-variant short (@media (max-height: 800px));
+@custom-variant tiny (@media (max-height: 680px));
+
 /*
  * Design system — tiré de la maquette : terre cuite, sable et brun profond.
  * Les contrastes de texte respectent WCAG AA (ink et muted sur paper / sand).

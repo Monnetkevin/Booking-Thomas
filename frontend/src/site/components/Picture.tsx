@@ -8,11 +8,13 @@ interface PictureProps {
   className?: string
   /** Image principale de la page : chargée tout de suite, en priorité. */
   priority?: boolean
+  /** Chargée tout de suite, sans priorité (petite vignette visible dès l'arrivée). */
+  eager?: boolean
   alt?: string
 }
 
 /** Photo en AVIF (si le navigateur sait le lire) ou WebP, en trois tailles. */
-export function Picture({ photo, sizes, className, priority = false, alt }: PictureProps) {
+export function Picture({ photo, sizes, className, priority = false, eager = false, alt }: PictureProps) {
   const set = (format: 'avif' | 'webp') =>
     Object.values(photo.sources)
       .filter((source) => source[format])
@@ -30,7 +32,7 @@ export function Picture({ photo, sizes, className, priority = false, alt }: Pict
         alt={alt ?? photo.alt}
         width={photo.width ?? undefined}
         height={photo.height ?? undefined}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority || eager ? 'eager' : 'lazy'}
         fetchPriority={priority ? 'high' : 'auto'}
         decoding="async"
         className={cn('h-full w-full object-cover', className)}

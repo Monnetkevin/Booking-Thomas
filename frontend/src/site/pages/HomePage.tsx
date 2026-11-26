@@ -36,7 +36,7 @@ export function HomePage() {
         jsonLd={faqStructuredData(content.faq)}
       />
 
-      <HomeHero intro={content.intro} photos={covers} />
+      <HomeHero intro={content.intro} apartments={list} />
 
       <PageSection title={t('home.featuresTitle')} tone="cream">
         <FeatureList items={content.features} />
