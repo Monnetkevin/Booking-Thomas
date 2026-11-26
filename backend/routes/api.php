@@ -27,6 +27,7 @@ use App\Http\Controllers\Public\ApartmentController as PublicApartmentController
 use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\ExtraController as PublicExtraController;
 use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\ReviewController as PublicReviewController;
 use App\Http\Controllers\Public\ReviewInvitationController;
@@ -41,6 +42,9 @@ Route::middleware(['throttle:public', 'cache.headers:public;max_age=60;etag'])->
     Route::get('apartments/{slug}/availability', [AvailabilityController::class, 'calendar'])->where('slug', '[a-z0-9-]+');
     Route::get('reviews', [PublicReviewController::class, 'index']);
 });
+
+// Options d'un logement pour une arrivée (délai de commande du moment) : jamais en cache.
+Route::get('apartments/{slug}/extras', [PublicExtraController::class, 'index'])->where('slug', '[a-z0-9-]+')->middleware('throttle:public');
 
 // Recherche par dates : calculée à chaque fois (prix et disponibilités du moment).
 Route::get('availability', [AvailabilityController::class, 'search'])->middleware('throttle:public');

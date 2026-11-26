@@ -21,14 +21,14 @@ class ExtraSelector
     public function __construct(private readonly ExtraRepositoryInterface $extras) {}
 
     /**
-     * Options encore commandables pour ce séjour.
+     * Options encore commandables pour une arrivée ce jour-là.
      *
      * @return Collection<int, Extra>
      */
-    public function available(Apartment $apartment, Stay $stay): Collection
+    public function available(Apartment $apartment, CarbonImmutable $arrival): Collection
     {
         return $this->extras->activeForApartment($apartment->id)
-            ->filter(fn (Extra $extra) => $this->inTime($extra, $apartment, $stay))
+            ->filter(fn (Extra $extra) => $this->inTime($extra, $apartment, $arrival))
             ->values();
     }
 
@@ -48,7 +48,7 @@ class ExtraSelector
         return array_map(function (ExtraChoice $choice) use ($offered, $apartment, $stay, $enforceLeadTime): SelectedExtra {
             $extra = $offered->get($choice->extraId);
             $quantity = $extra?->pricing->hasQuantity() ? $choice->quantity : 1;
-            if ($extra === null || $quantity < 1 || $quantity > $extra->max_quantity || ($enforceLeadTime && ! $this->inTime($extra, $apartment, $stay))) {
+            if ($extra === null || $quantity < 1 || $quantity > $extra->max_quantity || ($enforceLeadTime && ! $this->inTime($extra, $apartment, $stay->arrival))) {
                 throw new ExtraNotAvailableException;
             }
 
@@ -57,10 +57,10 @@ class ExtraSelector
     }
 
     /** Commandée assez tôt : au plus tard « délai » heures avant l'heure d'arrivée. */
-    private function inTime(Extra $extra, Apartment $apartment, Stay $stay): bool
+    private function inTime(Extra $extra, Apartment $apartment, CarbonImmutable $arrivalDay): bool
     {
         [$hour, $minute] = array_map('intval', explode(':', (string) ($apartment->check_in_time ?: '00:00')) + [1 => 0]);
-        $arrival = CarbonImmutable::parse($stay->arrival->toDateString(), (string) config('app.timezone'))->setTime($hour, $minute);
+        $arrival = CarbonImmutable::parse($arrivalDay->toDateString(), (string) config('app.timezone'))->setTime($hour, $minute);
 
         return CarbonImmutable::instance(Date::now())->lte($arrival->subHours($extra->lead_time_hours));
     }
