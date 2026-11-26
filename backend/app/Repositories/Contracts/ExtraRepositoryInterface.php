@@ -17,6 +17,14 @@ interface ExtraRepositoryInterface
     public function activeForApartment(int $apartmentId): Collection;
 
     /**
+     * Option active et proposée dans un de ces logements (dans au moins un logement si la
+     * liste est vide).
+     *
+     * @param  list<int>  $apartmentIds
+     */
+    public function isOfferedIn(int $extraId, array $apartmentIds): bool;
+
+    /**
      * Options figées dans la réservation.
      *
      * @param  list<array{extra_id: int, name: string, pricing: string, quantity: int, unit_amount: int, amount: int}>  $items
@@ -52,7 +60,8 @@ interface ExtraRepositoryInterface
 
     /**
      * Chiffres d'un mois d'arrivées (réservations confirmées ou terminées) : réservations,
-     * réservations avec options, montant des options en centimes.
+     * réservations avec options, valeur des options commandées en centimes, après
+     * la remise d'un code ou d'une offre sur les options (prix convenus : 0).
      *
      * @return array{bookings: int, with_extras: int, revenue: int}
      */

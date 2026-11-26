@@ -17,6 +17,7 @@ use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Availability\BlockConflictService;
+use App\Services\Coupon\CouponRedeemer;
 use App\Services\Export\CsvWriter;
 use App\Services\Housekeeping\StayChange;
 use App\Services\Notifications\HostNotifier;
@@ -49,6 +50,7 @@ class AdminBookingService
         private readonly AvailabilityService $availabilityService,
         private readonly BlockConflictService $conflicts,
         private readonly RefundCalculator $refunds,
+        private readonly CouponRedeemer $coupons,
         private readonly HostNotifier $host,
         private readonly Mailer $mailer,
         private readonly AuditLogger $audit,
@@ -185,6 +187,7 @@ class AdminBookingService
                 $this->bookings->recordOfflineRefund($booking, $proposal->amount());
             }
             $this->availability->releaseBooking($booking);
+            $this->coupons->release($booking);
             $this->conflicts->release($booking->apartment_id, $booking->arrival, $booking->departure);
             if ($block !== null) {
                 StayScheduleChanged::dispatch(StayChange::cancelled($block));

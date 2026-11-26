@@ -30,4 +30,6 @@ enum AuditAction: string
     case ReviewReplied = 'review.replied';
     case ExtraCreated = 'extra.created';
     case ExtraUpdated = 'extra.updated';
+    case CouponCreated = 'coupon.created';
+    case CouponUpdated = 'coupon.updated';
 }

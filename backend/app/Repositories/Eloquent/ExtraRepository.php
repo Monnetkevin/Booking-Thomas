@@ -4,7 +4,6 @@ namespace App\Repositories\Eloquent;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
-use App\Models\BookingExtra;
 use App\Models\Extra;
 use App\Repositories\Contracts\ExtraRepositoryInterface;
 use Carbon\CarbonInterface;
@@ -21,6 +20,15 @@ class ExtraRepository implements ExtraRepositoryInterface
             ->orderBy('position')
             ->orderBy('id')
             ->get();
+    }
+
+    public function isOfferedIn(int $extraId, array $apartmentIds): bool
+    {
+        return Extra::query()
+            ->whereKey($extraId)
+            ->where('is_active', true)
+            ->whereHas('apartments', fn (Builder $query) => $apartmentIds === [] ? $query : $query->whereIn('apartments.id', $apartmentIds))
+            ->exists();
     }
 
     public function recordForBooking(Booking $booking, array $items): void
@@ -73,7 +81,9 @@ class ExtraRepository implements ExtraRepositoryInterface
         return [
             'bookings' => (clone $bookings)->count(),
             'with_extras' => (clone $bookings)->whereHas('extras')->count(),
-            'revenue' => (int) BookingExtra::query()->whereIn('booking_id', (clone $bookings)->select('id'))->sum('amount'),
+            // Options facturées, moins la remise d'un code ou d'une offre sur les options : un prix
+            // convenu les comprend déjà (0 ici).
+            'revenue' => (int) (clone $bookings)->sum('extras_amount') - (int) (clone $bookings)->sum('extras_discount_amount'),
         ];
     }
 }

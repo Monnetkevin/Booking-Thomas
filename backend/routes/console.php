@@ -71,7 +71,7 @@ Schedule::command('notifications:housekeeping-summary')->hourly();
 
 // Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
 // Verrou de 5 minutes (24 h par défaut) : un conteneur tué en cours ne bloque pas les expirations.
+Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping(5);
+
 // Séjours terminés et invitations à laisser un avis, le lendemain du départ.
 Schedule::command('reviews:invite')->dailyAt('10:00')->withoutOverlapping(30);
-
-Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping(5);

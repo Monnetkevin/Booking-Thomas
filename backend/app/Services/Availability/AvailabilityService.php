@@ -11,7 +11,7 @@ use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Booking\Stay;
 use App\Services\Booking\StayRules;
 use App\Services\Catalog\CatalogCache;
-use App\Services\Pricing\PriceCalculator;
+use App\Services\Coupon\CouponResolver;
 use App\Services\Pricing\Quote;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\Repository as Cache;
@@ -32,7 +32,7 @@ class AvailabilityService
         private readonly RatePeriodRepositoryInterface $periods,
         private readonly SettingRepositoryInterface $settings,
         private readonly StayRules $rules,
-        private readonly PriceCalculator $calculator,
+        private readonly CouponResolver $coupons,
         private readonly Cache $cache,
     ) {}
 
@@ -64,7 +64,8 @@ class AvailabilityService
     }
 
     /**
-     * Logements publiés pour ce séjour : disponibles (avec leur prix) ou non (avec la raison).
+     * Logements publiés pour ce séjour : disponibles (avec leur prix, offre automatique
+     * comprise, comme au devis) ou non (avec la raison).
      *
      * @param  Collection<int, Apartment>  $apartments
      * @return Collection<int, array{apartment: Apartment, available: bool, quote: Quote|null, reason: string|null}>
@@ -78,7 +79,7 @@ class AvailabilityService
                 return [
                     'apartment' => $apartment,
                     'available' => $violations === [],
-                    'quote' => $violations === [] ? $this->calculator->calculate($apartment, $stay) : null,
+                    'quote' => $violations === [] ? $this->coupons->quote($apartment, $stay, [], null) : null,
                     'reason' => $violations[0]['message'] ?? null,
                 ];
             })

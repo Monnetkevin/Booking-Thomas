@@ -52,6 +52,8 @@ it('liste le catalogue avec les chiffres du mois et les options à préparer', f
     $champagne->apartments()->attach($this->loft);
     $soon = directBooking($this->loft, '2026-11-22', '2026-11-24');
     $soon->extras()->create(['extra_id' => $champagne->id, 'name' => 'Champagne', 'pricing' => 'per_unit', 'quantity' => 2, 'unit_amount' => 4500, 'amount' => 9000]);
+    // Une bouteille sur deux offerte par un code : elle n'est pas comptée dans le chiffre d'affaires.
+    $soon->update(['extras_amount' => 9000, 'discount_amount' => 4500, 'extras_discount_amount' => 4500]);
     $later = directBooking($this->loft, '2026-12-20', '2026-12-22');
     $later->extras()->create(['extra_id' => $champagne->id, 'name' => 'Champagne', 'pricing' => 'per_unit', 'quantity' => 1, 'unit_amount' => 4500, 'amount' => 4500]);
     directBooking($this->nid, '2026-11-25', '2026-11-27');
@@ -60,7 +62,7 @@ it('liste le catalogue avec les chiffres du mois et les options à préparer', f
 
     $this->getJson('/api/admin/extras')->assertOk()
         ->assertJsonCount(2, 'data')
-        ->assertJsonPath('meta.figures', ['active' => 1, 'total' => 2, 'bookings' => 2, 'with_extras' => 1, 'revenue' => 9000, 'previous_revenue' => 0]);
+        ->assertJsonPath('meta.figures', ['active' => 1, 'total' => 2, 'bookings' => 2, 'with_extras' => 1, 'revenue' => 4500, 'previous_revenue' => 0]);
 
     $this->getJson('/api/admin/extras/to-prepare')->assertOk()
         ->assertJsonPath('data', [[

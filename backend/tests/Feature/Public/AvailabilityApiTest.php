@@ -1,7 +1,9 @@
 <?php
 
+use App\Enums\CouponType;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
+use App\Models\Coupon;
 use App\Models\RatePeriod;
 use App\Services\Availability\AvailabilityService;
 use Illuminate\Support\Facades\Date;
@@ -81,6 +83,15 @@ describe('recherche par dates', function () {
             ->assertJsonPath('data.1.available', false)
             ->assertJsonPath('data.1.quote', null)
             ->assertJsonPath('data.1.unavailable_reason', 'Ces dates ne sont pas disponibles.');
+    });
+
+    it('affiche le prix avec l’offre automatique, comme le devis', function () {
+        Coupon::factory()->create(['code' => 'HIVER', 'automatic' => true, 'type' => CouponType::Percent, 'value' => 10]);
+
+        $this->getJson('/api/availability?arrival=2026-11-20&departure=2026-11-23&guests=2')->assertOk()
+            ->assertJsonPath('data.0.slug', 'le-cocon')
+            ->assertJsonPath('data.0.quote.discount', 2800)
+            ->assertJsonPath('data.0.quote.coupon', 'HIVER');
     });
 
     it('tient compte du nombre de voyageurs', function () {

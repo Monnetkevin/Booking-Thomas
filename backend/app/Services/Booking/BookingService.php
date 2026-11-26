@@ -6,6 +6,7 @@ use App\Enums\BookingSource;
 use App\Enums\BookingStatus;
 use App\Events\BookingConfirmed;
 use App\Exceptions\Booking\StayNotAllowedException;
+use App\Exceptions\Coupon\CouponInvalidException;
 use App\Exceptions\DatesUnavailableException;
 use App\Exceptions\Extra\ExtraNotAvailableException;
 use App\Models\Apartment;
@@ -15,6 +16,7 @@ use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ExtraRepositoryInterface;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Availability\BlockConflictService;
+use App\Services\Coupon\CouponRedeemer;
 use App\Services\Extra\ExtraChoice;
 use App\Services\Security\HumanVerifier;
 use Illuminate\Database\QueryException;
@@ -55,24 +57,27 @@ class BookingService
         private readonly BookingReferenceGenerator $references,
         private readonly HumanVerifier $humans,
         private readonly ExtraRepositoryInterface $extras,
+        private readonly CouponRedeemer $coupons,
     ) {}
 
     /**
      * @param  array{name: string, email: string, phone?: string|null, country: string, message?: string|null}  $guest
      * @param  list<ExtraChoice>  $choices  options choisies, vérifiées et chiffrées par le serveur
+     * @param  string|null  $coupon  code promo saisi (sinon, meilleure offre automatique)
      *
      * @throws ValidationException défi anti-robot échoué
      * @throws ExtraNotAvailableException option indisponible ou commandée trop tard
+     * @throws CouponInvalidException code qui ne s'applique pas, ou limite atteinte
      * @throws StayNotAllowedException séjour hors règles (capacité, séjour minimum, dates…)
      * @throws DatesUnavailableException nuits prises entre-temps
      */
-    public function createPending(Apartment $apartment, Stay $stay, array $guest, string $locale, ?string $captchaToken, ?string $ip, array $choices = []): Booking
+    public function createPending(Apartment $apartment, Stay $stay, array $guest, string $locale, ?string $captchaToken, ?string $ip, array $choices = [], ?string $coupon = null): Booking
     {
         if (! $this->humans->verify($captchaToken, $ip)) {
             throw ValidationException::withMessages(['captcha' => __('booking.captcha_failed')]);
         }
 
-        $quote = $this->quotes->quote($apartment, $stay, $choices);
+        $quote = $this->quotes->quote($apartment, $stay, $choices, $coupon, $guest['email']);
 
         try {
             $booking = DB::transaction(function () use ($apartment, $stay, $guest, $locale, $quote): Booking {
@@ -99,6 +104,8 @@ class BookingService
                     'accommodation_amount' => $quote->accommodation,
                     'cleaning_fee' => $quote->cleaningFee,
                     'extras_amount' => $quote->extras,
+                    'discount_amount' => $quote->discount,
+                    'extras_discount_amount' => $quote->extrasDiscount,
                     'tourist_tax' => $quote->touristTax,
                     'total_amount' => $quote->total,
                     'price_breakdown' => $quote->toArray(),
@@ -106,6 +113,7 @@ class BookingService
                     'expires_at' => now()->addMinutes(self::HOLD_MINUTES),
                 ]);
                 $this->extras->recordForBooking($booking, $quote->extraItems);
+                $this->coupons->redeem($quote, $booking, $guest['email']);
                 $this->availability->blockForBooking($booking);
 
                 return $booking;
@@ -185,6 +193,8 @@ class BookingService
                 return false;
             }
             $this->availability->releaseBooking($booking);
+            // Expirée avant paiement : l'utilisation du code ne compte plus.
+            $this->coupons->release($booking);
             $this->conflicts->release($booking->apartment_id, $booking->arrival, $booking->departure);
 
             return true;

@@ -22,6 +22,9 @@ class QuoteResource extends JsonResource
             'accommodation' => $this->resource->accommodation,
             'cleaning_fee' => $this->resource->cleaningFee,
             'extras' => $this->resource->extras,
+            // Réduction du code saisi ou de l'offre automatique appliquée (code en clair).
+            'discount' => $this->resource->discount,
+            'coupon' => $this->resource->couponCode,
             'tourist_tax' => $this->resource->touristTax,
             'total' => $this->resource->total,
             'currency' => 'EUR',

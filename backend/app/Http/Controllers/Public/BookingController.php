@@ -38,6 +38,7 @@ class BookingController extends Controller
             $request->input('captcha_token'),
             $request->ip(),
             $request->extras(),
+            $request->filled('coupon') ? $request->string('coupon')->toString() : null,
         );
 
         return (new PendingBookingResource($booking))->response()->setStatusCode(201);

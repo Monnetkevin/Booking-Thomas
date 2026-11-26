@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CleaningScheduleController;
 use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExtraController;
 use App\Http\Controllers\Admin\IcalFeedController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Public\ApartmentController as PublicApartmentController
 use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\CouponController;
 use App\Http\Controllers\Public\ExtraController as PublicExtraController;
 use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\ReviewController as PublicReviewController;
@@ -67,6 +69,9 @@ Route::get('review-invitations/{token}', [ReviewInvitationController::class, 'sh
     ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:public');
 Route::post('review-invitations/{token}', [ReviewInvitationController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:10,1');
+
+// Code promo saisi au paiement : 10 essais par minute et par IP (pas de devinette de codes).
+Route::post('coupons/validate', [CouponController::class, 'validate'])->middleware('throttle:10,1');
 
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');
@@ -208,6 +213,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('extras', [ExtraController::class, 'store']);
     Route::put('extras/{extra}', [ExtraController::class, 'update'])->whereNumber('extra');
     Route::get('extras/to-prepare', [ExtraController::class, 'toPrepare']);
+
+    // Codes promo et offres automatiques
+    Route::get('coupons', [AdminCouponController::class, 'index']);
+    Route::post('coupons', [AdminCouponController::class, 'store']);
+    Route::put('coupons/{coupon}', [AdminCouponController::class, 'update'])->whereNumber('coupon');
 
     // Revenus Airbnb et Booking.com saisis chaque mois, par logement.
     Route::get('platform-revenues', [PlatformRevenueController::class, 'show']);
