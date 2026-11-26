@@ -49,4 +49,31 @@ class CouponRepository implements CouponRepositoryInterface
     {
         CouponRedemption::query()->where('booking_id', $booking->id)->whereNull('released_at')->update(['released_at' => now()]);
     }
+
+    public function allWithUsage(): Collection
+    {
+        return Coupon::query()
+            ->with(['apartments' => fn ($query) => $query->orderBy('position'), 'extra'])
+            ->withCount(['redemptions as uses_count' => fn (Builder $query) => $query->whereNull('released_at')])
+            ->withSum(['redemptions as discount_total' => fn (Builder $query) => $query->whereNull('released_at')], 'discount_amount')
+            ->orderByDesc('is_active')
+            ->orderBy('code')
+            ->get();
+    }
+
+    public function create(array $attributes, array $apartmentIds): Coupon
+    {
+        $coupon = Coupon::query()->create($attributes);
+        $coupon->apartments()->sync($apartmentIds);
+
+        return $coupon->load(['apartments', 'extra']);
+    }
+
+    public function update(Coupon $coupon, array $attributes, array $apartmentIds): Coupon
+    {
+        $coupon->update($attributes);
+        $coupon->apartments()->sync($apartmentIds);
+
+        return $coupon->load(['apartments', 'extra']);
+    }
 }

@@ -21,4 +21,24 @@ interface CouponRepositoryInterface
 
     /** Réservation expirée avant paiement : son utilisation ne compte plus. */
     public function releaseForBooking(Booking $booking): void;
+
+    /**
+     * Tous les codes et offres, avec logements, option visée, utilisations qui comptent
+     * (uses_count) et montant remisé (discount_total).
+     *
+     * @return Collection<int, Coupon>
+     */
+    public function allWithUsage(): Collection;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  list<int>  $apartmentIds
+     */
+    public function create(array $attributes, array $apartmentIds): Coupon;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  list<int>  $apartmentIds
+     */
+    public function update(Coupon $coupon, array $attributes, array $apartmentIds): Coupon;
 }

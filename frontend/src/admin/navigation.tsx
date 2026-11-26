@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BarChartIcon, BellIcon, BroomIcon, BuildingIcon, GiftIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, StarIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
+import { BarChartIcon, BellIcon, BroomIcon, BuildingIcon, GiftIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, PercentIcon, SettingsIcon, StarIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
 
 /** Compteur affiché à côté d'une entrée, lu dans les compteurs de la barre. */
 export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages' | 'pendingReviews' | 'unreadNotifications'
@@ -16,6 +16,7 @@ export interface AdminNavItem {
     | 'admin.nav.apartments'
     | 'admin.nav.rates'
     | 'admin.nav.extras'
+    | 'admin.nav.coupons'
     | 'admin.nav.sync'
     | 'admin.nav.bookings'
     | 'admin.nav.planning'
@@ -56,6 +57,7 @@ export const adminNavigation: AdminNavItem[] = [
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: STAFF, group: 'catalogue' },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'], group: 'catalogue' },
   { to: '/admin/options', labelKey: 'admin.nav.extras', icon: <GiftIcon />, roles: ['admin'], group: 'catalogue' },
+  { to: '/admin/coupons', labelKey: 'admin.nav.coupons', icon: <PercentIcon />, roles: ['admin'], group: 'catalogue' },
   { to: '/admin/messages', labelKey: 'admin.nav.messages', icon: <MailIcon />, roles: STAFF, group: 'suivi', badge: 'unreadMessages' },
   { to: '/admin/avis', labelKey: 'admin.nav.reviews', icon: <StarIcon />, roles: STAFF, group: 'suivi', badge: 'pendingReviews' },
   { to: '/admin/statistiques', labelKey: 'admin.nav.statistics', icon: <BarChartIcon />, roles: STAFF, group: 'suivi' },

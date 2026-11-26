@@ -29,7 +29,8 @@
     "platformRevenue": "Revenus des plateformes",
     "cleaning": "Planning du ménage",
     "reviews": "Avis",
-    "extras": "Options"
+    "extras": "Options",
+    "coupons": "Coupons"
   },
   "login": {
     "title": "Connexion",
@@ -636,7 +637,9 @@
       "review.rejected": "Avis refusé ou retiré",
       "review.replied": "Réponse à un avis",
       "extra.created": "Option créée",
-      "extra.updated": "Option modifiée"
+      "extra.updated": "Option modifiée",
+      "coupon.created": "Code promo créé",
+      "coupon.updated": "Code promo modifié"
     }
   },
   "notFound": {
@@ -1215,6 +1218,100 @@
       "leadTimeHint": "heures avant l’arrivée",
       "apartments": "Logements concernés",
       "active": "Option active (proposée aux voyageurs)"
+    }
+  },
+  "coupons": {
+    "title": "Coupons",
+    "subtitle_one": "{{count}} code, dont {{active}} en cours.",
+    "subtitle_other": "{{count}} codes, dont {{active}} en cours.",
+    "new": "Nouveau code",
+    "edit": "Modifier le code",
+    "empty": "Aucun code pour le moment. Créez le premier avec « Nouveau code ».",
+    "columns": {
+      "code": "Code",
+      "offer": "Offre",
+      "conditions": "Conditions",
+      "mode": "Mode",
+      "uses": "Utilisations",
+      "discount": "Remisé",
+      "status": "État"
+    },
+    "mode": {
+      "code": "Code",
+      "automatic": "Auto"
+    },
+    "unlimited": "illimité",
+    "allApartments": "Tous",
+    "noCondition": "Aucune",
+    "status": {
+      "active": "En cours",
+      "scheduled": "Programmé",
+      "expired": "Expiré",
+      "exhausted": "Épuisé",
+      "disabled": "Désactivé"
+    },
+    "offer": {
+      "stay": "−{{amount}} sur le séjour",
+      "extra": "−{{amount}} sur {{extra}}",
+      "both": "−{{amount}} sur le séjour et {{extra}}",
+      "free_one": "{{extra}} offert",
+      "free_other": "{{count}} × {{extra}} offerts"
+    },
+    "summary": {
+      "withCode": "Avec le code {{code}}",
+      "automatic": "Sans code, automatiquement",
+      "apartments": "dans {{list}}",
+      "minNights_one": "à partir de {{count}} nuit",
+      "minNights_other": "à partir de {{count}} nuits",
+      "minAmount": "dès {{amount}} de séjour",
+      "between": "valable du {{from}} au {{to}}",
+      "from": "valable à partir du {{from}}",
+      "until": "valable jusqu’au {{to}}",
+      "maxUses_one": "{{count}} utilisation au plus",
+      "maxUses_other": "{{count}} utilisations au plus",
+      "perGuest_one": "une par voyageur",
+      "perGuest_other": "{{count}} par voyageur",
+      "title": "Résumé"
+    },
+    "saveFailed": "L’enregistrement n’a pas abouti. Vérifiez les champs et réessayez.",
+    "errors": {
+      "required": "Champ obligatoire (code : 3 à 40 lettres, chiffres ou tirets).",
+      "invalidNumber": "Nombre invalide.",
+      "invalidAmount": "Montant invalide.",
+      "invalidPercent": "Pourcentage de 1 à 100."
+    },
+    "form": {
+      "code": "Code",
+      "generate": "Générer",
+      "target": "Ce que le code vise",
+      "targets": {
+        "stay": "Le séjour (hébergement et ménage)",
+        "extra": "Une option",
+        "both": "Les deux"
+      },
+      "type": "Type d’offre",
+      "types": {
+        "percent": "Pourcentage",
+        "fixed": "Montant fixe",
+        "free_extra": "Option offerte"
+      },
+      "valuePercent": "Réduction",
+      "valueFixed": "Montant",
+      "extra": "Option",
+      "chooseExtra": "Choisir une option",
+      "freeQuantity": "Quantité offerte",
+      "conditions": "Conditions",
+      "conditionsHint": "Laissez vide pour aucune condition.",
+      "minNights": "Nuits minimum",
+      "minAmount": "Montant minimum",
+      "startsOn": "Valable du",
+      "endsOn": "Jusqu’au",
+      "maxUses": "Utilisations au total",
+      "maxUsesPerEmail": "Par voyageur (e-mail)",
+      "apartments": "Logements concernés",
+      "apartmentsHint": "Aucun coché : tous les logements.",
+      "automatic": "Appliquer automatiquement, sans saisie du code",
+      "active": "Code actif"
     }
   }
 }

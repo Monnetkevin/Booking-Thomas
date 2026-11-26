@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CleaningScheduleController;
 use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExtraController;
 use App\Http\Controllers\Admin\IcalFeedController;
@@ -212,6 +213,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('extras', [ExtraController::class, 'store']);
     Route::put('extras/{extra}', [ExtraController::class, 'update'])->whereNumber('extra');
     Route::get('extras/to-prepare', [ExtraController::class, 'toPrepare']);
+
+    // Codes promo et offres automatiques
+    Route::get('coupons', [AdminCouponController::class, 'index']);
+    Route::post('coupons', [AdminCouponController::class, 'store']);
+    Route::put('coupons/{coupon}', [AdminCouponController::class, 'update'])->whereNumber('coupon');
 
     // Revenus Airbnb et Booking.com saisis chaque mois, par logement.
     Route::get('platform-revenues', [PlatformRevenueController::class, 'show']);

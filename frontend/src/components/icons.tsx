@@ -342,3 +342,13 @@ export function GiftIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function PercentIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M19 5L5 19" />
+      <circle cx="6.5" cy="6.5" r="2.5" />
+      <circle cx="17.5" cy="17.5" r="2.5" />
+    </Icon>
+  )
+}
