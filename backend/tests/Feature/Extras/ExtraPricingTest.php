@@ -98,3 +98,26 @@ it('fige les options dans la réservation saisie à la main, même avec un prix 
     $booking = Booking::query()->where('reference', $agreed)->sole();
     expect($booking->total_amount)->toBe(30000)->and($booking->extras()->sole()->quantity)->toBe(2);
 });
+
+it('fait porter sur les options une remise plus grande que l’hébergement et le ménage', function () {
+    $this->actingAs(User::factory()->create());
+    $champagne = extraFor($this->apartment, ['name' => ['fr' => 'Champagne', 'en' => 'Champagne'], 'price' => 4500]);
+    // 1 nuit à 80 € + ménage 40 € + 3 × 45 € = 255 € ; total fixé à 50 €.
+    $reference = $this->postJson('/api/admin/bookings', ['apartment_id' => $this->apartment->id, 'arrival' => '2026-12-01', 'departure' => '2026-12-02', 'adults' => 2,
+        'guest_name' => 'Camille Martin', 'paid' => false, 'send_confirmation' => false, 'total_amount' => 5000, 'extras' => [['id' => $champagne->id, 'quantity' => 3]]])
+        ->assertCreated()->json('data.reference');
+
+    $booking = Booking::query()->where('reference', $reference)->sole();
+    expect($booking->accommodation_amount + $booking->cleaning_fee + $booking->extras_amount + $booking->tourist_tax - $booking->discount_amount)->toBe(5000)
+        ->and($booking->extras_amount)->toBe(5000);
+});
+
+it('fige le nom français de l’option, quelle que soit la langue du voyageur', function () {
+    $champagne = extraFor($this->apartment, ['name' => ['fr' => 'Bouteille de champagne', 'en' => 'Bottle of champagne'], 'price' => 4500]);
+    app()->setLocale('en');
+
+    $quote = priceWith([new ExtraChoice($champagne->id)]);
+
+    expect($quote->extraItems[0]['name'])->toBe('Bouteille de champagne')
+        ->and(collect($quote->lines)->firstWhere('type', 'extra')['label'])->toBe('1 × Bottle of champagne');
+});

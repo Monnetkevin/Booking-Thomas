@@ -32,19 +32,20 @@ class QuoteService
      *
      * @param  list<ExtraChoice>  $extras
      * @param  string|null  $coupon  code promo saisi par le voyageur
+     * @param  string|null  $email  e-mail du voyageur, s'il est connu (limite d'utilisation par voyageur)
      *
      * @throws StayNotAllowedException
      * @throws ExtraNotAvailableException
      * @throws CouponInvalidException
      */
-    public function quote(Apartment $apartment, Stay $stay, array $extras = [], ?string $coupon = null): Quote
+    public function quote(Apartment $apartment, Stay $stay, array $extras = [], ?string $coupon = null, ?string $email = null): Quote
     {
         $violations = $this->rules->violations($apartment, $stay);
         if ($violations !== []) {
             throw new StayNotAllowedException($violations);
         }
 
-        return $this->coupons->quote($apartment, $stay, $this->extras->select($apartment, $stay, $extras), $coupon);
+        return $this->coupons->quote($apartment, $stay, $this->extras->select($apartment, $stay, $extras), $coupon, $email);
     }
 
     /**

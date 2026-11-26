@@ -77,7 +77,7 @@ class BookingService
             throw ValidationException::withMessages(['captcha' => __('booking.captcha_failed')]);
         }
 
-        $quote = $this->quotes->quote($apartment, $stay, $choices, $coupon);
+        $quote = $this->quotes->quote($apartment, $stay, $choices, $coupon, $guest['email']);
 
         try {
             $booking = DB::transaction(function () use ($apartment, $stay, $guest, $locale, $quote): Booking {

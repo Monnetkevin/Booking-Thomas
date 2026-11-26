@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Date;
  * réservation. Un code saisi remplace l'offre automatique ; sans code, la plus avantageuse
  * des offres automatiques dont les conditions sont remplies s'applique. Une option offerte
  * est ajoutée au séjour si elle n'y est pas encore et si elle est encore commandable.
- * La limite par e-mail est vérifiée à la création de la réservation (CouponRedeemer).
+ * La limite par e-mail est vérifiée dès que l'e-mail est connu (création de la réservation) :
+ * une offre automatique déjà utilisée par ce voyageur est ignorée, au profit de la suivante.
  */
 class CouponResolver
 {
@@ -32,14 +33,15 @@ class CouponResolver
 
     /**
      * @param  list<SelectedExtra>  $selected
+     * @param  string|null  $email  e-mail du voyageur, connu à la création de la réservation
      *
      * @throws CouponInvalidException code saisi qui ne s'applique pas
      */
-    public function quote(Apartment $apartment, Stay $stay, array $selected, ?string $code): Quote
+    public function quote(Apartment $apartment, Stay $stay, array $selected, ?string $code, ?string $email = null): Quote
     {
         if ($code !== null && trim($code) !== '') {
             $coupon = $this->coupons->findByCode($code);
-            if ($coupon === null || $coupon->automatic || ! $this->eligible($coupon, $apartment, $stay)) {
+            if ($coupon === null || $coupon->automatic || ! $this->eligible($coupon, $apartment, $stay, $email)) {
                 throw new CouponInvalidException;
             }
             $quote = $this->priced($coupon, $apartment, $stay, $selected);
@@ -52,7 +54,7 @@ class CouponResolver
 
         $best = null;
         foreach ($this->coupons->activeAutomatic() as $offer) {
-            $quote = $this->eligible($offer, $apartment, $stay) ? $this->priced($offer, $apartment, $stay, $selected) : null;
+            $quote = $this->eligible($offer, $apartment, $stay, $email) ? $this->priced($offer, $apartment, $stay, $selected) : null;
             if ($quote !== null && ($best === null || $quote->discount > $best->discount)) {
                 $best = $quote;
             }
@@ -61,8 +63,8 @@ class CouponResolver
         return $best ?? $this->calculator->calculate($apartment, $stay, $selected);
     }
 
-    /** Conditions connues sans le prix : actif, période de validité, logement, nuits, utilisations. */
-    public function eligible(Coupon $coupon, Apartment $apartment, Stay $stay): bool
+    /** Conditions connues sans le prix : actif, période de validité, logement, nuits, utilisations (au total, et par e-mail s'il est connu). */
+    public function eligible(Coupon $coupon, Apartment $apartment, Stay $stay, ?string $email = null): bool
     {
         $today = CarbonImmutable::instance(Date::today());
 
@@ -71,7 +73,8 @@ class CouponResolver
             && ($coupon->ends_on === null || $today->lte($coupon->ends_on))
             && ($coupon->apartments->isEmpty() || $coupon->apartments->contains('id', $apartment->id))
             && ($coupon->min_nights === null || $stay->nights() >= $coupon->min_nights)
-            && ($coupon->max_uses === null || $this->coupons->usesCount($coupon) < $coupon->max_uses);
+            && ($coupon->max_uses === null || $this->coupons->usesCount($coupon) < $coupon->max_uses)
+            && ($email === null || $coupon->max_uses_per_email === null || $this->coupons->usesCount($coupon, $email) < $coupon->max_uses_per_email);
     }
 
     /**

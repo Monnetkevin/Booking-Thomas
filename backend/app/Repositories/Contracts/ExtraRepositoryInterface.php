@@ -52,7 +52,8 @@ interface ExtraRepositoryInterface
 
     /**
      * Chiffres d'un mois d'arrivées (réservations confirmées ou terminées) : réservations,
-     * réservations avec options, montant des options en centimes.
+     * réservations avec options, valeur des options commandées en centimes (avant réductions,
+     * hors prix convenus).
      *
      * @return array{bookings: int, with_extras: int, revenue: int}
      */

@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Date;
 /**
  * Modération des avis (spec « Back-office › Avis ») : publier, refuser avec un motif
  * interne, répondre publiquement. Tous les avis sont traités de la même façon, quelle
- * que soit la note ; chaque décision est tracée et met à jour le site aussitôt.
+ * que soit la note ; chaque décision est tracée et vide le cache du site (les navigateurs
+ * peuvent garder l'ancienne liste une minute, comme pour les fiches logement).
  */
 class ReviewModerationService
 {

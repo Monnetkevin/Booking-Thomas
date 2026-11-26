@@ -22,13 +22,13 @@ class DiscountCalculator
      */
     public function amount(Coupon $coupon, Stay $stay, int $stayAmount, array $extraItems): int
     {
-        $extrasAmount = array_sum(array_column($extraItems, 'amount'));
-        if ($coupon->min_amount !== null && $stayAmount + $extrasAmount < $coupon->min_amount) {
-            return 0;
-        }
-
         $item = collect($extraItems)->firstWhere('extra_id', $coupon->extra_id);
         $extraAmount = $item['amount'] ?? 0;
+        // L'option offerte ne compte pas pour atteindre le montant minimum de sa propre offre.
+        $counted = array_sum(array_column($extraItems, 'amount')) - ($coupon->type === CouponType::FreeExtra ? $extraAmount : 0);
+        if ($coupon->min_amount !== null && $stayAmount + $counted < $coupon->min_amount) {
+            return 0;
+        }
 
         if ($coupon->type === CouponType::FreeExtra) {
             if ($item === null) {

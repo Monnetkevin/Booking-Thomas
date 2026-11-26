@@ -107,11 +107,12 @@ class PriceCalculator
     private function extraItem(SelectedExtra $selected, Stay $stay): array
     {
         $extra = $selected->extra;
+        // Ligne du devis dans la langue du voyageur ; nom figé en français pour l'hôte et le ménage.
         $name = $extra->getTranslation('name', app()->getLocale());
 
         return [
             'extra_id' => $extra->id,
-            'name' => $name,
+            'name' => $extra->getTranslation('name', 'fr'),
             'label' => $extra->pricing->hasQuantity() ? "{$selected->quantity} × $name" : $name,
             'pricing' => $extra->pricing->value,
             'quantity' => $selected->quantity,

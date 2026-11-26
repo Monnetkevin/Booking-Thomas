@@ -52,6 +52,7 @@ it('liste le catalogue avec les chiffres du mois et les options à préparer', f
     $champagne->apartments()->attach($this->loft);
     $soon = directBooking($this->loft, '2026-11-22', '2026-11-24');
     $soon->extras()->create(['extra_id' => $champagne->id, 'name' => 'Champagne', 'pricing' => 'per_unit', 'quantity' => 2, 'unit_amount' => 4500, 'amount' => 9000]);
+    $soon->update(['extras_amount' => 9000]);
     $later = directBooking($this->loft, '2026-12-20', '2026-12-22');
     $later->extras()->create(['extra_id' => $champagne->id, 'name' => 'Champagne', 'pricing' => 'per_unit', 'quantity' => 1, 'unit_amount' => 4500, 'amount' => 4500]);
     directBooking($this->nid, '2026-11-25', '2026-11-27');

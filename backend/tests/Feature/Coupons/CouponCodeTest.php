@@ -13,6 +13,8 @@ use App\Models\Extra;
 use App\Models\RatePeriod;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Booking\BookingService;
+use App\Services\Booking\RefundCalculator;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -100,4 +102,15 @@ it('compte l’utilisation à la réservation, vérifie la limite par e-mail, et
     app(BookingService::class)->expire($first);
     expect($first->refresh()->status)->toBe(BookingStatus::Expired);
     $book('julie@example.com', '2026-12-01')->assertCreated();
+});
+
+it('ne rend pas à l’annulation la part du ménage couverte par la réduction', function () {
+    $booking = Booking::factory()->for($this->apartment)->create([
+        'arrival' => '2026-12-10', 'departure' => '2026-12-11', 'accommodation_amount' => 10000, 'cleaning_fee' => 10000, 'extras_amount' => 0,
+        'discount_amount' => 12000, 'tourist_tax' => 100, 'total_amount' => 8100,
+        'cancellation_policy' => ['policy' => 'strict', 'tiers' => [['days_before' => 0, 'refund_percent' => 0]]],
+    ]);
+
+    // Barème à 0 % : l'hébergement n'est pas rendu, le ménage seulement pour sa part payée (80 €), la taxe en entier.
+    expect(app(RefundCalculator::class)->propose($booking, CarbonImmutable::parse('2026-11-20'))->byPolicy)->toBe(8000 + 100);
 });

@@ -32,8 +32,11 @@ class RefundCalculator
         }
 
         $stayPart = max(0, $booking->accommodation_amount + $booking->extras_amount - $booking->discount_amount);
+        // Une réduction plus grande que l'hébergement et les options porte sur le ménage : cette
+        // part, jamais payée, n'est pas rendue.
+        $cleaning = max(0, $booking->cleaning_fee - max(0, $booking->discount_amount - $booking->accommodation_amount - $booking->extras_amount));
         $byPolicy = $days >= 0
-            ? (int) round($stayPart * $percent / 100) + $booking->cleaning_fee + $booking->tourist_tax
+            ? (int) round($stayPart * $percent / 100) + $cleaning + $booking->tourist_tax
             : 0;
 
         return new RefundProposal($days, $percent, $byPolicy, $this->paid($booking));

@@ -164,20 +164,21 @@ class ManualBookingService
             $lines[] = ['type' => 'adjustment', 'label' => __('pricing.host_adjustment', [], 'fr'), 'amount' => $difference];
         }
 
-        // Une remise porte d'abord sur l'hébergement, puis sur le ménage, enfin sur la taxe de
-        // séjour : chaque montant figé reste positif et la somme vaut toujours le total. Un
-        // ménage ou une taxe offerts ne sont ni comptés en revenu ni remboursés.
+        // Une remise porte d'abord sur l'hébergement, puis sur le ménage, les options, enfin sur
+        // la taxe de séjour : chaque montant figé reste positif et la somme vaut toujours le
+        // total. Un ménage ou une taxe offerts ne sont ni comptés en revenu ni remboursés.
         $reduction = max(0, -$difference);
         $discount = min($reduction, $quote->accommodation);
         $cleaningWaived = min($reduction - $discount, $quote->cleaningFee);
-        $taxWaived = min($reduction - $discount - $cleaningWaived, $quote->touristTax);
+        $extrasWaived = min($reduction - $discount - $cleaningWaived, $quote->extras);
+        $taxWaived = min($reduction - $discount - $cleaningWaived - $extrasWaived, $quote->touristTax);
         $cleaningFee = $quote->cleaningFee - $cleaningWaived;
         $touristTax = $quote->touristTax - $taxWaived;
 
         return [[
             'accommodation_amount' => $quote->accommodation + max(0, $difference),
             'cleaning_fee' => $cleaningFee,
-            'extras_amount' => $quote->extras,
+            'extras_amount' => $quote->extras - $extrasWaived,
             'tourist_tax' => $touristTax,
             'discount_amount' => $discount,
             'total_amount' => $total,

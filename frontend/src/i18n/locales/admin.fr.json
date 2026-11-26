@@ -1174,8 +1174,8 @@
       "chosen": "Choisies ce mois-ci",
       "chosenDetail_one": "réservations sur {{count}} arrivée du mois",
       "chosenDetail_other": "réservations sur {{count}} arrivées du mois",
-      "revenue": "Revenu des options",
-      "revenueDetail": "arrivées du mois, réservations confirmées"
+      "revenue": "Valeur des options commandées",
+      "revenueDetail": "arrivées du mois, avant réductions, hors prix convenus"
     },
     "columns": {
       "option": "Option",
