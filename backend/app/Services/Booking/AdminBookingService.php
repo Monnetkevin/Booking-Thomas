@@ -173,11 +173,16 @@ class AdminBookingService
         }
         $proposal = $this->refunds->propose($this->bookings->loadDetails($booking), CarbonImmutable::instance(Date::today()));
 
-        $cancelled = DB::transaction(function () use ($booking): bool {
+        // Le remboursement dû selon les conditions est enregistré comme versé (hors ligne en
+        // attendant Stripe) : les revenus d'une réservation annulée en tiennent compte.
+        $cancelled = DB::transaction(function () use ($booking, $proposal): bool {
             $this->availability->lockApartment($booking->apartment_id);
             $block = $this->availability->bookingBlock($booking);
             if (! $this->bookings->cancelIfConfirmed($booking)) {
                 return false;
+            }
+            if ($proposal->amount() > 0) {
+                $this->bookings->recordOfflineRefund($booking, $proposal->amount());
             }
             $this->availability->releaseBooking($booking);
             $this->conflicts->release($booking->apartment_id, $booking->arrival, $booking->departure);
@@ -194,7 +199,7 @@ class AdminBookingService
         $this->availabilityService->flushApartment($booking->apartment_id);
         $this->audit->record(AuditAction::BookingCancelled, $booking,
             ['status' => 'confirmed'],
-            ['status' => 'cancelled', 'refund_proposed' => $proposal->amount(), 'guest_notified' => $notifyGuest && filled($booking->guest_email)],
+            ['status' => 'cancelled', 'refunded' => $proposal->amount(), 'guest_notified' => $notifyGuest && filled($booking->guest_email)],
         );
         if ($notifyGuest && filled($booking->guest_email)) {
             $this->mailer->to([['email' => $booking->guest_email, 'name' => $booking->guest_name]])

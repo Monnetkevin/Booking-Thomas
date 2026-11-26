@@ -70,6 +70,14 @@ it('répond 404 à un token inconnu', function () {
     $this->get('/ical/court.ics')->assertNotFound();
 });
 
+it('n’exporte plus le calendrier d’un logement supprimé', function () {
+    exportOf($this->feed)->assertOk();
+
+    $this->apartment->delete();
+
+    exportOf($this->feed)->assertNotFound();
+});
+
 it('donne l’URL d’export au back-office et la révoque sur demande', function () {
     $this->actingAs(User::factory()->create());
     $old = $this->feed->export_token;

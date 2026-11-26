@@ -22,19 +22,20 @@ it('reconnaît des nuits toutes tenues par des fermetures, bout à bout ou de pl
         memoryIcalBlock(1, '2026-11-22', '2026-11-25', summary: 'Airbnb (Not available)'),
     ]);
 
-    expect($overlap->onlySiteOrClosuresCovering(...nights('2026-11-20', '2026-11-25')))->toBeTrue()
-        ->and($overlap->onlySiteOrClosuresCovering(...nights('2026-11-21', '2026-11-24')))->toBeTrue();
+    expect($overlap->coversAllNights(...nights('2026-11-20', '2026-11-25')))->toBeTrue()
+        ->and($overlap->coversAllNights(...nights('2026-11-21', '2026-11-24')))->toBeTrue();
 });
 
-it('prend une réservation du site pour une couverture : la date importée en est l’écho', function () {
-    expect(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-25', BlockType::Booking)->setRelation('booking', memoryBooking(1, '2026-11-20', '2026-11-25', BookingStatus::Confirmed))])->onlySiteOrClosuresCovering(...nights('2026-11-20', '2026-11-25')))->toBeTrue();
+it('prend une réservation du site ou un séjour d’une autre plateforme pour une couverture : la date importée en est l’écho', function () {
+    expect(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-25', BlockType::Booking)->setRelation('booking', memoryBooking(1, '2026-11-20', '2026-11-25', BookingStatus::Confirmed))])->coversAllNights(...nights('2026-11-20', '2026-11-25')))->toBeTrue()
+        ->and(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-25'), memoryIcalBlock(1, '2026-11-21', '2026-11-22')])->coversAllNights(...nights('2026-11-20', '2026-11-25')))->toBeTrue()
+        ->and(overlapOf([memoryIcalBlock(1, '2026-11-20', '2026-11-25')])->coversAllNights(...nights('2026-11-20', '2026-11-25')))->toBeTrue();
 });
 
-it('refuse une couverture partielle, un trou entre deux fermetures ou un séjour de plateforme dessous', function () {
-    expect(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-22')])->onlySiteOrClosuresCovering(...nights('2026-11-20', '2026-11-23')))->toBeFalse()
-        ->and(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-21'), memoryBlock(1, '2026-11-22', '2026-11-25')])->onlySiteOrClosuresCovering(...nights('2026-11-20', '2026-11-25')))->toBeFalse()
-        ->and(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-25'), memoryIcalBlock(1, '2026-11-21', '2026-11-22')])->onlySiteOrClosuresCovering(...nights('2026-11-20', '2026-11-25')))->toBeFalse()
-        ->and(overlapOf([])->onlySiteOrClosuresCovering(...nights('2026-11-20', '2026-11-25')))->toBeFalse();
+it('refuse une couverture partielle ou un trou entre deux fermetures', function () {
+    expect(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-22')])->coversAllNights(...nights('2026-11-20', '2026-11-23')))->toBeFalse()
+        ->and(overlapOf([memoryBlock(1, '2026-11-20', '2026-11-21'), memoryBlock(1, '2026-11-22', '2026-11-25')])->coversAllNights(...nights('2026-11-20', '2026-11-25')))->toBeFalse()
+        ->and(overlapOf([])->coversAllNights(...nights('2026-11-20', '2026-11-25')))->toBeFalse();
 });
 
 it('tient un bloc Booking.com pour une fermeture possible, un séjour Airbnb jamais', function () {

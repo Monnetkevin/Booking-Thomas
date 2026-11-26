@@ -6,6 +6,7 @@ use App\Enums\IcalProvider;
 use App\Models\IcalFeed;
 use App\Models\IcalSyncLog;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class IcalFeedRepository implements IcalFeedRepositoryInterface
@@ -22,7 +23,11 @@ class IcalFeedRepository implements IcalFeedRepositoryInterface
 
     public function findByExportToken(string $token): ?IcalFeed
     {
-        return IcalFeed::query()->where('export_token', $token)->first();
+        // Logement supprimé : plus d'export (la relation inclut les logements supprimés).
+        return IcalFeed::query()
+            ->where('export_token', $token)
+            ->whereHas('apartment', fn (Builder $query) => $query->withoutTrashed())
+            ->first();
     }
 
     public function exists(int $apartmentId, IcalProvider $provider): bool

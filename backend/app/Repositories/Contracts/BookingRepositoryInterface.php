@@ -81,6 +81,9 @@ interface BookingRepositoryInterface
     /** Règlement reçu hors ligne (espèces, virement) : paiement réussi, sans Stripe. */
     public function recordOfflinePayment(Booking $booking, int $amount): void;
 
+    /** Remboursement versé hors ligne (virement) en attendant Stripe : remboursement réussi. */
+    public function recordOfflineRefund(Booking $booking, int $amount): void;
+
     /**
      * Réservations qui peuvent rapporter (confirmées, terminées, ou annulées avec une somme
      * gardée) qui arrivent dans [from, to[, avec paid_amount et refunded_amount.
