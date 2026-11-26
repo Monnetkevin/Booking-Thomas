@@ -9,6 +9,7 @@ use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Services\Apartment\ApartmentService;
 use App\Services\Booking\BookingService;
 use App\Services\Housekeeping\HousekeepingNotifier;
+use App\Services\Review\ReviewInvitationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -41,6 +42,12 @@ Artisan::command('bookings:confirm {reference}', function (BookingService $booki
     return 0;
 })->purpose('Confirme une réservation en attente sans paiement (tests, en attendant Stripe)');
 
+Artisan::command('reviews:invite', function (ReviewInvitationService $reviews) {
+    $completed = $reviews->completeDepartedStays();
+    $invited = $reviews->sendDueInvitations();
+    $this->info("$completed séjour(s) terminé(s), $invited invitation(s) à laisser un avis envoyée(s).");
+})->purpose('Termine les séjours passés et invite les voyageurs partis la veille à laisser un avis');
+
 Artisan::command('ical:sync', function (IcalFeedRepositoryInterface $feeds) {
     $importable = $feeds->importable();
     $importable->each(fn ($feed) => SyncIcalFeed::dispatch($feed));
@@ -64,4 +71,7 @@ Schedule::command('notifications:housekeeping-summary')->hourly();
 
 // Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
 // Verrou de 5 minutes (24 h par défaut) : un conteneur tué en cours ne bloque pas les expirations.
+// Séjours terminés et invitations à laisser un avis, le lendemain du départ.
+Schedule::command('reviews:invite')->dailyAt('10:00')->withoutOverlapping(30);
+
 Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping(5);

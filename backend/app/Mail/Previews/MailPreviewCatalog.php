@@ -12,6 +12,7 @@ use App\Mail\IcalConflictAlert;
 use App\Mail\IcalFeedFailingAlert;
 use App\Mail\NewContactMessage;
 use App\Mail\NotificationMail;
+use App\Mail\ReviewInvitationGuest;
 use App\Mail\TransactionalMail;
 use App\Models\Apartment;
 use App\Models\AvailabilityBlock;
@@ -19,6 +20,7 @@ use App\Models\Booking;
 use App\Models\ContactMessage;
 use App\Models\IcalFeed;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -41,6 +43,12 @@ class MailPreviewCatalog
             'booking-guest' => [
                 'label' => 'Réservation confirmée (voyageur)',
                 'build' => fn (string $locale): TransactionalMail => new BookingConfirmedGuest($this->sampleBooking($locale), 'hote@example.com'),
+            ],
+            'review-invitation' => [
+                'label' => 'Invitation à laisser un avis (voyageur)',
+                'build' => fn (string $locale): TransactionalMail => new ReviewInvitationGuest(
+                    $this->sampleBooking($locale), 'jeton-exemple', CarbonImmutable::now()->addDays(30),
+                ),
             ],
             'booking-host' => [
                 'label' => 'Nouvelle réservation (hôte)',

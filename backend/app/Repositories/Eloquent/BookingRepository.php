@@ -191,4 +191,23 @@ class BookingRepository implements BookingRepositoryInterface
             ->where('arrival', '<', $to->toDateString())
             ->get();
     }
+
+    public function completeDepartedBefore(CarbonInterface $day): int
+    {
+        return Booking::query()
+            ->where('status', BookingStatus::Confirmed)
+            ->where('departure', '<', $day->toDateString())
+            ->update(['status' => BookingStatus::Completed]);
+    }
+
+    public function awaitingReviewInvitation(CarbonInterface $from, CarbonInterface $to): Collection
+    {
+        return Booking::query()
+            ->where('status', BookingStatus::Completed)
+            ->whereNotNull('guest_email')
+            ->whereBetween('departure', [$from->toDateString(), $to->toDateString()])
+            ->whereDoesntHave('review')
+            ->with('apartment')
+            ->get();
+    }
 }
