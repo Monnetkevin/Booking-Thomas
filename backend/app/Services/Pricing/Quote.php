@@ -11,6 +11,7 @@ final readonly class Quote
     /**
      * @param  list<array{date: string, price: int, weekend_supplement: int}>  $nights
      * @param  list<array{type: string, label: string, amount: int, quantity?: int, unit_amount?: int}>  $lines
+     * @param  list<array{extra_id: int, name: string, pricing: string, quantity: int, unit_amount: int, amount: int}>  $extraItems  options à figer dans la réservation
      */
     public function __construct(
         public array $nights,
@@ -19,6 +20,8 @@ final readonly class Quote
         public int $touristTax,
         public array $lines,
         public int $total,
+        public int $extras = 0,
+        public array $extraItems = [],
     ) {}
 
     /**
@@ -30,6 +33,7 @@ final readonly class Quote
             'nights' => $this->nights,
             'accommodation' => $this->accommodation,
             'cleaning_fee' => $this->cleaningFee,
+            'extras' => $this->extras,
             'tourist_tax' => $this->touristTax,
             'lines' => $this->lines,
             'total' => $this->total,

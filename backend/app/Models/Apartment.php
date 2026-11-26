@@ -138,4 +138,10 @@ class Apartment extends Model implements HasMedia
     {
         return $this->hasMany(IcalFeed::class);
     }
+
+    /** @return BelongsToMany<Extra, $this> */
+    public function extras(): BelongsToMany
+    {
+        return $this->belongsToMany(Extra::class);
+    }
 }

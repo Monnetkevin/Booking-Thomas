@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Public;
 
+use App\Http\Requests\Concerns\ReadsExtraChoices;
 use App\Services\Booking\Stay;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
 class QuoteRequest extends FormRequest
 {
+    use ReadsExtraChoices;
+
     /**
      * @return array<string, mixed>
      */
@@ -16,6 +19,7 @@ class QuoteRequest extends FormRequest
         return [
             'apartment' => ['required', 'string', 'max:100'],
             ...self::stayRules(),
+            ...self::extraRules(),
         ];
     }
 

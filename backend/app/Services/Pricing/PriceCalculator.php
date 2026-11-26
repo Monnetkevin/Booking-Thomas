@@ -7,6 +7,7 @@ use App\Models\RatePeriod;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Booking\Stay;
+use App\Services\Extra\SelectedExtra;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -17,6 +18,8 @@ use Illuminate\Support\Collection;
  * - Hébergement : nuit par nuit, chaque nuit au tarif de sa période, plus le supplément
  *   week-end de la période pour les nuits du vendredi et du samedi.
  * - Ménage : forfait du logement.
+ * - Options : prix unitaire × quantité, ou × nuits et/ou voyageurs selon leur mode ;
+ *   une option gratuite apparaît à 0 €.
  * - Taxe de séjour : par adulte et par nuit (mineurs exonérés), forfait ou pourcentage
  *   plafonné selon le réglage « tourist_tax ».
  */
@@ -31,9 +34,11 @@ class PriceCalculator
     ) {}
 
     /**
+     * @param  list<SelectedExtra>  $extras  options vérifiées (ExtraSelector)
+     *
      * @throws MissingRateException
      */
-    public function calculate(Apartment $apartment, Stay $stay): Quote
+    public function calculate(Apartment $apartment, Stay $stay, array $extras = []): Quote
     {
         $periods = $this->periods->covering($apartment->id, $stay->arrival->toDateString(), $stay->departure->subDay()->toDateString());
 
@@ -46,6 +51,11 @@ class PriceCalculator
         if ($cleaning > 0) {
             $lines[] = ['type' => 'cleaning', 'label' => __('pricing.cleaning'), 'amount' => $cleaning];
         }
+        $items = array_map(fn (SelectedExtra $selected) => $this->extraItem($selected, $stay), $extras);
+        foreach ($items as $item) {
+            $lines[] = ['type' => 'extra', 'label' => $item['label'], 'quantity' => $item['quantity'], 'unit_amount' => $item['unit_amount'], 'amount' => $item['amount']];
+        }
+        $extrasAmount = array_sum(array_column($items, 'amount'));
         if ($tax > 0) {
             $lines[] = [
                 'type' => 'tourist_tax',
@@ -54,7 +64,44 @@ class PriceCalculator
             ];
         }
 
-        return new Quote($nights, $accommodation, $cleaning, $tax, $lines, $accommodation + $cleaning + $tax);
+        return new Quote(
+            $nights, $accommodation, $cleaning, $tax, $lines, $accommodation + $cleaning + $extrasAmount + $tax,
+            $extrasAmount,
+            $this->extraItems($stay, $extras),
+        );
+    }
+
+    /**
+     * Options chiffrées sans le reste du séjour (prix convenu sans tarif : options notées
+     * pour être préparées).
+     *
+     * @param  list<SelectedExtra>  $extras
+     * @return list<array{extra_id: int, name: string, pricing: string, quantity: int, unit_amount: int, amount: int}>
+     */
+    public function extraItems(Stay $stay, array $extras): array
+    {
+        return array_map(fn (SelectedExtra $selected) => array_diff_key($this->extraItem($selected, $stay), ['label' => true]), $extras);
+    }
+
+    /**
+     * Option chiffrée pour ce séjour, telle qu'elle sera figée dans la réservation.
+     *
+     * @return array{extra_id: int, name: string, label: string, pricing: string, quantity: int, unit_amount: int, amount: int}
+     */
+    private function extraItem(SelectedExtra $selected, Stay $stay): array
+    {
+        $extra = $selected->extra;
+        $name = $extra->getTranslation('name', app()->getLocale());
+
+        return [
+            'extra_id' => $extra->id,
+            'name' => $name,
+            'label' => $extra->pricing->hasQuantity() ? "{$selected->quantity} × $name" : $name,
+            'pricing' => $extra->pricing->value,
+            'quantity' => $selected->quantity,
+            'unit_amount' => $extra->price,
+            'amount' => $extra->price * $extra->pricing->units($stay, $selected->quantity),
+        ];
     }
 
     /**

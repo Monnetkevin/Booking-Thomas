@@ -68,6 +68,7 @@ class BookingController extends Controller
             $request->total(),
             $request->boolean('paid'),
             $request->boolean('send_confirmation'),
+            $request->extras(),
         );
 
         return $this->resource($booking)->response()->setStatusCode(201);

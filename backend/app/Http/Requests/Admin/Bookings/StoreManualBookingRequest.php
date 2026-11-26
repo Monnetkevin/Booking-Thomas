@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\Bookings;
 
+use App\Http\Requests\Concerns\ReadsExtraChoices;
 use App\Services\Booking\Stay;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Validator;
  */
 class StoreManualBookingRequest extends FormRequest
 {
+    use ReadsExtraChoices;
+
     public const MAX_NIGHTS = 90;
 
     protected function prepareForValidation(): void
@@ -48,6 +51,7 @@ class StoreManualBookingRequest extends FormRequest
             'total_amount' => ['nullable', 'integer', 'min:1', 'max:10000000'],
             'paid' => ['required', 'boolean'],
             'send_confirmation' => ['required', 'boolean'],
+            ...self::extraRules(),
         ];
     }
 

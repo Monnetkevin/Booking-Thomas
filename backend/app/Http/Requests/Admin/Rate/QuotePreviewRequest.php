@@ -2,18 +2,21 @@
 
 namespace App\Http\Requests\Admin\Rate;
 
+use App\Http\Requests\Concerns\ReadsExtraChoices;
 use App\Http\Requests\Public\QuoteRequest;
 use App\Services\Booking\Stay;
 use Illuminate\Foundation\Http\FormRequest;
 
 class QuotePreviewRequest extends FormRequest
 {
+    use ReadsExtraChoices;
+
     /**
      * @return array<string, list<string>>
      */
     public function rules(): array
     {
-        return QuoteRequest::stayRules();
+        return [...QuoteRequest::stayRules(), ...self::extraRules()];
     }
 
     public function stay(): Stay

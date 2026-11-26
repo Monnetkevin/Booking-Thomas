@@ -7,12 +7,15 @@ use App\Enums\BookingStatus;
 use App\Events\BookingConfirmed;
 use App\Exceptions\Booking\StayNotAllowedException;
 use App\Exceptions\DatesUnavailableException;
+use App\Exceptions\Extra\ExtraNotAvailableException;
 use App\Models\Apartment;
 use App\Models\Booking;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\ExtraRepositoryInterface;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Availability\BlockConflictService;
+use App\Services\Extra\ExtraChoice;
 use App\Services\Security\HumanVerifier;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -51,22 +54,25 @@ class BookingService
         private readonly CancellationTerms $cancellation,
         private readonly BookingReferenceGenerator $references,
         private readonly HumanVerifier $humans,
+        private readonly ExtraRepositoryInterface $extras,
     ) {}
 
     /**
      * @param  array{name: string, email: string, phone?: string|null, country: string, message?: string|null}  $guest
+     * @param  list<ExtraChoice>  $choices  options choisies, vérifiées et chiffrées par le serveur
      *
      * @throws ValidationException défi anti-robot échoué
+     * @throws ExtraNotAvailableException option indisponible ou commandée trop tard
      * @throws StayNotAllowedException séjour hors règles (capacité, séjour minimum, dates…)
      * @throws DatesUnavailableException nuits prises entre-temps
      */
-    public function createPending(Apartment $apartment, Stay $stay, array $guest, string $locale, ?string $captchaToken, ?string $ip): Booking
+    public function createPending(Apartment $apartment, Stay $stay, array $guest, string $locale, ?string $captchaToken, ?string $ip, array $choices = []): Booking
     {
         if (! $this->humans->verify($captchaToken, $ip)) {
             throw ValidationException::withMessages(['captcha' => __('booking.captcha_failed')]);
         }
 
-        $quote = $this->quotes->quote($apartment, $stay);
+        $quote = $this->quotes->quote($apartment, $stay, $choices);
 
         try {
             $booking = DB::transaction(function () use ($apartment, $stay, $guest, $locale, $quote): Booking {
@@ -92,12 +98,14 @@ class BookingService
                     'departure' => $stay->departure->toDateString(),
                     'accommodation_amount' => $quote->accommodation,
                     'cleaning_fee' => $quote->cleaningFee,
+                    'extras_amount' => $quote->extras,
                     'tourist_tax' => $quote->touristTax,
                     'total_amount' => $quote->total,
                     'price_breakdown' => $quote->toArray(),
                     'cancellation_policy' => $this->cancellation->snapshot($apartment->cancellation_policy),
                     'expires_at' => now()->addMinutes(self::HOLD_MINUTES),
                 ]);
+                $this->extras->recordForBooking($booking, $quote->extraItems);
                 $this->availability->blockForBooking($booking);
 
                 return $booking;
