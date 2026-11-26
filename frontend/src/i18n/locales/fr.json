@@ -373,6 +373,9 @@
     "more": "Voir plus d’avis",
     "sectionTitle": "Avis des voyageurs",
     "seeAll_one": "Voir l’avis",
-    "seeAll_other": "Voir les {{count}} avis"
+    "seeAll_other": "Voir les {{count}} avis",
+    "homeTitle": "Ils ont séjourné chez nous",
+    "homeIntro": "Des avis laissés uniquement par des voyageurs ayant réservé et séjourné, relus avant publication.",
+    "readAll": "Lire tous les avis"
   }
 }

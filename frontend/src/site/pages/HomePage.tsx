@@ -15,6 +15,7 @@ import { StepList } from '@/site/components/StepList'
 import { HomeHero } from '@/site/home/HomeHero'
 import { HostIntro } from '@/site/home/HostIntro'
 import { useHomeContent } from '@/site/home/useHomeContent'
+import { LatestReviews } from '@/site/reviews/components/LatestReviews'
 import { faqStructuredData } from '@/site/seo/structuredData'
 
 /** Accueil : assemble les sections ; chacune est un composant réutilisable alimenté par ses props. */
@@ -63,6 +64,8 @@ export function HomePage() {
       <PageSection title={t('home.locationTitle')} hideTitle>
         <FactCards items={content.facts} />
       </PageSection>
+
+      <LatestReviews />
 
       <PageSection title={t('home.stepsTitle')} tone="sand">
         <StepList items={content.steps} />

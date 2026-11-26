@@ -371,6 +371,9 @@
     "more": "Show more reviews",
     "sectionTitle": "Guest reviews",
     "seeAll_one": "See the review",
-    "seeAll_other": "See all {{count}} reviews"
+    "seeAll_other": "See all {{count}} reviews",
+    "homeTitle": "They stayed with us",
+    "homeIntro": "Reviews left only by guests who booked and stayed, checked before publication.",
+    "readAll": "Read all reviews"
   }
 }
