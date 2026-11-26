@@ -20,6 +20,13 @@ class PlatformRevenueRepository implements PlatformRevenueRepositoryInterface
             ->get();
     }
 
+    public function earliestMonth(): ?string
+    {
+        $first = PlatformMonthlyRevenue::query()->min('month');
+
+        return $first === null ? null : substr((string) $first, 0, 10);
+    }
+
     public function put(IcalProvider $platform, int $apartmentId, CarbonImmutable $month, int $netAmount, ?int $userId): void
     {
         // Une seule requête (INSERT … ON CONFLICT) : deux saisies simultanées de la même case
