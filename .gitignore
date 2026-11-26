@@ -14,6 +14,8 @@ Thumbs.db
 # Dépendances et builds (les sous-projets ont aussi leur .gitignore)
 node_modules/
 vendor/
+# Gabarits Laravel publiés (e-mails) : à versionner malgré la règle ci-dessus.
+!backend/resources/views/vendor/
 dist/
 
 # Données locales Docker

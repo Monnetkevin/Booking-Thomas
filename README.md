@@ -20,17 +20,17 @@ synchronisation des calendriers Airbnb par iCal et back-office pour l'hôte.
 Prérequis : Docker (avec Compose), Node.js 22+ et npm.
 
 ```bash
-# 1. Services : PHP, PostgreSQL, Redis, Mailpit
+# 1. API : dépendances PHP et clé, puis services (PHP, PostgreSQL, Redis, Mailpit)
 cp backend/.env.example backend/.env
-docker compose up -d
-docker compose exec app composer install
-docker compose exec app php artisan key:generate
+docker compose run --rm --no-deps app composer install
+docker compose run --rm --no-deps app php artisan key:generate
+docker compose up -d                                  # API, base, Redis, Mailpit et SPA (Vite)
 docker compose exec app php artisan migrate --seed
+docker compose exec app php artisan storage:link   # photos publiques
+docker compose exec app php artisan db:seed --class=DemoSeeder   # facultatif : 5 logements de démonstration
 
-# 2. Front (sur la machine hôte)
-cd frontend
-npm install
-npm run dev
+# Site : http://localhost:5173 (le service frontend installe ses dépendances au premier démarrage)
+# Pour lancer Vite hors Docker à la place : cd frontend && npm install && npm run dev
 ```
 
 | Service                  | URL                       |
@@ -38,7 +38,13 @@ npm run dev
 | SPA (Vite)               | http://localhost:5173     |
 | API Laravel              | http://localhost:8000/api |
 | Mailpit (e-mails reçus)  | http://localhost:8025     |
+| Aperçu des e-mails et du PDF | http://localhost:8000/dev/mails (local uniquement) |
+
+Le service `queue` traite les tâches de fond (conversions des photos en WebP et AVIF, e-mails).
+Le service `scheduler` lance les tâches planifiées (expiration des réservations non payées au bout de 30 minutes…).
 | PostgreSQL               | localhost:5432            |
+
+Un port déjà pris par un autre projet ? Créez un fichier `.env` à la racine (à côté de `docker-compose.yml`) avec par exemple `MAILPIT_UI_PORT=8027` ; variables disponibles : `APP_PORT`, `FRONTEND_PORT`, `PGSQL_PORT`, `REDIS_PORT`, `MAILPIT_UI_PORT`.
 
 Vite relaie `/api` et `/sanctum` vers Laravel : la SPA et l'API partagent la même origine, sans CORS.
 
@@ -51,12 +57,19 @@ Compte admin créé par le seeder : variables `ADMIN_EMAIL` et `ADMIN_PASSWORD` 
 docker compose exec app php artisan test     # tests Pest (sur PostgreSQL)
 docker compose exec app vendor/bin/pint      # style
 docker compose exec app vendor/bin/phpstan   # analyse statique (Larastan)
+docker compose exec app php artisan bookings:confirm BT-XXXXXXXX   # confirmer une réservation sans paiement (tests, avant Stripe)
 
 # Frontend
-npm run lint && npm run typecheck && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 ## Façon de travailler
 
-- `main` est protégée : tout passe par une pull request dont la CI est verte.
-- Une branche par jalon ou par issue, commits qui référencent l'issue (`Closes #12`).
+| Branche | Rôle | Alimentée par |
+|---|---|---|
+| `jalon-N/<nom>` | Travail d'un jalon, un commit par issue (`Closes #12`) | — |
+| `develop` | Intégration, branche par défaut | PR depuis les branches de jalon |
+| `staging` | Recette avec le client (environnement de test, clés Stripe de test) — créée au moment de la recette | PR depuis `develop` |
+| `main` | Production | PR depuis `staging` (ou `develop` avant la recette) |
+
+`develop`, `staging` et `main` sont protégées : pull request obligatoire et CI verte.

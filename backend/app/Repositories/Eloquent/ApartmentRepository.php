@@ -1,0 +1,159 @@
+<?php
+
+namespace App\Repositories\Eloquent;
+
+use App\Enums\ApartmentStatus;
+use App\Enums\BookingStatus;
+use App\Models\Apartment;
+use App\Models\RatePeriod;
+use App\Repositories\Contracts\ApartmentRepositoryInterface;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
+
+class ApartmentRepository implements ApartmentRepositoryInterface
+{
+    public function list(?ApartmentStatus $status = null): Collection
+    {
+        return Apartment::query()
+            ->when($status, fn (Builder $query) => $query->where('status', $status))
+            ->with(['media', 'ratePeriods' => $this->upcomingPeriods()])
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function publishedWithCatalogData(): Collection
+    {
+        return Apartment::query()
+            ->published()
+            ->with(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()])
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function findPublishedBySlug(string $slug): ?Apartment
+    {
+        return Apartment::query()
+            ->published()
+            ->where('slug', $slug)
+            ->with(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()])
+            ->first();
+    }
+
+    public function allOrdered(): Collection
+    {
+        return Apartment::query()->orderBy('position')->orderBy('id')->get();
+    }
+
+    public function findWithTrashed(int $id): ?Apartment
+    {
+        return Apartment::withTrashed()->find($id);
+    }
+
+    public function idForSlug(string $slug): ?int
+    {
+        $id = Apartment::query()->where('slug', $slug)->value('id');
+
+        return $id === null ? null : (int) $id;
+    }
+
+    public function loadDetails(Apartment $apartment): Apartment
+    {
+        return $apartment->load(['media', 'amenities', 'ratePeriods' => $this->upcomingPeriods()]);
+    }
+
+    public function create(array $attributes): Apartment
+    {
+        return Apartment::query()->create($attributes);
+    }
+
+    public function update(Apartment $apartment, array $attributes): Apartment
+    {
+        // Spatie fusionne les langues : une traduction vidée resterait. On les remplace.
+        foreach (['name', 'tagline', 'description'] as $field) {
+            if (array_key_exists($field, $attributes)) {
+                $apartment->replaceTranslations($field, $attributes[$field] ?? []);
+                unset($attributes[$field]);
+            }
+        }
+        $apartment->update($attributes);
+
+        return $apartment;
+    }
+
+    public function delete(Apartment $apartment): void
+    {
+        // Plus de synchronisation pour un logement supprimé (ni import, ni alerte d'échec).
+        $apartment->icalFeeds()->update(['is_active' => false]);
+        $apartment->delete();
+    }
+
+    public function slugExists(string $slug, ?int $exceptId = null): bool
+    {
+        // Les logements supprimés gardent leur slug (index unique) : ils comptent aussi.
+        return Apartment::withTrashed()
+            ->where('slug', $slug)
+            ->when($exceptId, fn (Builder $query) => $query->whereKeyNot($exceptId))
+            ->exists();
+    }
+
+    public function nextPosition(): int
+    {
+        return (int) Apartment::query()->max('position') + 1;
+    }
+
+    public function hasUpcomingStays(Apartment $apartment, CarbonInterface $today): bool
+    {
+        $holding = array_filter(BookingStatus::cases(), fn (BookingStatus $status) => $status->holdsNights());
+
+        return $apartment->bookings()
+            ->whereIn('status', $holding)
+            ->where('departure', '>', $today->toDateString())
+            ->exists();
+    }
+
+    public function hasUpcomingRatePeriod(Apartment $apartment, CarbonInterface $today): bool
+    {
+        return $apartment->ratePeriods()->where('ends_on', '>=', $today->toDateString())->exists();
+    }
+
+    public function awaitingGeocoding(): Collection
+    {
+        return Apartment::query()->whereNull('geocoded_at')->get();
+    }
+
+    public function photoCount(Apartment $apartment): int
+    {
+        return $apartment->media()->where('collection_name', Apartment::PHOTOS)->count();
+    }
+
+    public function reorder(array $orderedIds): void
+    {
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $position => $id) {
+                Apartment::query()->whereKey($id)->update(['position' => $position]);
+            }
+        });
+    }
+
+    public function syncAmenities(Apartment $apartment, array $amenityIds): void
+    {
+        $apartment->amenities()->sync($amenityIds);
+    }
+
+    /**
+     * Périodes qui ne sont pas terminées, la plus proche d'abord (prix « de base » affiché).
+     *
+     * @return \Closure(HasMany<RatePeriod, Apartment>): void
+     */
+    private function upcomingPeriods(): \Closure
+    {
+        return function (HasMany $query): void {
+            $query->where('ends_on', '>=', now()->toDateString())->reorder('starts_on');
+        };
+    }
+}

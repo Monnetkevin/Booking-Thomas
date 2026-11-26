@@ -1,0 +1,194 @@
+<?php
+
+namespace App\Repositories\Eloquent;
+
+use App\Enums\BlockType;
+use App\Enums\BookingStatus;
+use App\Models\AvailabilityBlock;
+use App\Models\Booking;
+use App\Repositories\Contracts\AvailabilityRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+
+class AvailabilityRepository implements AvailabilityRepositoryInterface
+{
+    /** Espace de noms des verrous consultatifs PostgreSQL réservés aux logements. */
+    private const LOCK_NAMESPACE = 4201;
+
+    public function hasActiveBlock(int $apartmentId, string $from, string $to): bool
+    {
+        return $this->occupying($apartmentId, $from, $to)->exists();
+    }
+
+    public function activeBlocks(int $apartmentId, string $from, string $to): Collection
+    {
+        return $this->occupying($apartmentId, $from, $to)->orderBy('starts_on')->get(['id', 'starts_on', 'ends_on']);
+    }
+
+    public function lockApartment(int $apartmentId): void
+    {
+        DB::select('SELECT pg_advisory_xact_lock(?, ?)', [self::LOCK_NAMESPACE, $apartmentId]);
+    }
+
+    public function blockForBooking(Booking $booking): AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->create([
+            'apartment_id' => $booking->apartment_id,
+            'booking_id' => $booking->id,
+            'starts_on' => $booking->arrival->toDateString(),
+            'ends_on' => $booking->departure->toDateString(),
+            'type' => BlockType::Booking,
+        ]);
+    }
+
+    public function releaseBooking(Booking $booking): void
+    {
+        AvailabilityBlock::query()->where('booking_id', $booking->id)->update(['is_active' => false]);
+    }
+
+    public function bookingBlock(Booking $booking): ?AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->where('booking_id', $booking->id)->where('is_active', true)->first();
+    }
+
+    public function overlappingActive(int $apartmentId, string $from, string $to, ?int $exceptBlockId = null): Collection
+    {
+        return $this->occupying($apartmentId, $from, $to)
+            ->where('has_conflict', false)
+            ->when($exceptBlockId !== null, fn (Builder $query) => $query->whereKeyNot($exceptBlockId))
+            ->with(['booking', 'icalFeed'])
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function conflictsOverlapping(int $apartmentId, string $from, string $to): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('has_conflict', true)
+            ->overlapping($from, $to)
+            ->with('icalFeed')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function exportable(int $apartmentId, int $exceptFeedId, string $from): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->where('ends_on', '>', $from)
+            ->where(fn (Builder $query) => $query->whereNull('ical_feed_id')->orWhere('ical_feed_id', '!=', $exceptFeedId))
+            ->with('icalFeed')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function feedBlocks(int $feedId): Collection
+    {
+        return AvailabilityBlock::query()->where('ical_feed_id', $feedId)->with('icalFeed')->get();
+    }
+
+    public function createBlock(array $attributes): AvailabilityBlock
+    {
+        return AvailabilityBlock::query()->create($attributes);
+    }
+
+    public function deleteBlock(AvailabilityBlock $block): bool
+    {
+        return AvailabilityBlock::query()->whereKey($block->id)->delete() === 1;
+    }
+
+    public function updateBlock(AvailabilityBlock $block, array $attributes): AvailabilityBlock
+    {
+        $block->update($attributes);
+
+        return $block;
+    }
+
+    public function upcomingConflicts(string $today): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->realConflicts()
+            ->where('ends_on', '>', $today)
+            ->with('apartment:id,name')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function earliestStart(): ?string
+    {
+        $first = AvailabilityBlock::query()->where('is_active', true)->min('starts_on');
+
+        return $first === null ? null : substr((string) $first, 0, 10);
+    }
+
+    public function planningBlocks(string $from, string $to): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->overlapping($from, $to)
+            ->with(['booking', 'icalFeed'])
+            ->orderBy('apartment_id')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->whereKeyNot($exceptBlockId)
+            ->where(fn (Builder $query) => $this->realStay($query))
+            ->where(fn (Builder $query) => $query->whereDate('ends_on', $startsOn)->orWhereDate('starts_on', $endsOn))
+            ->with('icalFeed')
+            ->get()
+            // Séjour ou logement occupé : pas une simple date fermée.
+            ->contains(fn (AvailabilityBlock $block) => $block->concernsHousekeeping());
+    }
+
+    public function movementsOn(string $date): Collection
+    {
+        return AvailabilityBlock::query()
+            ->where('is_active', true)
+            ->where(fn (Builder $query) => $query->whereDate('starts_on', $date)->orWhereDate('ends_on', $date))
+            ->whereHas('apartment', fn (Builder $query) => $query->whereNull('deleted_at'))
+            ->where(fn (Builder $query) => $this->realStay($query))
+            ->withoutRedundantClosures()
+            ->with(['apartment', 'booking', 'icalFeed'])
+            ->orderBy('apartment_id')
+            ->orderBy('starts_on')
+            ->get();
+    }
+
+    /**
+     * Séjour qui aura vraiment lieu : pas une réservation encore en attente de paiement
+     * (nuits tenues 40 minutes), qui peut expirer d'ici là.
+     *
+     * @param  Builder<AvailabilityBlock>  $query
+     */
+    private function realStay(Builder $query): void
+    {
+        $query->whereNull('booking_id')->orWhereHas('booking', fn (Builder $booking) => $booking->whereIn('status', [
+            BookingStatus::Confirmed->value, BookingStatus::Completed->value,
+        ]));
+    }
+
+    /**
+     * Blocs actifs qui touchent [from, to[, en conflit ou non : un séjour importé en
+     * conflit occupe bel et bien ses nuits, y compris celles qu'il est seul à tenir.
+     *
+     * @return Builder<AvailabilityBlock>
+     */
+    private function occupying(int $apartmentId, string $from, string $to): Builder
+    {
+        return AvailabilityBlock::query()
+            ->where('apartment_id', $apartmentId)
+            ->where('is_active', true)
+            ->overlapping($from, $to);
+    }
+}

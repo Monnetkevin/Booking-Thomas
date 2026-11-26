@@ -1,0 +1,166 @@
+import { useState, type FormEvent, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/Button'
+import { SelectField, TextArea, TextField } from '@/components/ui/Field'
+import { Section } from '@/components/ui/Section'
+import {
+  apartmentInputFromForm,
+  APARTMENT_FORM_SECTIONS,
+  formSectionOf,
+  type ApartmentFormSection,
+  type ApartmentFormErrors,
+  type ApartmentFormValues,
+} from '../apartmentForm'
+import type { ApartmentInput, CancellationPolicy } from '../types'
+
+interface ApartmentFormProps {
+  initialValues: ApartmentFormValues
+  submitLabel: string
+  pending: boolean
+  /** Erreurs renvoyées par l'API, déjà rattachées aux champs. */
+  serverErrors?: ApartmentFormErrors
+  /** Informations calculées affichées sous l'adresse (adresse de la page, position). */
+  addressInfo?: ReactNode
+  onSubmit: (input: ApartmentInput) => void
+  /** Sections affichées (onglets de la fiche) ; toutes par défaut. Les autres restent dans le formulaire, masquées. */
+  visibleSections?: ApartmentFormSection[]
+  /** Appelé avec la section de la première erreur, pour y amener l'hôte. */
+  onErrorsIn?: (section: ApartmentFormSection) => void
+  /** Faux sans le droit de fixer les prix (frais de ménage), décidé par l'API. */
+  canEditPricing?: boolean
+}
+
+
+const policies: CancellationPolicy[] = ['flexible', 'moderate', 'strict']
+
+/**
+ * Informations, adresse et règles du séjour d'un logement. Ne fait que saisir et
+ * convertir ; l'enregistrement est confié au parent.
+ */
+export function ApartmentForm({
+  initialValues,
+  submitLabel,
+  pending,
+  serverErrors = {},
+  addressInfo,
+  onSubmit,
+  visibleSections = APARTMENT_FORM_SECTIONS,
+  onErrorsIn,
+  canEditPricing = true,
+}: ApartmentFormProps) {
+  const { t } = useTranslation()
+  const [values, setValues] = useState(initialValues)
+  const [localErrors, setLocalErrors] = useState<ApartmentFormErrors>({})
+
+  const errors = { ...serverErrors, ...localErrors }
+  const error = (field: keyof ApartmentFormValues) =>
+    errors[field] === 'invalidAmount' ? t('admin.apartments.invalidAmount') : errors[field]
+
+  /** Props communes d'un champ lié à une clé du formulaire. */
+  const bind = (field: keyof ApartmentFormValues) => ({
+    name: field,
+    value: values[field],
+    error: error(field),
+    // Valeur seule (liste, calendrier) ou évènement d'un champ texte.
+    onChange: (input: string | { target: { value: string } }) => {
+      const value = typeof input === 'string' ? input : input.target.value
+      setValues((current) => ({ ...current, [field]: value }))
+      setLocalErrors((current) => {
+        const { [field]: _removed, ...rest } = current
+        return rest
+      })
+    },
+  })
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const result = apartmentInputFromForm(values)
+    if (result.errors) {
+      setLocalErrors(result.errors)
+      const first = Object.keys(result.errors)[0] as keyof ApartmentFormValues | undefined
+      if (first) onErrorsIn?.(formSectionOf(first))
+      return
+    }
+    onSubmit(result.input)
+  }
+
+  const f = (key: string) => t(`admin.apartments.fields.${key}` as 'admin.apartments.fields.nameFr')
+
+  return (
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+      <Section title={t('admin.apartments.sections.info')} className={visibleSections.includes('info') ? undefined : 'hidden'}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField label={f('nameFr')} required maxLength={120} {...bind('nameFr')} />
+          <TextField label={f('nameEn')} hint={f('translationHint')} maxLength={120} {...bind('nameEn')} />
+          <TextField label={f('taglineFr')} hint={f('taglineHint')} maxLength={80} {...bind('taglineFr')} />
+          <TextField label={f('taglineEn')} hint={f('translationHint')} maxLength={80} {...bind('taglineEn')} />
+          <TextArea label={f('descriptionFr')} hint={f('descriptionHint')} maxLength={5000} {...bind('descriptionFr')} />
+          <TextArea label={f('descriptionEn')} hint={f('translationHint')} maxLength={5000} {...bind('descriptionEn')} />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <TextField label={f('surface')} type="number" inputMode="numeric" min={5} suffix={t('admin.apartments.units.m2')} {...bind('surface')} />
+          <TextField label={f('capacity')} type="number" inputMode="numeric" min={1} required {...bind('capacity')} />
+          <TextField label={f('bedrooms')} type="number" inputMode="numeric" min={0} required {...bind('bedrooms')} />
+          <TextField label={f('beds')} type="number" inputMode="numeric" min={1} required {...bind('beds')} />
+          <TextField label={f('bathrooms')} type="number" inputMode="numeric" min={0} required {...bind('bathrooms')} />
+          <TextField label={f('checkIn')} type="time" required {...bind('checkInTime')} />
+          <TextField label={f('checkOut')} type="time" required {...bind('checkOutTime')} />
+          <TextField
+            label={f('cleaningFee')}
+            hint={canEditPricing ? f('cleaningFeeHint') : f('cleaningFeeAdminOnly')}
+            inputMode="decimal"
+            suffix={t('admin.apartments.units.euro')}
+            disabled={!canEditPricing}
+            {...bind('cleaningFee')}
+          />
+        </div>
+      </Section>
+
+      <Section title={t('admin.apartments.sections.location')} className={visibleSections.includes('location') ? undefined : 'hidden'}>
+        <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+          <TextField label={f('address')} hint={f('addressHint')} required autoComplete="street-address" {...bind('address')} />
+          <TextField label={f('postalCode')} required inputMode="numeric" maxLength={5} autoComplete="postal-code" {...bind('postalCode')} />
+          <TextField label={f('city')} required autoComplete="address-level2" {...bind('city')} />
+        </div>
+        {addressInfo && <div className="mt-4">{addressInfo}</div>}
+      </Section>
+
+      <Section title={t('admin.apartments.sections.rules')} className={visibleSections.includes('rules') ? undefined : 'hidden'}>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <TextField
+            label={f('minStay')}
+            hint={f('minStayHint')}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            suffix={t('admin.apartments.units.nights')}
+            {...bind('minStay')}
+          />
+          <TextField label={f('maxStay')} type="number" inputMode="numeric" min={1} suffix={t('admin.apartments.units.nights')} {...bind('maxStay')} />
+          <TextField
+            label={f('turnover')}
+            hint={f('turnoverHint')}
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={7}
+            suffix={t('admin.apartments.units.nights')}
+            {...bind('turnoverDays')}
+          />
+          <SelectField
+            label={f('policy')}
+            options={policies.map((policy) => ({ value: policy, label: t(`admin.apartments.policies.${policy}`) }))}
+            {...bind('cancellationPolicy')}
+          />
+          <TextField label={f('registration')} hint={f('registrationHint')} maxLength={50} className="sm:col-span-2" {...bind('registrationNumber')} />
+        </div>
+      </Section>
+
+      <div className="sticky bottom-0 -mx-4 flex justify-end border-t border-border bg-sand/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+        <Button type="submit" size="lg" loading={pending}>
+          {pending ? t('admin.common.saving') : submitLabel}
+        </Button>
+      </div>
+    </form>
+  )
+}
