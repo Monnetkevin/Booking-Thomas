@@ -376,6 +376,8 @@
     "seeAll_other": "Voir les {{count}} avis",
     "homeTitle": "Ils ont séjourné chez nous",
     "homeIntro": "Des avis laissés uniquement par des voyageurs ayant réservé et séjourné, relus avant publication.",
-    "readAll": "Lire tous les avis"
+    "readAll": "Lire tous les avis",
+    "heroSummary_one": "{{average}} · {{count}} avis de voyageur",
+    "heroSummary_other": "{{average}} · {{count}} avis de voyageurs"
   }
 }

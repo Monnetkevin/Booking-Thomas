@@ -374,6 +374,8 @@
     "seeAll_other": "See all {{count}} reviews",
     "homeTitle": "They stayed with us",
     "homeIntro": "Reviews left only by guests who booked and stayed, checked before publication.",
-    "readAll": "Read all reviews"
+    "readAll": "Read all reviews",
+    "heroSummary_one": "{{average}} · {{count}} guest review",
+    "heroSummary_other": "{{average}} · {{count}} guest reviews"
   }
 }
