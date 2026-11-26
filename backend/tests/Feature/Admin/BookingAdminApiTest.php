@@ -115,13 +115,35 @@ it('annule une réservation : nuits libérées, conflit levé, ménage et voyage
 
     expect($booking->fresh()->availabilityBlock->is_active)->toBeFalse()
         ->and($airbnb->fresh()->has_conflict)->toBeFalse()
-        ->and(AuditLog::sole()->after)->toMatchArray(['status' => 'cancelled', 'refund_proposed' => 34500, 'guest_notified' => true]);
+        ->and($booking->payments()->where('type', 'refund')->sole()->amount)->toBe(34500)
+        ->and(AuditLog::sole()->after)->toMatchArray(['status' => 'cancelled', 'refunded' => 34500, 'guest_notified' => true]);
     Notification::assertSentTo($cleaner, StayChangedNotification::class, fn ($n) => $n->change->kind->value === 'cancelled');
     Mail::assertQueued(BookingCancelledGuest::class, fn ($mail) => $mail->hasTo('camille@example.com')
         && str_contains($mail->render(), 'has been cancelled'));
 
     $this->postJson("/api/admin/bookings/{$booking->reference}/cancel", ['notify_guest' => false])
         ->assertUnprocessable()->assertJsonPath('code', 'booking_not_cancellable');
+});
+
+it('enregistre le remboursement du barème à l’annulation : les revenus ne gardent que la part conservée', function () {
+    // 3 jours avant l'arrivée : 50 % de l'hébergement (15 000), ménage rendu (4 500).
+    $booking = paidBooking($this->apartment, '2026-11-23', '2026-11-26');
+
+    $this->postJson("/api/admin/bookings/{$booking->reference}/cancel", ['notify_guest' => false])
+        ->assertOk();
+
+    expect($booking->payments()->where('type', 'refund')->sole())
+        ->amount->toBe(19500)->status->toBe(PaymentStatus::Succeeded);
+    $this->getJson('/api/admin/dashboard')->assertJsonPath('data.figures.revenue.value', 15000);
+});
+
+it('n’enregistre aucun remboursement quand le barème ne rend rien', function () {
+    $booking = paidBooking($this->apartment, '2026-11-18', '2026-11-22');
+
+    $this->postJson("/api/admin/bookings/{$booking->reference}/cancel", ['notify_guest' => false])
+        ->assertOk();
+
+    expect($booking->payments()->where('type', 'refund')->exists())->toBeFalse();
 });
 
 it('annule sans prévenir le voyageur, et refuse une réservation en attente de paiement', function () {

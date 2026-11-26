@@ -6,6 +6,7 @@ use App\Models\Amenity;
 use App\Models\Apartment;
 use App\Models\AuditLog;
 use App\Models\Booking;
+use App\Models\IcalFeed;
 use App\Models\RatePeriod;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -95,6 +96,10 @@ describe('création et modification', function () {
         // Seul le nom anglais change : l'adresse de la page reste la même.
         $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload(['name' => ['fr' => 'Nid doux', 'en' => 'Sweet nest']]))
             ->assertJsonPath('data.slug', 'nid-doux-2');
+
+        // Nom anglais vidé : il est effacé, pas gardé.
+        $this->putJson("/api/admin/apartments/{$apartment->id}", apartmentPayload(['name' => ['fr' => 'Nid doux', 'en' => '']]))->assertOk();
+        expect($apartment->fresh()->getTranslations('name'))->toBe(['fr' => 'Nid doux']);
     });
 
     it('liste les logements dans l’ordre, filtrés par statut, avec le prix de la période en cours', function () {
@@ -187,10 +192,14 @@ describe('suppression', function () {
             'arrival' => now()->subDays(10), 'departure' => now()->subDays(7), 'status' => BookingStatus::Completed,
         ]);
 
+        $feed = IcalFeed::factory()->for($apartment)->create();
+
         $this->deleteJson("/api/admin/apartments/{$apartment->id}")->assertNoContent();
 
         $this->assertSoftDeleted($apartment);
         $this->assertModelExists($past);
+        // Plus de synchronisation pour un logement supprimé.
+        expect($feed->fresh()->is_active)->toBeFalse();
         $this->getJson('/api/admin/apartments')->assertJsonCount(0, 'data');
         $this->getJson("/api/admin/apartments/{$apartment->id}")->assertNotFound();
         // Le slug d'un logement supprimé n'est pas réattribué.

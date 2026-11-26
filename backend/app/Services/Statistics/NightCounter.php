@@ -86,8 +86,8 @@ class NightCounter
     }
 
     /**
-     * Un bloc qui ne fait que répéter une fermeture du site (date Booking.com posée sur une
-     * fermeture) compte comme fermé (copie non enregistrée), les autres restent des séjours.
+     * Un bloc qui n'est que l'écho de l'export du site (date Booking.com posée sur des nuits
+     * déjà occupées) compte comme fermé (copie non enregistrée), les autres restent des séjours.
      *
      * @param  Collection<int, AvailabilityBlock>  $blocks
      * @return Collection<int, AvailabilityBlock>

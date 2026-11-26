@@ -773,7 +773,7 @@
     "refundRule": "{{days}} jour(s) avant l’arrivée : {{percent}} % de l’hébergement, ménage et taxe de séjour rendus en entier.",
     "refundStarted": "Séjour commencé : rien n’est dû selon les conditions.",
     "refundPaid": "Encaissé : {{amount}}.",
-    "refundOffline": "Le remboursement en ligne arrive avec le paiement Stripe ; en attendant, remboursez le voyageur hors ligne.",
+    "refundOffline": "Ce montant sera noté comme remboursé : versez-le au voyageur hors ligne (virement). Le remboursement en ligne arrive avec le paiement Stripe.",
     "notifyGuest": "Prévenir le voyageur par e-mail",
     "cancelConfirm": "Annuler la réservation",
     "subtitleCount_one": "{{count}} réservation avec ces filtres.",

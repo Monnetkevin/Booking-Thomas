@@ -53,7 +53,8 @@ Artisan::command('notifications:housekeeping-summary', function (HousekeepingNot
 })->purpose('Envoie aux comptes ménage, à leur heure, les départs et arrivées du lendemain');
 
 // Réservations Airbnb bloquées sur le site 15 minutes au plus après leur création.
-Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping();
+// Verrou de 30 minutes (24 h par défaut) : un conteneur tué en pleine synchro ne la bloque pas.
+Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping(30);
 
 // Journal des synchronisations conservé 30 jours, notifications lues 90 jours, journal d'audit un an.
 Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification::class, AuditLog::class]])->daily();
@@ -62,4 +63,5 @@ Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification
 Schedule::command('notifications:housekeeping-summary')->hourly();
 
 // Paiement non finalisé dans les 40 minutes : nuits libérées dans la minute qui suit.
-Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping();
+// Verrou de 5 minutes (24 h par défaut) : un conteneur tué en cours ne bloque pas les expirations.
+Schedule::command('bookings:expire')->everyMinute()->withoutOverlapping(5);
