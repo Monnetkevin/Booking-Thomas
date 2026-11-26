@@ -272,3 +272,17 @@ it('garde l’alerte et l’expiration pour un vrai séjour Airbnb sur une rése
         ->and($pending->fresh()->status)->toBe(BookingStatus::Expired);
     Event::assertDispatched(IcalConflictDetected::class);
 });
+
+it('rend les nuits au vrai séjour Airbnb, pas à l’écho Booking.com, quand la fermeture du site est retirée', function () {
+    $this->postJson("/api/admin/apartments/{$this->apartment->id}/blocks", ['starts_on' => '2026-11-20', 'ends_on' => '2026-11-24'])->assertCreated();
+    // Écho Booking.com de la fermeture, puis séjour Airbnb pris avant qu'Airbnb relise l'export.
+    feedNow($this->booking, ['B1' => ['2026-11-20', '2026-11-24', 'CLOSED - Not available']]);
+    feedNow($this->airbnb, ['A1' => ['2026-11-20', '2026-11-24', 'Reserved']]);
+    $manual = AvailabilityBlock::query()->where('type', BlockType::Manual)->sole();
+
+    $this->deleteJson("/api/admin/blocks/{$manual->id}")->assertSuccessful();
+
+    expect(importedBlock('A1'))->has_conflict->toBeFalse()
+        ->and(importedBlock('B1'))->has_conflict->toBeTrue()->is_redundant_closure->toBeTrue();
+    $this->getJson('/api/admin/overview')->assertJsonPath('data.conflicts', 0);
+});
