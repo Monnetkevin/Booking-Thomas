@@ -16,8 +16,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 
 /**
- * Choix de la réduction d'un séjour (spec « Codes promo ») : un seul code par
- * réservation, vérifié par le serveur. Une option offerte
+ * Choix de la réduction d'un séjour (spec « Codes promo ») : un seul avantage par
+ * réservation. Un code saisi remplace l'offre automatique ; sans code, la plus avantageuse
+ * des offres automatiques dont les conditions sont remplies s'applique. Une option offerte
  * est ajoutée au séjour si elle n'y est pas encore et si elle est encore commandable.
  * La limite par e-mail est vérifiée à la création de la réservation (CouponRedeemer).
  */
@@ -49,7 +50,15 @@ class CouponResolver
             return $quote;
         }
 
-        return $this->calculator->calculate($apartment, $stay, $selected);
+        $best = null;
+        foreach ($this->coupons->activeAutomatic() as $offer) {
+            $quote = $this->eligible($offer, $apartment, $stay) ? $this->priced($offer, $apartment, $stay, $selected) : null;
+            if ($quote !== null && ($best === null || $quote->discount > $best->discount)) {
+                $best = $quote;
+            }
+        }
+
+        return $best ?? $this->calculator->calculate($apartment, $stay, $selected);
     }
 
     /** Conditions connues sans le prix : actif, période de validité, logement, nuits, utilisations. */
