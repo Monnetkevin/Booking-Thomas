@@ -76,15 +76,14 @@ class ReviewRepository implements ReviewRepositoryInterface
             ->all();
     }
 
-    public function repliesSince(CarbonInterface $since): array
+    public function invitationsSince(CarbonInterface $since): array
     {
         $row = Review::query()
-            ->whereNotNull('submitted_at')
-            ->where('submitted_at', '>=', $since)
-            ->selectRaw('count(*) as received, count(host_reply) as replied')
+            ->where('invited_at', '>=', $since)
+            ->selectRaw('count(*) as sent, count(submitted_at) as answered')
             ->first();
 
-        return ['received' => (int) ($row->received ?? 0), 'replied' => (int) ($row->replied ?? 0)];
+        return ['sent' => (int) ($row->sent ?? 0), 'answered' => (int) ($row->answered ?? 0)];
     }
 
     /**

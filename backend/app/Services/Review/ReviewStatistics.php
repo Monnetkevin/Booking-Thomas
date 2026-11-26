@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Date;
 
 /**
  * Chiffres des avis pour le back-office (écran Avis et tableau de bord) : note moyenne et
- * nombre d'avis publiés, avis à modérer, part des avis à 5 étoiles, et taux de réponse de
- * l'hôte aux avis reçus ces 30 derniers jours.
+ * nombre d'avis publiés, avis à modérer, part des avis à 5 étoiles, et taux de réponse des
+ * voyageurs aux invitations envoyées ces 30 derniers jours.
  */
 class ReviewStatistics
 {
@@ -26,14 +26,14 @@ class ReviewStatistics
         $ratings = $this->reviews->publishedRatings(null);
         $count = array_sum($ratings);
         $total = array_sum(array_map(fn (int $rating, int $number) => $rating * $number, array_keys($ratings), $ratings));
-        $replies = $this->reviews->repliesSince(CarbonImmutable::instance(Date::now())->subDays(self::REPLY_WINDOW_DAYS));
+        $invitations = $this->reviews->invitationsSince(CarbonImmutable::instance(Date::now())->subDays(self::REPLY_WINDOW_DAYS));
 
         return [
             'average' => $count === 0 ? null : round($total / $count, 1),
             'count' => $count,
             'pending' => $this->pending(),
             'five_star_share' => $count === 0 ? null : (int) round(($ratings[5] ?? 0) * 100 / $count),
-            'reply_rate' => $replies['received'] === 0 ? null : (int) round($replies['replied'] * 100 / $replies['received']),
+            'reply_rate' => $invitations['sent'] === 0 ? null : (int) round($invitations['answered'] * 100 / $invitations['sent']),
         ];
     }
 

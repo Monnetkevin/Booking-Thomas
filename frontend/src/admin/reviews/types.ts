@@ -26,7 +26,7 @@ export interface AdminReviewPage {
   meta: { current_page: number; last_page: number; total: number; counts: Record<ReviewStatus, number>; summary: ReviewSummary }
 }
 
-/** Chiffres de l'écran : moyenne et nombre d'avis publiés, à modérer, part des 5 étoiles, taux de réponse sur 30 jours. */
+/** Chiffres de l'écran : moyenne et nombre d'avis publiés, à modérer, part des 5 étoiles, part des invitations des 30 derniers jours qui ont reçu un avis. */
 export interface ReviewSummary {
   average: number | null
   count: number

@@ -51,10 +51,10 @@ interface ReviewRepositoryInterface
     public function publishedRatings(?int $apartmentId): array;
 
     /**
-     * Avis déposés depuis ce jour (publiés ou refusés compris) et, parmi eux, ceux qui ont une
-     * réponse de l'hôte.
+     * Invitations envoyées depuis ce jour et, parmi elles, celles auxquelles le voyageur a
+     * répondu par un avis (quelle que soit la décision de l'hôte).
      *
-     * @return array{received: int, replied: int}
+     * @return array{sent: int, answered: int}
      */
-    public function repliesSince(CarbonInterface $since): array;
+    public function invitationsSince(CarbonInterface $since): array;
 }
