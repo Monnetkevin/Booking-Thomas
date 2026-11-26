@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ApartmentPhotoController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\CleaningScheduleController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\IcalFeedController;
@@ -69,7 +70,7 @@ Route::prefix('auth')->group(function () {
 });
 
 /*
-| Back-office, pour tous les rôles : notifications et préférences du compte connecté
+| Back-office, pour tous les rôles : notifications et préférences du compte connecté, planning du ménage
 */
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index']);
@@ -78,6 +79,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,housekeeping'])-
     Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification');
     Route::get('me/notification-preferences', [NotificationController::class, 'preferences']);
     Route::put('me/notification-preferences', [NotificationController::class, 'updatePreferences']);
+
+    // Planning du ménage : départs, arrivées et fermetures, sans donnée personnelle
+    Route::get('cleaning-schedule', CleaningScheduleController::class);
 });
 
 /*

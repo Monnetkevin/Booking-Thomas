@@ -2,10 +2,9 @@
 
 namespace App\Services\Housekeeping;
 
-use App\Enums\BlockType;
+use App\Enums\CleaningMovementKind;
 use App\Enums\StayChangeKind;
 use App\Enums\UserRole;
-use App\Models\AvailabilityBlock;
 use App\Models\User;
 use App\Notifications\Housekeeping\DailySummaryNotification;
 use App\Notifications\Housekeeping\StayChangedNotification;
@@ -89,45 +88,34 @@ class HousekeepingNotifier
      */
     private function movements(CarbonImmutable $date): array
     {
+        $day = $date->toDateString();
         $lines = [];
-        foreach ($this->availability->movementsOn($date->toDateString()) as $block) {
-            $line = $this->movement($block, $date);
-            if ($line !== null) {
-                $lines[] = $line;
+        foreach ($this->availability->movementsBetween($day, $day) as $block) {
+            $movement = CleaningMovement::fromBlock($block, $date);
+            if ($movement !== null) {
+                $lines[] = $this->line($movement);
             }
         }
 
         return $lines;
     }
 
-    private function movement(AvailabilityBlock $block, CarbonImmutable $date): ?string
+    private function line(CleaningMovement $movement): string
     {
-        $apartment = $block->apartment->getTranslation('name', 'fr');
-        $departing = $block->ends_on->isSameDay($date);
+        $key = 'notifications.daily_summary.'.$movement->kind->value;
 
-        if ($block->type === BlockType::Manual && $block->needs_cleaning) {
-            // Logement occupé pendant la fermeture (famille, amis) : ménage à la fin.
-            return __('notifications.daily_summary.'.($departing ? 'occupied_end' : 'occupied'), ['apartment' => $apartment], 'fr');
-        }
-        if ($block->isClosure()) {
-            // Une fermeture (ici ou sur une plateforme) qui se termine ne demande rien au ménage.
-            return $departing ? null : __('notifications.daily_summary.blocked', ['apartment' => $apartment], 'fr');
-        }
-
-        if ($departing) {
-            return __('notifications.daily_summary.departure', ['apartment' => $apartment, 'time' => $this->time($block->apartment->check_out_time)], 'fr');
-        }
-
-        $guests = $block->booking !== null ? $block->booking->adults + $block->booking->children : null;
-
-        return __('notifications.daily_summary.arrival', [
-            'apartment' => $apartment,
-            'time' => $this->time($block->apartment->check_in_time),
-            'guests' => $guests === null ? '' : __('notifications.daily_summary.arrival_guests', ['count' => $guests], 'fr'),
-        ], 'fr');
+        return match ($movement->kind) {
+            CleaningMovementKind::Departure => __($key, ['apartment' => $movement->apartmentName, 'time' => $this->time($movement->time)], 'fr'),
+            CleaningMovementKind::Arrival => __($key, [
+                'apartment' => $movement->apartmentName,
+                'time' => $this->time($movement->time),
+                'guests' => $movement->guests === null ? '' : __('notifications.daily_summary.arrival_guests', ['count' => $movement->guests], 'fr'),
+            ], 'fr'),
+            default => __($key, ['apartment' => $movement->apartmentName], 'fr'),
+        };
     }
 
-    /** « 16:00:00 » → « 16 h », « 10:30 » → « 10 h 30 ». */
+    /** « 16:00 » → « 16 h », « 10:30 » → « 10 h 30 ». */
     private function time(?string $time): string
     {
         if ($time === null || $time === '') {

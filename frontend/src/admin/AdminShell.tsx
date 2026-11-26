@@ -35,7 +35,7 @@ export function AdminShell() {
   if (!user) return <Navigate to={loginPath(location.pathname + location.search)} replace />
 
   const navigation = navigationFor(user.role)
-  // Chacun est ramené à ses pages (le ménage : notifications, puis planning du ménage).
+  // Chacun est ramené à ses pages (le ménage : son planning).
   if (!canVisit(location.pathname, user.role) && navigation[0]) return <Navigate to={navigation[0].to} replace />
 
   const handleLogout = () =>

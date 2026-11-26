@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Role } from '@/admin/auth/types'
-import { BarChartIcon, BellIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
+import { BarChartIcon, BellIcon, BroomIcon, BuildingIcon, CalendarIcon, GridIcon, HomeIcon, ListIcon, MailIcon, SettingsIcon, SyncIcon, TagIcon, UsersIcon, WalletIcon } from '@/components/icons'
 
 /** Compteur affiché à côté d'une entrée, lu dans les compteurs de la barre. */
 export type NavBadge = 'conflicts' | 'failingFeeds' | 'unreadMessages' | 'unreadNotifications'
@@ -18,6 +18,7 @@ export interface AdminNavItem {
     | 'admin.nav.sync'
     | 'admin.nav.bookings'
     | 'admin.nav.planning'
+    | 'admin.nav.cleaning'
     | 'admin.nav.statistics'
     | 'admin.nav.platformRevenue'
     | 'admin.nav.notifications'
@@ -47,6 +48,8 @@ const NAV_GROUPS = ['pilotage', 'catalogue', 'suivi'] as const satisfies readonl
 export const adminNavigation: AdminNavItem[] = [
   { to: '/admin', labelKey: 'admin.nav.dashboard', icon: <HomeIcon />, roles: STAFF, group: 'pilotage', end: true },
   { to: '/admin/planning', labelKey: 'admin.nav.planning', icon: <GridIcon />, roles: STAFF, group: 'pilotage' },
+  // Première entrée du ménage : c'est là qu'il arrive après connexion.
+  { to: '/admin/menage', labelKey: 'admin.nav.cleaning', icon: <BroomIcon />, roles: EVERYONE, group: 'pilotage' },
   { to: '/admin/reservations', labelKey: 'admin.nav.bookings', icon: <CalendarIcon />, roles: STAFF, group: 'pilotage', badge: 'conflicts' },
   { to: '/admin/appartements', labelKey: 'admin.nav.apartments', icon: <BuildingIcon />, roles: STAFF, group: 'catalogue' },
   { to: '/admin/tarifs', labelKey: 'admin.nav.rates', icon: <TagIcon />, roles: ['admin'], group: 'catalogue' },

@@ -322,3 +322,13 @@ export function WalletIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   )
 }
+
+export function BroomIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M19 3l-7.5 7.5" />
+      <path d="M11.5 10.5l2 2c.6.6.6 1.5 0 2.1L9 19.1c-1.2 1.2-3.2 1.7-5 1.9.2-1.8.7-3.8 1.9-5l4.5-4.5c.6-.6 1.5-.6 2.1 0z" />
+      <path d="M7 15l2 2" />
+    </Icon>
+  )
+}

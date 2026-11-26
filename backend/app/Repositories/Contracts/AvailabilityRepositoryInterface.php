@@ -88,13 +88,13 @@ interface AvailabilityRepositoryInterface
     public function hasSameDayTurnover(int $apartmentId, string $startsOn, string $endsOn, int $exceptBlockId): bool;
 
     /**
-     * Blocs actifs qui commencent ou finissent ce jour-là, avec logement et réservation,
-     * pour le récapitulatif du ménage : logements existants, réservations confirmées
+     * Blocs actifs qui commencent ou finissent entre ces deux jours (inclus), avec logement et
+     * réservation, pour le ménage : logements existants, réservations confirmées
      * (pas celles en attente de paiement), sans les fermetures posées sur des nuits déjà fermées.
      *
      * @return Collection<int, AvailabilityBlock>
      */
-    public function movementsOn(string $date): Collection;
+    public function movementsBetween(string $from, string $to): Collection;
 
     /**
      * Blocs actifs de tous les logements qui touchent [from, to[, avec réservation et
