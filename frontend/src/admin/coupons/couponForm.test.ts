@@ -14,6 +14,11 @@ describe('formulaire de code promo', () => {
     })
   })
 
+  it('ne limite pas une offre automatique par voyageur', () => {
+    expect(couponInputFromForm({ ...emptyCouponForm, code: 'HIVER', value: '10', maxUsesPerEmail: '1', automatic: true }).input?.max_uses_per_email).toBeNull()
+    expect(couponInputFromForm({ ...emptyCouponForm, code: 'HIVER', value: '10', maxUsesPerEmail: '1' }).input?.max_uses_per_email).toBe(1)
+  })
+
   it('refuse un pourcentage hors limites, un code trop court et un nombre invalide', () => {
     expect(couponInputFromForm({ ...emptyCouponForm, code: 'AB', value: '150', maxUses: '0' }).errors).toEqual({ code: 'required', value: 'invalidPercent', maxUses: 'invalidNumber' })
   })

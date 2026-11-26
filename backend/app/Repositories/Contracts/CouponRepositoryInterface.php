@@ -11,6 +11,9 @@ interface CouponRepositoryInterface
     /** Code saisi (insensible à la casse), verrouillé si demandé (enregistrement d'une utilisation). */
     public function findByCode(string $code, bool $lock = false): ?Coupon;
 
+    /** Code ou offre verrouillé pour enregistrer une utilisation. */
+    public function lockForRedemption(int $id): ?Coupon;
+
     /** @return Collection<int, Coupon> */
     public function activeAutomatic(): Collection;
 
@@ -19,7 +22,7 @@ interface CouponRepositoryInterface
 
     public function recordRedemption(Coupon $coupon, Booking $booking, string $email, int $discount): void;
 
-    /** Réservation expirée avant paiement : son utilisation ne compte plus. */
+    /** Réservation expirée avant paiement ou annulée : son utilisation ne compte plus. */
     public function releaseForBooking(Booking $booking): void;
 
     /**

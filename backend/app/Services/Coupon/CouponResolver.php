@@ -18,10 +18,12 @@ use Illuminate\Support\Facades\Date;
 /**
  * Choix de la réduction d'un séjour (spec « Codes promo ») : un seul avantage par
  * réservation. Un code saisi remplace l'offre automatique ; sans code, la plus avantageuse
- * des offres automatiques dont les conditions sont remplies s'applique. Une option offerte
- * est ajoutée au séjour si elle n'y est pas encore et si elle est encore commandable.
- * La limite par e-mail est vérifiée dès que l'e-mail est connu (création de la réservation) :
- * une offre automatique déjà utilisée par ce voyageur est ignorée, au profit de la suivante.
+ * des offres automatiques dont les conditions sont remplies s'applique : celle qui donne le
+ * total le plus bas (une option offerte que le voyageur n'a pas demandée ne baisse pas son
+ * prix). Une option offerte est ajoutée au séjour si elle n'y est pas encore et si elle est
+ * encore commandable. La limite par e-mail ne vaut que pour un code saisi, vérifiée dès que
+ * l'e-mail est connu (création de la réservation) : une offre automatique n'en a pas, pour que
+ * le prix du devis reste celui de la réservation.
  */
 class CouponResolver
 {
@@ -55,7 +57,7 @@ class CouponResolver
         $best = null;
         foreach ($this->coupons->activeAutomatic() as $offer) {
             $quote = $this->eligible($offer, $apartment, $stay, $email) ? $this->priced($offer, $apartment, $stay, $selected) : null;
-            if ($quote !== null && ($best === null || $quote->discount > $best->discount)) {
+            if ($quote !== null && ($best === null || $quote->total < $best->total)) {
                 $best = $quote;
             }
         }
@@ -63,7 +65,7 @@ class CouponResolver
         return $best ?? $this->calculator->calculate($apartment, $stay, $selected);
     }
 
-    /** Conditions connues sans le prix : actif, période de validité, logement, nuits, utilisations (au total, et par e-mail s'il est connu). */
+    /** Conditions connues sans le prix : actif, période de validité, logement, nuits, utilisations (au total, et par e-mail s'il est connu pour un code saisi). */
     public function eligible(Coupon $coupon, Apartment $apartment, Stay $stay, ?string $email = null): bool
     {
         $today = CarbonImmutable::instance(Date::today());
@@ -74,7 +76,7 @@ class CouponResolver
             && ($coupon->apartments->isEmpty() || $coupon->apartments->contains('id', $apartment->id))
             && ($coupon->min_nights === null || $stay->nights() >= $coupon->min_nights)
             && ($coupon->max_uses === null || $this->coupons->usesCount($coupon) < $coupon->max_uses)
-            && ($email === null || $coupon->max_uses_per_email === null || $this->coupons->usesCount($coupon, $email) < $coupon->max_uses_per_email);
+            && ($email === null || $coupon->automatic || $coupon->max_uses_per_email === null || $this->coupons->usesCount($coupon, $email) < $coupon->max_uses_per_email);
     }
 
     /**

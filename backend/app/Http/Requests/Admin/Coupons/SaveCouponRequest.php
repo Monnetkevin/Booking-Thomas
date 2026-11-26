@@ -5,10 +5,8 @@ namespace App\Http\Requests\Admin\Coupons;
 use App\Enums\CouponTarget;
 use App\Enums\CouponType;
 use App\Models\Coupon;
-use App\Models\Extra;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 /**
  * Code promo ou offre : code (lettres, chiffres, tirets, enregistré en majuscules), cible,
@@ -60,30 +58,6 @@ class SaveCouponRequest extends FormRequest
     }
 
     /**
-     * L'option visée ou offerte doit être active et proposée dans un des logements du code
-     * (dans au moins un logement si le code vaut partout) : sinon le code ne servirait jamais.
-     *
-     * @return list<callable(Validator): void>
-     */
-    public function after(): array
-    {
-        return [function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty() || ! $this->filled('extra_id')) {
-                return;
-            }
-            $apartmentIds = $this->apartmentIds();
-            $offered = Extra::query()
-                ->whereKey($this->integer('extra_id'))
-                ->where('is_active', true)
-                ->whereHas('apartments', fn ($query) => $apartmentIds === [] ? $query : $query->whereIn('apartments.id', $apartmentIds))
-                ->exists();
-            if (! $offered) {
-                $validator->errors()->add('extra_id', __('coupons.extra_not_offered', [], 'fr'));
-            }
-        }];
-    }
-
-    /**
      * @return array<string, mixed>
      */
     public function couponAttributes(): array
@@ -103,7 +77,9 @@ class SaveCouponRequest extends FormRequest
             'starts_on' => $this->validated('starts_on'),
             'ends_on' => $this->validated('ends_on'),
             'max_uses' => $nullable('max_uses'),
-            'max_uses_per_email' => $nullable('max_uses_per_email'),
+            // Limite par voyageur : codes saisis seulement (l'e-mail n'est pas connu au devis
+            // d'une offre automatique, le prix affiché changerait à la réservation).
+            'max_uses_per_email' => $this->boolean('automatic') ? null : $nullable('max_uses_per_email'),
             'min_nights' => $nullable('min_nights'),
             'min_amount' => $nullable('min_amount'),
             'automatic' => $this->boolean('automatic'),

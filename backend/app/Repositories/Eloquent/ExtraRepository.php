@@ -22,6 +22,15 @@ class ExtraRepository implements ExtraRepositoryInterface
             ->get();
     }
 
+    public function isOfferedIn(int $extraId, array $apartmentIds): bool
+    {
+        return Extra::query()
+            ->whereKey($extraId)
+            ->where('is_active', true)
+            ->whereHas('apartments', fn (Builder $query) => $apartmentIds === [] ? $query : $query->whereIn('apartments.id', $apartmentIds))
+            ->exists();
+    }
+
     public function recordForBooking(Booking $booking, array $items): void
     {
         if ($items !== []) {

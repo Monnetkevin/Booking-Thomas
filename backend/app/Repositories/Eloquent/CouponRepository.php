@@ -20,6 +20,11 @@ class CouponRepository implements CouponRepositoryInterface
             ->first();
     }
 
+    public function lockForRedemption(int $id): ?Coupon
+    {
+        return Coupon::query()->whereKey($id)->lockForUpdate()->first();
+    }
+
     public function activeAutomatic(): Collection
     {
         return Coupon::query()->where('automatic', true)->where('is_active', true)->with(['apartments', 'extra'])->orderBy('id')->get();

@@ -50,14 +50,15 @@ it('applique l’offre dès que ses conditions sont remplies, sans code', functi
         ->assertJsonPath('data.lines.2', ['type' => 'discount', 'label' => 'Offre LOFT4', 'amount' => -4500]);
 });
 
-it('garde la plus avantageuse des offres, et un code saisi la remplace', function () {
+it('garde l’offre qui donne le total le plus bas, et un code saisi la remplace', function () {
     Coupon::factory()->create(['code' => 'HIVER', 'automatic' => true, 'type' => CouponType::Percent, 'value' => 5]);
     Coupon::factory()->create(['code' => 'DIX', 'type' => CouponType::Fixed, 'value' => 1000]);
 
-    // 5 % de 400 € = 20 € < champagne offert (45 €).
-    offerQuote('2026-11-21')->assertJsonPath('data.coupon', 'LOFT4');
-    // 3 nuits : le champagne n'est pas offert, 5 % de 300 € s'appliquent.
-    offerQuote('2026-11-20')->assertJsonPath('data.coupon', 'HIVER')->assertJsonPath('data.discount', 1500);
+    // Champagne non commandé : l'offrir ne baisse pas le prix, les 5 % (20 €) l'emportent.
+    offerQuote('2026-11-21')->assertJsonPath('data.coupon', 'HIVER')->assertJsonPath('data.discount', 2000)->assertJsonPath('data.extras', 0);
+    // Champagne commandé : l'offrir (45 €) fait mieux que 5 % du séjour.
+    offerQuote('2026-11-21', ['extras' => [['id' => $this->champagne->id, 'quantity' => 1]]])
+        ->assertJsonPath('data.coupon', 'LOFT4')->assertJsonPath('data.total', 40000);
 
     $this->postJson('/api/coupons/validate', ['apartment' => 'le-loft', 'arrival' => '2026-11-17', 'departure' => '2026-11-21', 'adults' => 2, 'code' => 'dix'])
         ->assertJsonPath('data.coupon', 'DIX')->assertJsonPath('data.discount', 1000)->assertJsonPath('data.extras', 0);
@@ -79,18 +80,17 @@ it('ne propose pas une option offerte qui n’est plus commandable, et compte l�
         ->and(CouponRedemption::query()->sole()->code)->toBe('LOFT4');
 });
 
-it('ignore une offre déjà utilisée par ce voyageur au lieu de refuser sa réservation', function () {
+it('n’applique pas de limite par voyageur à une offre automatique : le prix du devis reste celui de la réservation', function () {
+    // Limite enregistrée avant la règle : sans effet sur une offre automatique.
     Coupon::query()->where('code', 'LOFT4')->update(['max_uses_per_email' => 1]);
-    Coupon::factory()->create(['code' => 'HIVER', 'automatic' => true, 'type' => CouponType::Percent, 'value' => 5]);
     $book = fn (string $arrival, string $departure) => $this->postJson('/api/bookings', ['apartment' => 'le-loft', 'arrival' => $arrival, 'departure' => $departure, 'adults' => 2,
         'name' => 'Camille Martin', 'email' => 'camille@example.com', 'phone' => '+33 6 12 34 56 78', 'country' => 'FR', 'accept_terms' => true]);
 
     $book('2026-11-17', '2026-11-21')->assertCreated();
-    // Second séjour de 4 nuits : le champagne a déjà été offert à ce voyageur, l'offre suivante s'applique.
     $book('2026-12-01', '2026-12-05')->assertCreated();
 
-    expect(Booking::query()->orderBy('id')->get()->map(fn (Booking $booking) => $booking->discount_amount)->all())->toBe([4500, 2000])
-        ->and(CouponRedemption::query()->orderBy('id')->pluck('code')->all())->toBe(['LOFT4', 'HIVER']);
+    expect(Booking::query()->orderBy('id')->pluck('discount_amount')->all())->toBe([4500, 4500])
+        ->and(CouponRedemption::query()->orderBy('id')->pluck('code')->all())->toBe(['LOFT4', 'LOFT4']);
 });
 
 it('ne compte pas l’option offerte dans le montant minimum de son offre', function () {

@@ -5,6 +5,7 @@ use App\Enums\BookingStatus;
 use App\Enums\CouponTarget;
 use App\Enums\CouponType;
 use App\Enums\ExtraPricing;
+use App\Exceptions\Coupon\CouponInvalidException;
 use App\Models\Apartment;
 use App\Models\Booking;
 use App\Models\Coupon;
@@ -12,8 +13,11 @@ use App\Models\CouponRedemption;
 use App\Models\Extra;
 use App\Models\RatePeriod;
 use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Services\Booking\AdminBookingService;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\RefundCalculator;
+use App\Services\Coupon\CouponRedeemer;
+use App\Services\Pricing\Quote;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
@@ -127,4 +131,26 @@ it('rend au remboursement la part du ménage et des options vraiment payée, sel
     expect($refund($booking(12000, 0)))->toBe(3000 + 100)
         // Option offerte (30 €) : le ménage, payé en entier, est rendu en entier.
         ->and($refund($booking(3000, 3000)))->toBe(5000 + 100);
+});
+
+it('revérifie à la réservation un code saisi désactivé depuis le devis', function () {
+    $code = Coupon::factory()->create(['code' => 'DIX', 'type' => CouponType::Fixed, 'value' => 1000]);
+    $quote = new Quote([], 40000, 4000, 800, [], 43800, 0, [], 1000, $code->id, 'DIX');
+    $code->update(['is_active' => false]);
+
+    expect(fn () => app(CouponRedeemer::class)->redeem($quote, Booking::factory()->for($this->apartment)->create(), 'camille@example.com'))
+        ->toThrow(CouponInvalidException::class);
+});
+
+it('rend l’utilisation du code quand la réservation est annulée', function () {
+    $code = Coupon::factory()->create(['code' => 'UNE', 'max_uses_per_email' => 1]);
+    $booking = Booking::factory()->for($this->apartment)->create([
+        'arrival' => '2026-12-10', 'departure' => '2026-12-12', 'guest_email' => 'camille@example.com',
+        'cancellation_policy' => ['policy' => 'flexible', 'tiers' => [['days_before' => 0, 'refund_percent' => 100]]],
+    ]);
+    CouponRedemption::query()->create(['coupon_id' => $code->id, 'booking_id' => $booking->id, 'email' => 'camille@example.com', 'code' => 'UNE', 'discount_amount' => 1000]);
+
+    app(AdminBookingService::class)->cancel($booking, false);
+
+    expect(CouponRedemption::query()->sole()->released_at)->not->toBeNull();
 });

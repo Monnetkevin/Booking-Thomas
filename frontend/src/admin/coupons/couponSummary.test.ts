@@ -16,9 +16,9 @@ describe('résumé d’un code promo', () => {
   })
 
   it('écrit l’offre automatique de la spec, avec ses conditions et limites', () => {
-    const offer = { ...base, code: 'LOFT4', automatic: true, type: 'free_extra' as const, target: 'extra' as const, free_quantity: 1, min_nights: 4, ends_on: '2027-03-31', max_uses_per_email: 1 }
+    const offer = { ...base, code: 'LOFT4', automatic: true, type: 'free_extra' as const, target: 'extra' as const, free_quantity: 1, min_nights: 4, ends_on: '2027-03-31', max_uses: 50 }
     expect(couponSummary(offer, 'Champagne', ['Le Loft balnéo'], t)).toBe(
-      'Sans code, automatiquement, dans Le Loft balnéo, à partir de 4 nuits, Champagne offert. Valable jusqu’au 31 mars 2027, une par voyageur.',
+      'Sans code, automatiquement, dans Le Loft balnéo, à partir de 4 nuits, Champagne offert. Valable jusqu’au 31 mars 2027, 50 utilisations au plus.',
     )
   })
 })

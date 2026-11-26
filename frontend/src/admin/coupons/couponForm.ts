@@ -96,7 +96,8 @@ export function couponInputFromForm(values: CouponFormValues): { input: CouponIn
   const minAmount = values.minAmount.trim() === '' ? null : parseEuros(values.minAmount)
   if (values.minAmount.trim() !== '' && (minAmount === null || minAmount <= 0)) errors.minAmount = 'invalidAmount'
   const maxUses = optionalWhole('maxUses')
-  const maxUsesPerEmail = optionalWhole('maxUsesPerEmail')
+  // Limite par voyageur : codes saisis seulement (l'e-mail n'est pas connu au devis d'une offre automatique).
+  const maxUsesPerEmail = values.automatic ? null : optionalWhole('maxUsesPerEmail')
   const minNights = optionalWhole('minNights')
   if (Object.keys(errors).length > 0) return { errors }
 

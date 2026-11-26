@@ -59,6 +59,14 @@ it('valide le code, la valeur selon le type, l’option visée et les dates', fu
     $this->postJson('/api/admin/coupons', couponPayload([...$offer, 'apartment_ids' => [$nid->id, $this->loft->id]]))->assertCreated();
     $this->champagne->update(['is_active' => false]);
     $this->postJson('/api/admin/coupons', couponPayload([...$offer, 'code' => 'AUTRE']))->assertJsonValidationErrors('extra_id');
+    // Code sur le séjour : une ancienne option envoyée est ignorée, pas vérifiée.
+    $this->postJson('/api/admin/coupons', couponPayload(['code' => 'SEJOUR', 'extra_id' => $this->champagne->id]))->assertCreated()
+        ->assertJsonPath('data.extra', null);
+});
+
+it('ne garde pas de limite par voyageur sur une offre automatique', function () {
+    $this->postJson('/api/admin/coupons', couponPayload(['automatic' => true, 'max_uses_per_email' => 1]))->assertCreated()
+        ->assertJsonPath('data.max_uses_per_email', null);
 });
 
 it('liste les codes avec leurs utilisations et le montant remisé, sans les réservations expirées', function () {

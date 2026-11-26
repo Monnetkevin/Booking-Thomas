@@ -5,8 +5,10 @@ namespace App\Services\Coupon;
 use App\Enums\AuditAction;
 use App\Models\Coupon;
 use App\Repositories\Contracts\CouponRepositoryInterface;
+use App\Repositories\Contracts\ExtraRepositoryInterface;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Administration des codes promo et offres (spec « Back-office › Coupons ») : création,
@@ -17,6 +19,7 @@ class CouponService
 {
     public function __construct(
         private readonly CouponRepositoryInterface $coupons,
+        private readonly ExtraRepositoryInterface $extras,
         private readonly AuditLogger $audit,
     ) {}
 
@@ -31,9 +34,12 @@ class CouponService
     /**
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $apartmentIds
+     *
+     * @throws ValidationException option visée ou offerte jamais commandable avec ce code
      */
     public function create(array $attributes, array $apartmentIds): Coupon
     {
+        $this->ensureExtraOffered($attributes, $apartmentIds);
         $coupon = $this->coupons->create($attributes, $apartmentIds);
         $this->audit->record(AuditAction::CouponCreated, $coupon, after: $this->auditValues($coupon));
 
@@ -43,14 +49,32 @@ class CouponService
     /**
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $apartmentIds
+     *
+     * @throws ValidationException option visée ou offerte jamais commandable avec ce code
      */
     public function update(Coupon $coupon, array $attributes, array $apartmentIds): Coupon
     {
+        $this->ensureExtraOffered($attributes, $apartmentIds);
         $before = $this->auditValues($coupon->load('apartments'));
         $coupon = $this->coupons->update($coupon, $attributes, $apartmentIds);
         $this->audit->record(AuditAction::CouponUpdated, $coupon, $before, $this->auditValues($coupon));
 
         return $coupon;
+    }
+
+    /**
+     * L'option visée ou offerte doit être active et proposée dans un des logements du code :
+     * sinon le code ne servirait jamais.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @param  list<int>  $apartmentIds
+     */
+    private function ensureExtraOffered(array $attributes, array $apartmentIds): void
+    {
+        $extraId = $attributes['extra_id'] ?? null;
+        if (is_int($extraId) && ! $this->extras->isOfferedIn($extraId, $apartmentIds)) {
+            throw ValidationException::withMessages(['extra_id' => __('coupons.extra_not_offered', [], 'fr')]);
+        }
     }
 
     /**

@@ -141,7 +141,7 @@ export function CouponFormDialog({ title, initialValues, apartments, extras, pen
             <DateField label={t('admin.coupons.form.startsOn')} value={values.startsOn} onChange={(value) => update('startsOn', value)} error={serverErrors.starts_on?.[0]} />
             <DateField label={t('admin.coupons.form.endsOn')} value={values.endsOn} min={values.startsOn || undefined} onChange={(value) => update('endsOn', value)} error={serverErrors.ends_on?.[0]} />
             <TextField label={t('admin.coupons.form.maxUses')} inputMode="numeric" {...text('maxUses', 'max_uses')} />
-            <TextField label={t('admin.coupons.form.maxUsesPerEmail')} inputMode="numeric" {...text('maxUsesPerEmail', 'max_uses_per_email')} />
+            {!values.automatic && <TextField label={t('admin.coupons.form.maxUsesPerEmail')} inputMode="numeric" {...text('maxUsesPerEmail', 'max_uses_per_email')} />}
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-sm font-semibold">{t('admin.coupons.form.apartments')}</span>
