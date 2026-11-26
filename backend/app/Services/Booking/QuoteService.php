@@ -3,16 +3,19 @@
 namespace App\Services\Booking;
 
 use App\Exceptions\Booking\StayNotAllowedException;
+use App\Exceptions\Coupon\CouponInvalidException;
 use App\Exceptions\Extra\ExtraNotAvailableException;
 use App\Models\Apartment;
+use App\Services\Coupon\CouponResolver;
 use App\Services\Extra\ExtraChoice;
 use App\Services\Extra\ExtraSelector;
 use App\Services\Pricing\PriceCalculator;
 use App\Services\Pricing\Quote;
 
 /**
- * Devis d'un séjour : règles vérifiées, options vérifiées (ExtraSelector), puis prix
- * calculé par PriceCalculator.
+ * Devis d'un séjour : règles vérifiées, options vérifiées (ExtraSelector), réduction
+ * choisie (CouponResolver : code saisi ou meilleure offre automatique), puis prix calculé
+ * par PriceCalculator.
  */
 class QuoteService
 {
@@ -20,6 +23,7 @@ class QuoteService
         private readonly StayRules $rules,
         private readonly PriceCalculator $calculator,
         private readonly ExtraSelector $extras,
+        private readonly CouponResolver $coupons,
     ) {}
 
     /**
@@ -27,18 +31,20 @@ class QuoteService
      * commandée avant son délai.
      *
      * @param  list<ExtraChoice>  $extras
+     * @param  string|null  $coupon  code promo saisi par le voyageur
      *
      * @throws StayNotAllowedException
      * @throws ExtraNotAvailableException
+     * @throws CouponInvalidException
      */
-    public function quote(Apartment $apartment, Stay $stay, array $extras = []): Quote
+    public function quote(Apartment $apartment, Stay $stay, array $extras = [], ?string $coupon = null): Quote
     {
         $violations = $this->rules->violations($apartment, $stay);
         if ($violations !== []) {
             throw new StayNotAllowedException($violations);
         }
 
-        return $this->calculator->calculate($apartment, $stay, $this->extras->select($apartment, $stay, $extras));
+        return $this->coupons->quote($apartment, $stay, $this->extras->select($apartment, $stay, $extras), $coupon);
     }
 
     /**

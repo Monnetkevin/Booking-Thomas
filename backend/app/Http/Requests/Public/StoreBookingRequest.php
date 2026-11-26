@@ -27,6 +27,7 @@ class StoreBookingRequest extends FormRequest
             'apartment' => ['required', 'string', 'max:100'],
             ...QuoteRequest::stayRules(),
             ...self::extraRules(),
+            'coupon' => ['nullable', 'string', 'max:40'],
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'phone' => ['required', 'string', 'max:40'],

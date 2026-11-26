@@ -28,6 +28,7 @@ use App\Http\Controllers\Public\ApartmentController as PublicApartmentController
 use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\CouponController;
 use App\Http\Controllers\Public\ExtraController as PublicExtraController;
 use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\ReviewController as PublicReviewController;
@@ -67,6 +68,9 @@ Route::get('review-invitations/{token}', [ReviewInvitationController::class, 'sh
     ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:public');
 Route::post('review-invitations/{token}', [ReviewInvitationController::class, 'store'])
     ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:10,1');
+
+// Code promo saisi au paiement : 10 essais par minute et par IP (pas de devinette de codes).
+Route::post('coupons/validate', [CouponController::class, 'validate'])->middleware('throttle:10,1');
 
 // Devis d'un séjour (jamais mis en cache) : 30 requêtes par minute et par IP.
 Route::post('quotes', [QuoteController::class, 'store'])->middleware('throttle:quotes');

@@ -3,6 +3,7 @@
 namespace App\Services\Pricing;
 
 use App\Models\Apartment;
+use App\Models\Coupon;
 use App\Models\RatePeriod;
 use App\Repositories\Contracts\RatePeriodRepositoryInterface;
 use App\Repositories\Contracts\SettingRepositoryInterface;
@@ -20,6 +21,8 @@ use Illuminate\Support\Collection;
  * - Ménage : forfait du logement.
  * - Options : prix unitaire × quantité, ou × nuits et/ou voyageurs selon leur mode ;
  *   une option gratuite apparaît à 0 €.
+ * - Réduction : un seul code ou offre (DiscountCalculator), sur l'hébergement et le ménage,
+ *   une option, ou les deux ; jamais sur la taxe de séjour.
  * - Taxe de séjour : par adulte et par nuit (mineurs exonérés), forfait ou pourcentage
  *   plafonné selon le réglage « tourist_tax ».
  */
@@ -31,14 +34,17 @@ class PriceCalculator
     public function __construct(
         private readonly RatePeriodRepositoryInterface $periods,
         private readonly SettingRepositoryInterface $settings,
+        private readonly DiscountCalculator $discounts,
     ) {}
 
     /**
      * @param  list<SelectedExtra>  $extras  options vérifiées (ExtraSelector)
+     * @param  Coupon|null  $coupon  code ou offre déjà jugé recevable (CouponResolver) ; sans effet
+     *                               si ses conditions de montant ne sont pas remplies
      *
      * @throws MissingRateException
      */
-    public function calculate(Apartment $apartment, Stay $stay, array $extras = []): Quote
+    public function calculate(Apartment $apartment, Stay $stay, array $extras = [], ?Coupon $coupon = null): Quote
     {
         $periods = $this->periods->covering($apartment->id, $stay->arrival->toDateString(), $stay->departure->subDay()->toDateString());
 
@@ -56,6 +62,13 @@ class PriceCalculator
             $lines[] = ['type' => 'extra', 'label' => $item['label'], 'quantity' => $item['quantity'], 'unit_amount' => $item['unit_amount'], 'amount' => $item['amount']];
         }
         $extrasAmount = array_sum(array_column($items, 'amount'));
+        $discount = $coupon === null ? 0 : $this->discounts->amount($coupon, $stay, $accommodation + $cleaning, $items);
+        // Réduction appliquée : seulement si elle vaut quelque chose pour ce séjour.
+        $applied = $discount > 0 ? $coupon : null;
+        if ($applied !== null) {
+            $label = __($applied->automatic ? 'coupons.line_offer' : 'coupons.line_code', ['code' => $applied->code]);
+            $lines[] = ['type' => 'discount', 'label' => $label, 'amount' => -$discount];
+        }
         if ($tax > 0) {
             $lines[] = [
                 'type' => 'tourist_tax',
@@ -65,9 +78,12 @@ class PriceCalculator
         }
 
         return new Quote(
-            $nights, $accommodation, $cleaning, $tax, $lines, $accommodation + $cleaning + $extrasAmount + $tax,
+            $nights, $accommodation, $cleaning, $tax, $lines, $accommodation + $cleaning + $extrasAmount - $discount + $tax,
             $extrasAmount,
             $this->extraItems($stay, $extras),
+            $discount,
+            $applied?->id,
+            $applied?->code,
         );
     }
 

@@ -9,6 +9,7 @@ use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Repositories\Contracts\AvailabilityRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
+use App\Repositories\Contracts\CouponRepositoryInterface;
 use App\Repositories\Contracts\ExtraRepositoryInterface;
 use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
@@ -24,6 +25,7 @@ use App\Repositories\Eloquent\AuditLogRepository;
 use App\Repositories\Eloquent\AvailabilityRepository;
 use App\Repositories\Eloquent\BookingRepository;
 use App\Repositories\Eloquent\ContactMessageRepository;
+use App\Repositories\Eloquent\CouponRepository;
 use App\Repositories\Eloquent\ExtraRepository;
 use App\Repositories\Eloquent\IcalFeedRepository;
 use App\Repositories\Eloquent\NotificationRepository;
@@ -59,6 +61,7 @@ class RepositoryServiceProvider extends ServiceProvider
         AuditLogRepositoryInterface::class => AuditLogRepository::class,
         ReviewRepositoryInterface::class => ReviewRepository::class,
         ExtraRepositoryInterface::class => ExtraRepository::class,
+        CouponRepositoryInterface::class => CouponRepository::class,
     ];
 
     public function register(): void
