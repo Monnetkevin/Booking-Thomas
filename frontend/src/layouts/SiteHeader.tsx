@@ -70,7 +70,8 @@ export function SiteHeader() {
     >
       <Container wide={isHome} className="flex min-h-[72px] items-center justify-between gap-4">
         <Link to={to('/')} className={cn('no-underline', overPhoto ? 'text-white hover:text-white' : 'text-ink hover:text-ink')}>
-          <Logo />
+          {/* Nom masqué sur téléphone : trop long, il ferait grandir l'en-tête (bande claire au-dessus de la photo). */}
+          <Logo nameClassName="sr-only sm:not-sr-only" />
         </Link>
         <div className="flex items-center gap-2 lg:gap-6">
           <nav aria-label={t('nav.main')} className="hidden md:block">
