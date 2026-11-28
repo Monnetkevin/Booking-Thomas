@@ -153,6 +153,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('bookings/{booking}/cancel', [AdminBookingController::class, 'cancel']);
     Route::post('bookings/{booking}/resend-confirmation', [AdminBookingController::class, 'resendConfirmation'])->middleware('throttle:6,1');
     Route::get('bookings/{booking}/pdf', [AdminBookingController::class, 'pdf']);
+    // Droits RGPD du voyageur : export de ses données, anonymisation.
+    Route::get('bookings/{booking}/guest-data', [AdminBookingController::class, 'guestData'])->middleware('throttle:10,1');
+    Route::post('bookings/{booking}/anonymize', [AdminBookingController::class, 'anonymize'])->middleware('throttle:10,1');
 
     // Tableau de bord
     Route::get('dashboard', DashboardController::class);

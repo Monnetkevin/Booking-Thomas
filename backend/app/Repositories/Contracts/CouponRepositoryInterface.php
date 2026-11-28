@@ -44,4 +44,11 @@ interface CouponRepositoryInterface
      * @param  list<int>  $apartmentIds
      */
     public function update(Coupon $coupon, array $attributes, array $apartmentIds): Coupon;
+
+    /**
+     * Efface l'e-mail des utilisations de code de ces réservations (elles restent comptées).
+     *
+     * @param  list<int>  $bookingIds
+     */
+    public function anonymizeRedemptions(array $bookingIds): void;
 }

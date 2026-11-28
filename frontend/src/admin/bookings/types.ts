@@ -56,6 +56,8 @@ export interface BookingDetail extends BookingListItem {
   payments: Array<{ id: number; type: 'payment' | 'refund'; status: 'pending' | 'succeeded' | 'failed'; amount: number; created_at: string | null }>
   confirmed_at: string | null
   cancelled_at: string | null
+  /** Voyageur anonymisé (RGPD) : coordonnées effacées. */
+  anonymized_at: string | null
   refund_proposal: RefundProposal | null
   history: BookingHistoryEvent[]
 }

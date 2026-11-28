@@ -98,4 +98,9 @@ class ReviewRepository implements ReviewRepositoryInterface
             ->whereHas('apartment', fn (Builder $query) => $query->whereNull('deleted_at')->where('status', ApartmentStatus::Published))
             ->when($apartmentId, fn (Builder $query, int $id) => $query->where('apartment_id', $id));
     }
+
+    public function clearDisplayNames(array $bookingIds): void
+    {
+        Review::query()->whereIn('booking_id', $bookingIds)->update(['display_name' => null]);
+    }
 }

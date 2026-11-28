@@ -8,6 +8,7 @@ return [
         'not_cancellable' => 'Seule une réservation confirmée peut être annulée.',
         'not_confirmed' => 'Cette réservation n’est pas confirmée : il n’y a pas de confirmation à renvoyer.',
         'block_already_removed' => 'Ce blocage a déjà été retiré.',
+        'guest_stay_in_progress' => 'Ce voyageur a un séjour en cours ou à venir : ses données servent encore à la réservation. Anonymisez-le après son départ.',
         'block_not_removable' => 'Seul un blocage manuel peut être retiré : une réservation s’annule, un séjour importé suit sa plateforme.',
     ],
     'dates_unavailable' => 'Ces dates ne sont plus disponibles. Merci d’en choisir d’autres.',

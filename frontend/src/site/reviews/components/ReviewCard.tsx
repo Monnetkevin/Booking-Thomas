@@ -17,7 +17,7 @@ export function ReviewCard({ review, showApartment = true }: { review: Published
       </div>
       <p className="text-base leading-relaxed whitespace-pre-line text-[#3a2e24]">« {review.comment} »</p>
       <p className="flex flex-col gap-0.5 text-sm text-muted">
-        <strong className="text-ink">{review.display_name}</strong>
+        <strong className="text-ink">{review.display_name ?? t('reviews.anonymousGuest')}</strong>
         <span>{showApartment ? t('reviews.verifiedIn', { apartment: review.apartment.name }) : t('reviews.verified')}</span>
       </p>
       {review.host_reply && (

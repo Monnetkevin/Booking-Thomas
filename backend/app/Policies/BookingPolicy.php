@@ -32,4 +32,10 @@ class BookingPolicy
     {
         return $user->isActiveAdmin();
     }
+
+    /** Export et anonymisation des données du voyageur (RGPD). */
+    public function managePersonalData(User $user, Booking $booking): bool
+    {
+        return $user->isActiveAdmin();
+    }
 }

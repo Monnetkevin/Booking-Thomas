@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $expires_at
  * @property Carbon|null $confirmed_at
  * @property Carbon|null $cancelled_at
+ * @property Carbon|null $anonymized_at voyageur anonymisé (RGPD) : coordonnées effacées
  * @property array<string, mixed> $price_breakdown
  * @property array{policy: string, tiers: list<array{days_before: int, refund_percent: int}>} $cancellation_policy
  */
@@ -32,6 +33,7 @@ use Illuminate\Support\Carbon;
     'arrival', 'departure', 'accommodation_amount', 'cleaning_fee', 'extras_amount', 'tourist_tax',
     'discount_amount', 'extras_discount_amount', 'total_amount', 'price_breakdown', 'cancellation_policy',
     'stripe_customer_id', 'stripe_checkout_session_id', 'expires_at', 'confirmed_at', 'cancelled_at',
+    'anonymized_at',
 ])]
 class Booking extends Model
 {
@@ -53,6 +55,7 @@ class Booking extends Model
             'expires_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'anonymized_at' => 'datetime',
         ];
     }
 

@@ -32,4 +32,6 @@ enum AuditAction: string
     case ExtraUpdated = 'extra.updated';
     case CouponCreated = 'coupon.created';
     case CouponUpdated = 'coupon.updated';
+    case GuestDataExported = 'guest.exported';
+    case GuestAnonymized = 'guest.anonymized';
 }
