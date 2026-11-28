@@ -1,4 +1,8 @@
 {
+  "pwa": {
+    "updateAvailable": "A new version of the site is available.",
+    "update": "Update"
+  },
   "site": {
     "name": "Les petits cocons du Mans",
     "tagline": "Furnished apartments in Le Mans"
