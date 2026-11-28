@@ -20,6 +20,14 @@ class AuthService
 
     public const DECAY_SECONDS = 60;
 
+    /**
+     * Échecs autorisés sur un même compte, toutes adresses IP confondues : un attaquant qui
+     * change d'adresse ne peut pas essayer des mots de passe sans fin.
+     */
+    public const MAX_ATTEMPTS_PER_ACCOUNT = 20;
+
+    public const ACCOUNT_DECAY_SECONDS = 900;
+
     public function __construct(
         private readonly UserRepositoryInterface $users,
         private readonly StatefulGuard $guard,
@@ -34,7 +42,9 @@ class AuthService
     public function login(string $email, string $password, bool $remember, ?string $ip): User
     {
         $throttleKey = $this->throttleKey($email, $ip);
-        $this->ensureIsNotRateLimited($throttleKey);
+        $accountKey = 'compte|'.$this->throttleKey($email, null);
+        $this->ensureIsNotRateLimited($throttleKey, self::MAX_ATTEMPTS);
+        $this->ensureIsNotRateLimited($accountKey, self::MAX_ATTEMPTS_PER_ACCOUNT);
 
         $user = $this->users->findByEmail($email);
         // Même coût de hachage que le compte existe ou non : le temps de réponse ne trahit rien.
@@ -42,11 +52,13 @@ class AuthService
 
         if (! $user || ! $user->is_active || ! $passwordMatches) {
             RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
+            RateLimiter::hit($accountKey, self::ACCOUNT_DECAY_SECONDS);
 
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 
         RateLimiter::clear($throttleKey);
+        RateLimiter::clear($accountKey);
         $this->guard->login($user, $remember);
         $this->users->touchLastLogin($user);
 
@@ -68,9 +80,9 @@ class AuthService
     /**
      * @throws ValidationException
      */
-    private function ensureIsNotRateLimited(string $throttleKey): void
+    private function ensureIsNotRateLimited(string $throttleKey, int $maxAttempts): void
     {
-        if (! RateLimiter::tooManyAttempts($throttleKey, self::MAX_ATTEMPTS)) {
+        if (! RateLimiter::tooManyAttempts($throttleKey, $maxAttempts)) {
             return;
         }
 
