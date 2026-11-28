@@ -3,10 +3,8 @@
 use App\Http\Controllers\Dev\MailPreviewController;
 use App\Http\Controllers\IcalExportController;
 use App\Http\Controllers\SeoController;
+use App\Http\Controllers\SpaPageController;
 use Illuminate\Support\Facades\Route;
-
-// L'application est une API : les pages sont servies par la SPA React (Nginx en production, Vite en local).
-Route::get('/', fn () => response()->json(['name' => config('app.name')]));
 
 // Plan du site et robots.txt (Nginx les transmet à Laravel).
 Route::get('sitemap.xml', [SeoController::class, 'sitemap']);
@@ -24,3 +22,9 @@ if (app()->environment('local')) {
     Route::get('dev/mails/{name}/{locale}', [MailPreviewController::class, 'show']);
     Route::get('dev/pdf/booking/{locale}', [MailPreviewController::class, 'pdf']);
 }
+
+// Pages publiques du site (Nginx confie leur premier chargement à Laravel) : index.html de la
+// SPA avec les balises de la page. En local, Vite sert le site sans passer par ici.
+Route::get('{path?}', SpaPageController::class)
+    ->where('path', '(?!(?:api|sanctum|admin|dev|up|ical)(?:/|$)).*')
+    ->middleware('throttle:public');
