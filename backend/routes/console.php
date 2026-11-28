@@ -2,6 +2,7 @@
 
 use App\Jobs\SyncIcalFeed;
 use App\Models\AuditLog;
+use App\Models\ContactMessage;
 use App\Models\IcalSyncLog;
 use App\Models\Notification;
 use App\Repositories\Contracts\BookingRepositoryInterface;
@@ -9,6 +10,7 @@ use App\Repositories\Contracts\IcalFeedRepositoryInterface;
 use App\Services\Apartment\ApartmentService;
 use App\Services\Booking\BookingService;
 use App\Services\Housekeeping\HousekeepingNotifier;
+use App\Services\Privacy\GuestPrivacyService;
 use App\Services\Review\ReviewInvitationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Inspiring;
@@ -48,6 +50,11 @@ Artisan::command('reviews:invite', function (ReviewInvitationService $reviews) {
     $this->info("$completed séjour(s) terminé(s), $invited invitation(s) à laisser un avis envoyée(s).");
 })->purpose('Termine les séjours passés et invite les voyageurs partis la veille à laisser un avis');
 
+Artisan::command('privacy:anonymize', function (GuestPrivacyService $privacy) {
+    $count = $privacy->anonymizeExpired(CarbonImmutable::now());
+    $this->info("$count réservation(s) anonymisée(s) (départ il y a plus de ".GuestPrivacyService::KEEP_YEARS.' ans).');
+})->purpose('Anonymise les voyageurs partis depuis plus de 3 ans (RGPD)');
+
 Artisan::command('ical:sync', function (IcalFeedRepositoryInterface $feeds) {
     $importable = $feeds->importable();
     $importable->each(fn ($feed) => SyncIcalFeed::dispatch($feed));
@@ -63,8 +70,12 @@ Artisan::command('notifications:housekeeping-summary', function (HousekeepingNot
 // Verrou de 30 minutes (24 h par défaut) : un conteneur tué en pleine synchro ne la bloque pas.
 Schedule::command('ical:sync')->everyFifteenMinutes()->withoutOverlapping(30);
 
-// Journal des synchronisations conservé 30 jours, notifications lues 90 jours, journal d'audit un an.
-Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification::class, AuditLog::class]])->daily();
+// Journal des synchronisations conservé 30 jours, notifications lues 90 jours, journal d'audit
+// et messages de contact un an.
+Schedule::command('model:prune', ['--model' => [IcalSyncLog::class, Notification::class, AuditLog::class, ContactMessage::class]])->daily();
+
+// RGPD : voyageurs partis depuis plus de 3 ans anonymisés, le 1er de chaque mois.
+Schedule::command('privacy:anonymize')->monthlyOn(1, '03:00');
 
 // Récapitulatif du ménage : chaque heure pile, aux comptes dont c'est l'heure choisie.
 Schedule::command('notifications:housekeeping-summary')->hourly();

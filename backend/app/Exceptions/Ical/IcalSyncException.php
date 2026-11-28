@@ -23,6 +23,11 @@ class IcalSyncException extends RuntimeException
         return new self(__('ical.errors.http', ['status' => $status], 'fr'));
     }
 
+    public static function forbiddenRedirect(string $host): self
+    {
+        return new self(__('ical.errors.forbidden_redirect', ['host' => $host], 'fr'));
+    }
+
     public static function tooLarge(): self
     {
         return new self(__('ical.errors.too_large', [], 'fr'));

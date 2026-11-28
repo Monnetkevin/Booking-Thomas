@@ -2,15 +2,19 @@
 
 namespace App\Services\Ical;
 
+use App\Enums\IcalProvider;
 use App\Exceptions\Ical\IcalSyncException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as Http;
 use Illuminate\Http\Client\RequestException;
+use Psr\Http\Message\UriInterface;
 use Throwable;
 
 /**
  * Télécharge un flux iCal : requête conditionnelle (If-None-Match), délai court et
  * nouvelles tentatives espacées si la plateforme est momentanément indisponible.
+ * Redirections suivies seulement en https et vers un domaine de la plateforme : une URL
+ * acceptée ne peut pas renvoyer le serveur vers le réseau interne ou un autre site.
  */
 class IcalFetcher
 {
@@ -27,10 +31,11 @@ class IcalFetcher
      *
      * @throws IcalSyncException
      */
-    public function fetch(string $url, ?string $etag, int $timeoutSeconds, int $attempts): ?FetchedCalendar
+    public function fetch(string $url, IcalProvider $provider, ?string $etag, int $timeoutSeconds, int $attempts): ?FetchedCalendar
     {
         $request = $this->http
             ->withUserAgent(config('app.name').' (synchronisation de calendrier)')
+            ->withOptions(['allow_redirects' => self::redirectPolicy($provider)])
             ->accept('text/calendar, text/plain;q=0.9, */*;q=0.1')
             ->timeout($timeoutSeconds)
             ->retry(max(1, $attempts), self::RETRY_DELAY_MS, fn (?Throwable $e) => $e !== null && $this->isTransient($e), throw: false);
@@ -57,6 +62,24 @@ class IcalFetcher
         }
 
         return new FetchedCalendar($content, $response->header('ETag') ?: null);
+    }
+
+    /**
+     * Options de redirection Guzzle : 3 au plus, https seulement, hôte de la plateforme.
+     *
+     * @return array<string, mixed>
+     */
+    public static function redirectPolicy(IcalProvider $provider): array
+    {
+        return [
+            'max' => 3,
+            'protocols' => ['https'],
+            'on_redirect' => function (mixed $request, mixed $response, UriInterface $uri) use ($provider): void {
+                if (! $provider->allowsHost($uri->getHost())) {
+                    throw IcalSyncException::forbiddenRedirect($uri->getHost());
+                }
+            },
+        ];
     }
 
     /** Coupure réseau ou erreur serveur : la tentative suivante peut réussir. */

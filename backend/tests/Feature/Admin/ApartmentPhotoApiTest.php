@@ -72,7 +72,7 @@ it('génère les versions WebP et AVIF ré-encodées', function () {
         ->assertJsonPath('data.0.ready', true);
 
     $media = $this->apartment->getFirstMedia(Apartment::PHOTOS);
-    foreach (['thumb', 'card', 'large'] as $size) {
+    foreach (['thumb', 'medium', 'card', 'large'] as $size) {
         Storage::disk('public')->assertExists($media->getPathRelativeToRoot($size));
         if (function_exists('imageavif')) {
             Storage::disk('public')->assertExists($media->getPathRelativeToRoot("$size-avif"));

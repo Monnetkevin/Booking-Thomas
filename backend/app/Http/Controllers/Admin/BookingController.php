@@ -17,6 +17,7 @@ use App\Services\Booking\BookingConfirmationPdf;
 use App\Services\Booking\BookingHistory;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\ManualBookingService;
+use App\Services\Privacy\GuestPrivacyService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -32,6 +33,7 @@ class BookingController extends Controller
         private readonly BookingConfirmationPdf $pdf,
         private readonly ManualBookingService $manual,
         private readonly BookingHistory $history,
+        private readonly GuestPrivacyService $privacy,
     ) {}
 
     public function index(ListBookingsRequest $request): AnonymousResourceCollection
@@ -114,6 +116,27 @@ class BookingController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$this->pdf->filename($booking).'"',
             'Cache-Control' => 'private, no-store',
         ]);
+    }
+
+    /** Données du voyageur (toutes ses réservations et ses messages), en fichier JSON. */
+    public function guestData(Booking $booking): JsonResponse
+    {
+        Gate::authorize('managePersonalData', $booking);
+
+        return response()->json($this->privacy->export($booking), 200, [
+            'Content-Disposition' => 'attachment; filename="donnees-voyageur-'.$booking->reference.'.json"',
+            'Cache-Control' => 'private, no-store',
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /** Anonymise le voyageur à sa demande : refusé tant qu'un de ses séjours n'est pas terminé. */
+    public function anonymize(Booking $booking): AdminBookingResource
+    {
+        Gate::authorize('managePersonalData', $booking);
+
+        $this->privacy->anonymize($booking);
+
+        return $this->resource($booking->refresh());
     }
 
     private function resource(Booking $booking): AdminBookingResource

@@ -1,0 +1,16 @@
+{
+  "name": "Les petits cocons du Mans · Admin",
+  "short_name": "Cocons Admin",
+  "description": "Back-office : réservations, planning et ménage.",
+  "lang": "fr",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf5ef",
+  "theme_color": "#faf5ef",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

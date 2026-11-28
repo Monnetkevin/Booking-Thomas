@@ -52,6 +52,10 @@ export function DatePicker({
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
+  const valueId = useId()
+  // Nom accessible = libellé + texte affiché (« Arrivée Choisir », « Arrivée 12/12/2026 ») :
+  // la commande vocale « Choisir » trouve le bouton.
+  const labelledBy = aria['aria-labelledby'] ? `${aria['aria-labelledby']} ${valueId}` : undefined
 
   const close = useCallback(() => setOpen(false), [])
   useDismiss(open, rootRef, close, buttonRef)
@@ -71,10 +75,11 @@ export function DatePicker({
         aria-controls={open ? panelId : undefined}
         aria-invalid={invalid || undefined}
         {...aria}
+        aria-labelledby={labelledBy}
         onClick={() => setOpen(!open)}
         className={controlClasses(appearance, invalid, 'flex items-center justify-between gap-2 text-left')}
       >
-        <span className={cn('truncate', !value && 'text-muted')}>
+        <span id={valueId} className={cn('truncate', !value && 'text-muted')}>
           {value ? formatDate(value, locale === 'fr' ? 'fr-FR' : 'en-GB') : (placeholder ?? t('common.chooseDate'))}
         </span>
         <CalendarIcon aria-hidden="true" className="shrink-0 text-muted" />

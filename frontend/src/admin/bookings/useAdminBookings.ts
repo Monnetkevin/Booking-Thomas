@@ -41,6 +41,15 @@ export function useDownloadBookingPdf(reference: string, service: AdminBookingSe
   return useMutation({ mutationFn: async () => saveFile(await service.downloadPdf(reference), `${reference}.pdf`) })
 }
 
+export function useDownloadGuestData(reference: string, service: AdminBookingService = adminBookingService) {
+  return useMutation({ mutationFn: async () => saveFile(await service.downloadGuestData(reference), `donnees-voyageur-${reference}.json`) })
+}
+
+export function useAnonymizeGuest(reference: string, service: AdminBookingService = adminBookingService) {
+  const refresh = useRefreshAdmin()
+  return useMutation({ mutationFn: () => service.anonymize(reference), onSuccess: refresh })
+}
+
 export function useDownloadBookingsCsv(service: AdminBookingService = adminBookingService) {
   return useMutation({ mutationFn: async (filters: BookingFilters) => saveFile(await service.downloadCsv(filters), 'reservations.csv') })
 }

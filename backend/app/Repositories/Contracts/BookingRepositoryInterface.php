@@ -106,4 +106,27 @@ interface BookingRepositoryInterface
      * @return Collection<int, Booking>
      */
     public function awaitingReviewInvitation(CarbonInterface $from, CarbonInterface $to): Collection;
+
+    /**
+     * Réservations du même voyageur (même e-mail, sans tenir compte de la casse), avec
+     * logement, options et avis ; la réservation seule si l'e-mail n'a pas été saisi.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function sameGuest(Booking $booking): Collection;
+
+    /**
+     * Efface les coordonnées du voyageur de ces réservations (nom remplacé, e-mail, téléphone,
+     * message, notes et client Stripe effacés). Dates, logement, montants et pays restent.
+     *
+     * @param  list<int>  $bookingIds
+     */
+    public function anonymize(array $bookingIds, string $placeholderName): void;
+
+    /**
+     * Réservations à anonymiser : départ avant cette date, voyageur pas encore anonymisé.
+     *
+     * @return list<int>
+     */
+    public function idsToAnonymize(CarbonInterface $departedBefore): array;
 }

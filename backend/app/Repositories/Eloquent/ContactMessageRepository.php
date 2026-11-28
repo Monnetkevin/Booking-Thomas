@@ -6,6 +6,7 @@ use App\Models\ContactMessage;
 use App\Repositories\Contracts\ContactMessageRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class ContactMessageRepository implements ContactMessageRepositoryInterface
 {
@@ -35,5 +36,15 @@ class ContactMessageRepository implements ContactMessageRepositoryInterface
         }
 
         return $message->load('apartment:id,name');
+    }
+
+    public function byEmail(string $email): Collection
+    {
+        return ContactMessage::query()->whereRaw('lower(email) = ?', [mb_strtolower($email)])->oldest('id')->get();
+    }
+
+    public function deleteByEmail(string $email): int
+    {
+        return ContactMessage::query()->whereRaw('lower(email) = ?', [mb_strtolower($email)])->delete();
     }
 }

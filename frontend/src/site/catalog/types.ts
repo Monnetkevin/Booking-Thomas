@@ -11,7 +11,7 @@ export interface PublicPhoto {
   alt: string
   width: number | null
   height: number | null
-  sources: Record<'thumb' | 'card' | 'large', PhotoSource>
+  sources: Record<'thumb' | 'medium' | 'card' | 'large', PhotoSource>
 }
 
 export interface PublicAmenity {

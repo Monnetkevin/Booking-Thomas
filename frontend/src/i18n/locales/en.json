@@ -1,6 +1,10 @@
 {
+  "pwa": {
+    "updateAvailable": "A new version of the site is available.",
+    "update": "Update"
+  },
   "site": {
-    "name": "Site name",
+    "name": "Les petits cocons du Mans",
     "tagline": "Furnished apartments in Le Mans"
   },
   "nav": {
@@ -352,6 +356,7 @@
     "backHome": "Back to home"
   },
   "reviews": {
+    "anonymousGuest": "Guest",
     "title": "Guest reviews",
     "metaDescription": "Reviews from guests who booked and stayed in our apartments in Le Mans.",
     "intro": "Every review comes from a guest who booked and stayed with us. Each one is checked before publication to make sure it matches a real stay; we never sort them by rating.",

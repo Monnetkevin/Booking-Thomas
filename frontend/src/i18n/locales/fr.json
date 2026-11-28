@@ -1,6 +1,10 @@
 {
+  "pwa": {
+    "updateAvailable": "Une nouvelle version du site est disponible.",
+    "update": "Mettre à jour"
+  },
   "site": {
-    "name": "Nom du site",
+    "name": "Les petits cocons du Mans",
     "tagline": "Appartements meublés au Mans"
   },
   "nav": {
@@ -354,6 +358,7 @@
     "backHome": "Retour à l’accueil"
   },
   "reviews": {
+    "anonymousGuest": "Voyageur",
     "title": "Avis des voyageurs",
     "metaDescription": "Les avis des voyageurs qui ont réservé et séjourné dans nos logements au Mans.",
     "intro": "Tous les avis viennent de voyageurs ayant réservé et séjourné chez nous. Chaque avis est relu avant publication pour vérifier qu’il correspond à un vrai séjour ; nous ne les trions pas selon la note.",

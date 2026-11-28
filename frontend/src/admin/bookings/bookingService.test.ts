@@ -18,16 +18,20 @@ describe('service des réservations (admin)', () => {
     await service.update('BT-ABCD2345', { housekeeping_notes: 'Lit bébé' })
     await service.cancel('BT-ABCD2345', true)
     await service.resendConfirmation('BT-ABCD2345')
+    await service.anonymize('BT-ABCD2345')
 
     expect(vi.mocked(client.request).mock.calls).toEqual([
       ['/admin/bookings/BT-ABCD2345'],
       ['/admin/bookings/BT-ABCD2345', { method: 'PATCH', body: { housekeeping_notes: 'Lit bébé' } }],
       ['/admin/bookings/BT-ABCD2345/cancel', { method: 'POST', body: { notify_guest: true } }],
       ['/admin/bookings/BT-ABCD2345/resend-confirmation', { method: 'POST' }],
+      ['/admin/bookings/BT-ABCD2345/anonymize', { method: 'POST' }],
     ])
     await service.downloadPdf('BT-ABCD2345')
     await service.downloadCsv({ stage: 'upcoming' })
     expect(client.download).toHaveBeenCalledWith('/admin/bookings.csv?page=1&stage=upcoming')
     expect(client.download).toHaveBeenCalledWith('/admin/bookings/BT-ABCD2345/pdf')
+    await service.downloadGuestData('BT-ABCD2345')
+    expect(client.download).toHaveBeenCalledWith('/admin/bookings/BT-ABCD2345/guest-data')
   })
 })
