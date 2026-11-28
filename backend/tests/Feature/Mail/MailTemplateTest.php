@@ -31,7 +31,7 @@ it('habille chaque e-mail : en-tête, pied de page, raison de l’envoi et thèm
     $mail = contactMail();
 
     $mail->assertSeeInHtml('Nom du site')
-        ->assertSeeInHtml('logo-mark', false)
+        ->assertSeeInHtml('https://exemple.fr/images/logo-email.jpg', false)
         ->assertSeeInHtml('https://exemple.fr/mentions-legales', false)
         ->assertSeeInHtml('Message envoyé depuis le formulaire de contact du site.')
         // Thème mis en ligne : couleur du bouton du site dans le HTML.

@@ -16,6 +16,7 @@ import { formatEuros } from '@/lib/money'
 import { BookingHistoryList } from '../components/BookingHistoryList'
 import { BookingStatusBadge } from '../components/BookingStatusBadge'
 import { CancelBookingDialog } from '../components/CancelBookingDialog'
+import { GuestPrivacySection } from '../components/GuestPrivacySection'
 import { GuestForm } from '../components/GuestForm'
 import { useBooking, useDownloadBookingPdf, useResendConfirmation, useUpdateBooking } from '../useAdminBookings'
 
@@ -206,6 +207,7 @@ export function BookingDetailPage() {
               </div>
             </Section>
           )}
+          <GuestPrivacySection booking={data} />
         </div>
       </div>
 

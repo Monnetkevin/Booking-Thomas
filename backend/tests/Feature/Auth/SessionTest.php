@@ -59,6 +59,19 @@ it('bloque après 5 tentatives échouées', function () {
         ->assertStatus(429);
 });
 
+it('bloque un compte après 20 échecs, même depuis des adresses IP différentes', function () {
+    foreach (range(1, 20) as $attempt) {
+        // 4 essais par adresse : la limite par adresse (5) n'est jamais atteinte.
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.'.intdiv($attempt, 4)])
+            ->postJson('/api/auth/login', ['email' => 'hote@example.com', 'password' => 'faux'])
+            ->assertStatus(422);
+    }
+
+    $this->withServerVariables(['REMOTE_ADDR' => '10.0.1.1'])
+        ->postJson('/api/auth/login', ['email' => 'hote@example.com', 'password' => 'un-mot-de-passe-solide'])
+        ->assertStatus(429);
+});
+
 it('déconnecte et invalide la session', function () {
     $this->actingAs($this->admin, 'web');
 

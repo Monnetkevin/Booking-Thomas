@@ -20,6 +20,15 @@ final class SiteUrl
         return self::base().'/'.ltrim($path, '/');
     }
 
+    /** Chemin du site (« /contact ») → URL complète dans la langue voulue (les pages anglaises sont sous /en). */
+    public static function localized(string $path, string $locale): string
+    {
+        $prefix = $locale === 'en' ? '/en' : '';
+        $path = '/'.ltrim($path, '/');
+
+        return self::base().($path === '/' ? ($prefix ?: '/') : $prefix.$path);
+    }
+
     /** Nom de domaine seul (« exemple.fr »). */
     public static function host(): string
     {

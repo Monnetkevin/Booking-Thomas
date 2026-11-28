@@ -210,4 +210,40 @@ class BookingRepository implements BookingRepositoryInterface
             ->with('apartment')
             ->get();
     }
+
+    public function sameGuest(Booking $booking): Collection
+    {
+        return Booking::query()
+            ->with(['apartment', 'extras', 'review'])
+            ->when(
+                $booking->guest_email !== null,
+                fn (Builder $query) => $query->whereRaw('lower(guest_email) = ?', [mb_strtolower((string) $booking->guest_email)]),
+                fn (Builder $query) => $query->whereKey($booking->id),
+            )
+            ->orderBy('arrival')
+            ->get();
+    }
+
+    public function anonymize(array $bookingIds, string $placeholderName): void
+    {
+        Booking::query()->whereKey($bookingIds)->update([
+            'guest_name' => $placeholderName,
+            'guest_email' => null,
+            'guest_phone' => null,
+            'guest_message' => null,
+            'housekeeping_notes' => null,
+            'stripe_customer_id' => null,
+            'anonymized_at' => now(),
+        ]);
+    }
+
+    public function idsToAnonymize(CarbonInterface $departedBefore): array
+    {
+        /** @var list<int> */
+        return Booking::query()
+            ->whereNull('anonymized_at')
+            ->where('departure', '<', $departedBefore->toDateString())
+            ->pluck('id')
+            ->all();
+    }
 }

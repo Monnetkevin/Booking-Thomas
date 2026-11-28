@@ -57,4 +57,11 @@ interface ReviewRepositoryInterface
      * @return array{sent: int, answered: int}
      */
     public function invitationsSince(CarbonInterface $since): array;
+
+    /**
+     * Retire le nom affiché des avis de ces réservations (le site affiche « Voyageur »).
+     *
+     * @param  list<int>  $bookingIds
+     */
+    public function clearDisplayNames(array $bookingIds): void;
 }

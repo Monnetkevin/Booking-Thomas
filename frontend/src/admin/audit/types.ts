@@ -26,6 +26,8 @@ export type AuditAction =
   | 'extra.updated'
   | 'coupon.created'
   | 'coupon.updated'
+  | 'guest.exported'
+  | 'guest.anonymized'
 
 export const AUDIT_ACTIONS: AuditAction[] = [
   'booking.created',
@@ -54,6 +56,8 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'extra.updated',
   'coupon.created',
   'coupon.updated',
+  'guest.exported',
+  'guest.anonymized',
 ]
 
 export type AuditValues = Record<string, unknown>

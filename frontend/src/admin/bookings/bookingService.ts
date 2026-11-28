@@ -12,6 +12,10 @@ export interface AdminBookingService {
   resendConfirmation(reference: string): Promise<void>
   /** Confirmation PDF, téléchargée par le client HTTP (session expirée → 401 comme ailleurs). */
   downloadPdf(reference: string): Promise<DownloadedFile>
+  /** Données du voyageur (RGPD) : toutes ses réservations et ses messages, en JSON. */
+  downloadGuestData(reference: string): Promise<DownloadedFile>
+  /** Anonymise le voyageur (RGPD) ; refusé tant qu'un de ses séjours n'est pas terminé. */
+  anonymize(reference: string): Promise<BookingDetail>
 }
 
 /** Paramètres de la liste, sans les filtres vides. */
@@ -37,6 +41,8 @@ export function createAdminBookingService(client: HttpClient & FileDownloader): 
     cancel: (reference, notifyGuest) => unwrap(client.request(`${path(reference)}/cancel`, { method: 'POST', body: { notify_guest: notifyGuest } })),
     resendConfirmation: (reference) => client.request<void>(`${path(reference)}/resend-confirmation`, { method: 'POST' }),
     downloadPdf: (reference) => client.download(`${path(reference)}/pdf`),
+    downloadGuestData: (reference) => client.download(`${path(reference)}/guest-data`),
+    anonymize: (reference) => unwrap(client.request(`${path(reference)}/anonymize`, { method: 'POST' })),
   }
 }
 

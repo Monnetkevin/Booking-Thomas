@@ -55,6 +55,7 @@ class AdminBookingResource extends JsonResource
             ])->values()->all(),
             'confirmed_at' => $this->confirmed_at?->toIso8601String(),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
+            'anonymized_at' => $this->anonymized_at?->toIso8601String(),
             'refund_proposal' => $this->refund?->toArray(),
             'history' => $this->history,
         ];

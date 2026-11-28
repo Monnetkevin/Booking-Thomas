@@ -23,7 +23,8 @@ export interface PublishedReview {
   id: number
   rating: number
   comment: string
-  display_name: string
+  /** Absent quand le voyageur a été anonymisé (RGPD) : le site affiche « Voyageur ». */
+  display_name: string | null
   /** « 2026-10 » */
   stay_month: string
   apartment: { name: string; slug: string }

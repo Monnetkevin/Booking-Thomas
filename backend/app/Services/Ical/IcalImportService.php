@@ -56,7 +56,7 @@ class IcalImportService
     private function read(IcalFeed $feed, IcalSyncTrigger $trigger, bool $acceptEmpty): array
     {
         try {
-            $fetched = $this->fetcher->fetch((string) $feed->import_url, $feed->etag, $trigger->timeoutSeconds(), $trigger->attempts());
+            $fetched = $this->fetcher->fetch((string) $feed->import_url, $feed->provider, $feed->etag, $trigger->timeoutSeconds(), $trigger->attempts());
             if ($fetched === null) {
                 return [SyncResult::unchanged(), []];
             }

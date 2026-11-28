@@ -10,6 +10,10 @@ import './index.css'
 // Langue fixée avant le premier rendu, d'après l'URL (/en/… = anglais).
 applyLocale(localeFromPath(window.location.pathname))
 
+// Balises posées par le serveur pour les aperçus de liens : le composant Seo les remplace
+// (sinon le titre de la première page resterait affiché après une navigation).
+document.querySelectorAll('[data-server-meta]').forEach((element) => element.remove())
+
 const root = document.getElementById('root')
 if (!root) throw new Error('Élément #root introuvable')
 

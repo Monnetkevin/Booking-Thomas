@@ -639,7 +639,9 @@
       "extra.created": "Option créée",
       "extra.updated": "Option modifiée",
       "coupon.created": "Code promo créé",
-      "coupon.updated": "Code promo modifié"
+      "coupon.updated": "Code promo modifié",
+      "guest.exported": "Données d’un voyageur exportées",
+      "guest.anonymized": "Voyageur anonymisé"
     }
   },
   "notFound": {
@@ -859,6 +861,15 @@
       "cancelled": "Réservation annulée",
       "arrival": "Arrivée",
       "departure": "Départ"
+    },
+    "privacy": {
+      "title": "Données personnelles",
+      "intro": "À la demande du voyageur : exporter ou effacer ses données. Cela concerne toutes ses réservations et ses messages (même e-mail).",
+      "export": "Exporter ses données (JSON)",
+      "anonymize": "Anonymiser le voyageur",
+      "confirmTitle": "Anonymiser ce voyageur ?",
+      "confirmText": "Son nom, son e-mail, son téléphone, ses messages et les notes de ménage seront effacés de toutes ses réservations, définitivement. Les dates, les montants et ses avis (sans son nom) restent.",
+      "anonymizedOn": "Voyageur anonymisé le {{date}} : ses coordonnées ont été effacées."
     }
   },
   "manual": {

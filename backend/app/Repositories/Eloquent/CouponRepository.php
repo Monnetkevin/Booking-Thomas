@@ -81,4 +81,9 @@ class CouponRepository implements CouponRepositoryInterface
 
         return $coupon->load(['apartments', 'extra']);
     }
+
+    public function anonymizeRedemptions(array $bookingIds): void
+    {
+        CouponRedemption::query()->whereIn('booking_id', $bookingIds)->update(['email' => 'anonymise']);
+    }
 }

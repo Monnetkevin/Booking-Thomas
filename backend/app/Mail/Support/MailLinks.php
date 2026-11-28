@@ -24,10 +24,6 @@ final class MailLinks
     /** Chemin du site public (« /contact ») → URL complète dans la langue voulue. */
     public static function to(string $path, string $locale): string
     {
-        $base = SiteUrl::base();
-        $prefix = $locale === 'en' ? '/en' : '';
-        $path = '/'.ltrim($path, '/');
-
-        return $base.($path === '/' ? ($prefix ?: '/') : $prefix.$path);
+        return SiteUrl::localized($path, $locale);
     }
 }
