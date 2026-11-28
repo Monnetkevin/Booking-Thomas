@@ -25,7 +25,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
  * logement affiché et recherche ; à droite, les cartes des autres logements pour changer de fond.
  * Passe sous l'en-tête du site, transparent tant que la page n'a pas défilé.
  */
-export function HomeHero({ intro, apartments }: { intro: string; apartments: ApartmentSummary[] }) {
+export function HomeHero({ intro, apartments, loading = false }: { intro: string; apartments: ApartmentSummary[]; loading?: boolean }) {
   const { t } = useTranslation()
   const { to } = useLocale()
   const slides = apartments.filter((apartment): apartment is Slide => apartment.cover !== null)
@@ -78,6 +78,8 @@ export function HomeHero({ intro, apartments }: { intro: string; apartments: Apa
           </h1>
           <p className="max-w-[480px] text-[17px] leading-relaxed text-[#f4ebdd] sm:text-lg short:hidden">{intro}</p>
 
+          {/* Logements pas encore chargés : place réservée (même hauteur), sans décaler le haut de page. */}
+          {!shown && loading && <div aria-hidden="true" className="min-h-[91px] border-t border-white/35 sm:min-h-[71px]" />}
           {shown && (
             <div className="flex items-center justify-between gap-4 border-t border-white/35 pt-5 short:pt-4" aria-live="polite">
               <div className="flex min-w-0 flex-col gap-0.5">

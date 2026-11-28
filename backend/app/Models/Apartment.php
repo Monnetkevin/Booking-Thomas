@@ -60,6 +60,8 @@ class Apartment extends Model implements HasMedia
      */
     public const PHOTO_SIZES = [
         'thumb' => [480, 360],
+        // Téléphones (écran d'environ 400 px en haute densité) : évite d'envoyer la version 960.
+        'medium' => [800, 1200],
         'card' => [960, 1440],
         'large' => [1920, 2880],
     ];

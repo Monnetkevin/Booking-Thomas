@@ -29,7 +29,7 @@ export function SiteFooter() {
           ))}
           {/* Accès discret au back-office (non localisé, exclu des moteurs par robots.txt). */}
           <li>
-            <Link to={ADMIN_PATH} className="inline-flex items-center gap-1.5 text-muted no-underline opacity-70 hover:text-ink hover:opacity-100">
+            <Link to={ADMIN_PATH} className="inline-flex items-center gap-1.5 text-muted no-underline hover:text-ink">
               <LockIcon width={14} height={14} />
               {t('footer.admin')}
             </Link>

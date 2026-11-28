@@ -9,7 +9,10 @@ export function HeroRating() {
   const { t } = useTranslation()
   const { locale, to } = useLocale()
   // Même requête que la section « Ils ont séjourné chez nous » : un seul appel.
-  const summary = usePublishedReviews(null).data?.pages[0]?.summary
+  const reviews = usePublishedReviews(null)
+  // Place réservée pendant le chargement : la pastille n'arrive pas en décalant le haut de page.
+  if (reviews.isPending) return <span aria-hidden="true" className="invisible h-[38px] w-[250px] rounded-full" />
+  const summary = reviews.data?.pages[0]?.summary
   if (!summary || summary.average === null) return null
   const average = summary.average.toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-GB', { minimumFractionDigits: 1 })
 
